@@ -521,6 +521,7 @@ void WM_DisableScreenTimeout(void);
 void WM_InitScreenTimeout(void);
 void WM_ClearScreenIsHappen(void);
 void WM_SetScreenTimeoutCallback(void *pMethod);
+void WM_SetScreenTouchWakeCallback(void *pMethod);
 /*********************************************************************
 *
 *           Misc routines

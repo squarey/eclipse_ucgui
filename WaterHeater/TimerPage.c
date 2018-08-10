@@ -22,7 +22,7 @@
 extern GUI_CONST_STORAGE GUI_FONT GUI_FontNUM_YH75;
 
 static const GUI_WIDGET_CREATE_INFO _aWindowsTimerCreate[] = {
-	{ WINDOW_CreateIndirect,	"Window",				ID_WINDOW_TIMER, 0, TITLE_BAR_HEIGHT, 1024, 600 - TITLE_BAR_HEIGHT, 0, 0x0,0},
+	{ WINDOW_CreateIndirect,	"Window",				ID_WINDOW_TIMER, 1024, TITLE_BAR_HEIGHT, 1024, 600 - TITLE_BAR_HEIGHT, 0, 0x0,0},
 	{ IMAGEVIEW_CreateIndirect, "icon",				ID_TIMER_ICON, 0, 0, 156, 156, 0, 0x0,0},
 	{ IMAGEVIEW_CreateIndirect, "line", 				ID_TIMER_LINE, 0, 0, 635, 12, 0, 0x0,0},
 	{ IMAGEBUTTON_CreateIndirect, "btn inc",			ID_TIMER_BTN_INC, 0, 0, 77, 47, 0, 0x0,0},

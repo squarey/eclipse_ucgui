@@ -27,7 +27,7 @@ Purpose     : Windows manager, touch support
 #define SCREEN_TIMEOUT_IS_USED		0x01
 #define SCREEN_TIMEOUT_IS_HAPPEN	0x02
 
-typedef void (*pScreenTimeoutCallback)(void);
+typedef void (*pScreenCallback)(void);
 /*********************************************************************
 *
 *          Public data
@@ -47,7 +47,8 @@ static U8 _WaitTouchRelease = 0;
 static U8 _ScreenTimeOutStatus = 0;
 static U32 _TouchReleaseTimeRecorde = 0;
 static U32 _ScreenTimeOutTime = 0;
-static pScreenTimeoutCallback _ScreenTimeout_cb = NULL;
+static pScreenCallback _ScreenTimeout_cb = NULL;
+static pScreenCallback _ScreenTouchWake_cb = NULL;
 /*********************************************************************
 *
 *          Modul internal routines
@@ -186,6 +187,11 @@ static WM_HWIN _Screen2Win(GUI_PID_STATE* pState)
 static void _ScreenTimeOutCalculation(U8 IsPress)
 {
 	if(IsPress){
+		if(_ScreenTimeOutStatus & SCREEN_TIMEOUT_IS_HAPPEN){
+			if(_ScreenTouchWake_cb){
+				_ScreenTouchWake_cb();
+			}
+		}
 		_ScreenTimeOutStatus &= ~SCREEN_TIMEOUT_IS_HAPPEN;
 		_TouchReleaseTimeRecorde = GUI_GetTime();
 	}else{
@@ -380,7 +386,11 @@ void WM_SetScreenTimeoutTime(U32 Time)
 }
 void WM_SetScreenTimeoutCallback(void *pMethod)
 {
-	_ScreenTimeout_cb = (pScreenTimeoutCallback)pMethod;
+	_ScreenTimeout_cb = (pScreenCallback)pMethod;
+}
+void WM_SetScreenTouchWakeCallback(void *pMethod)
+{
+	_ScreenTouchWake_cb = (pScreenCallback)pMethod;
 }
 #else
   void WM_Touch_c(void) {} /* avoid empty object files */
