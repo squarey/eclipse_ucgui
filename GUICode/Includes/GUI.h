@@ -977,6 +977,9 @@ void GUI_AA_FillPolygon      (GUI_POINT* pPoints, I32 NumPoints, I32 x0, I32 y0)
 #define GUI_RectToMax			WM_RectToMax
 #define GUI_RectGetWidth		WM_RectGetWidth
 #define GUI_RectGetHeight		WM_RectGetHeight
+#define GUI_RectReduceX			WM_RectReduceX
+#define GUI_RectReduceY			WM_RectReduceY
+#define GUI_RectReduce			WM_RectReduce
 /******************************************************************
 *
 *                 Keyboard

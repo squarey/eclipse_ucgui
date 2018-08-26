@@ -11,12 +11,13 @@
 
 #if GUI_WINSUPPORT && LISTVIEW_SUPPORT
 
+
+
+
 typedef struct
 {
-	U8   Flag;
-	void *IconBuffer;
 	char acText[1];
-} LISTVIEW_ITEM;
+} LISTVIEW_ItemDef;
 
 typedef struct 
 {
@@ -38,6 +39,7 @@ typedef struct
 	U32 TotalLenghtV;
 	I32 MoveDistanceY;
 	U8	isMove;
+	LISTVIEW_DrawItem DrawItemMethod;
 }LISTVIEW_Obj;
 
 #define LISTVIEW_H2P(h) (LISTVIEW_Obj *)GUI_ALLOC_h2p(h)

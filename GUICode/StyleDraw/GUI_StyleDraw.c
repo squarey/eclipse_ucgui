@@ -200,7 +200,6 @@ void GUI_DrawRectMainCorner(const GUI_RECT * pRect, const GUI_FullRectStyle * pS
         if(MidTopArea.y0 == pRect->y0 + Radius){
         	MidTopRefresh = 0;
         }
-
         /*Draw the areas which are not disabled*/
         if(EdgeTopRefresh != 0){
             if((mColor & 0x00ffffff) == (gColor & 0x00ffffff)){

@@ -88,3 +88,29 @@ I16 WM_RectGetHeight(const GUI_RECT * pRect)
 {
     return pRect->y1 - pRect->y0 + 1;
 }
+void WM_RectReduceX(GUI_RECT *pRect, I16 xReduce)
+{
+	if(pRect){
+		pRect->x0 += xReduce;
+		pRect->x1 -= xReduce;
+	}
+}
+void WM_RectReduceY(GUI_RECT *pRect, I16 yReduce)
+{
+	if(pRect){
+		pRect->y0 += yReduce;
+		pRect->y1 -= yReduce;
+	}
+}
+void WM_RectReduce(GUI_RECT *pRect, I16 Reduce)
+{
+	if(pRect){
+		pRect->x0 += Reduce;
+		pRect->x1 -= Reduce;
+		pRect->y0 += Reduce;
+		pRect->y1 -= Reduce;
+	}
+}
+
+
+

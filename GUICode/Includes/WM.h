@@ -482,6 +482,9 @@ U8 WM_RectIsIn(const GUI_RECT * pRect1, const GUI_RECT * pRect2);
 void WM_RectSet(GUI_RECT * pRect, I16 x0, I16 y0, I16 x1, I16 y1);
 I16 WM_RectGetWidth(const GUI_RECT * pRect);
 I16 WM_RectGetHeight(const GUI_RECT * pRect);
+void WM_RectReduceX(GUI_RECT *pRect, I16 xReduce);
+void WM_RectReduceY(GUI_RECT *pRect, I16 yReduce);
+void WM_RectReduce(GUI_RECT *pRect, I16 Reduce);
 /******************************************************************
 *
 *           Message related funcions

@@ -3,6 +3,7 @@
 #include "GUI_Protected.h"
 #include "WIDGET.h"
 #include "LISTVIEW.h"
+#include "LISTVIEW_Private.h"
 #include "GUI_Animation.h"
 
 
@@ -41,13 +42,6 @@ static LISTVIEW_PROPS LISTVIEW_DefaultProps = {
 static I32 lastTouchYPos = 0;
 static char isFirstTouch = 0;
 
-typedef struct
-{
-	LISTVIEW_ITEM *pItem;
-	GUI_RECT	Rect;
-	I16 		xReduce;
-	I32			ItemIndex;
-}ItemDrawInfo;
 
 /* ��ȡitem��Y���С */
 /*
@@ -55,22 +49,22 @@ static I32 _GetItemSizeY(const LISTVIEW_Obj* pObj)
 {
 	return pObj->ItemYSize;
 }*/
-/* ��ȡListView�ܹ���item��Ŀ */
-static unsigned LISTVIEW__GetNumItems(const LISTVIEW_Obj* pObj)
+/* get item numbers */
+static unsigned _LISTVIEW__GetNumItems(const LISTVIEW_Obj* pObj)
 {
 	return GUI_ARRAY_GetNumItems(&pObj->ItemArray);
 }
 
-/* ��ȡitem */
-static LISTVIEW_ITEM *_GetItem(const LISTVIEW_Obj* pObj,unsigned Index)
+/* get item by index */
+static void *_GetItem(const LISTVIEW_Obj* pObj,unsigned Index)
 {
-	LISTVIEW_ITEM *pItem;
-	pItem = (LISTVIEW_ITEM*)GUI_ARRAY_GetpItem(&pObj->ItemArray, Index);
+	void *pItem;
+	pItem = (void*)GUI_ARRAY_GetpItem(&pObj->ItemArray, Index);
 	return pItem;
 }
 
 
-static void LISTVIEW_OwnerDraw(LISTVIEW_Obj* pObj, ItemDrawInfo *pInfo)
+static void _LISTVIEW_OwnerDraw(LISTVIEW_Handle hObj, LISTVIEW_Obj* pObj, LISTVIEW_DrawItemInfo *pInfo)
 {
 	if(!pInfo){
 		return;
@@ -85,35 +79,25 @@ static void LISTVIEW_OwnerDraw(LISTVIEW_Obj* pObj, ItemDrawInfo *pInfo)
 		GUI_SetBkColor(pObj->Props.aBackColor[0]);
 	}
 	GUI_Clear();
-	GUI_SetColor(GUI_WHITE);
-	GUI_DrawHLine(pInfo->Rect.y1 - 1,pInfo->Rect.x0 - pInfo->xReduce, pInfo->Rect.x1);
 	/* ��ָ��RECT����ʾ�ַ��� */
-	GUI_SetFont(pObj->Props.pFont);
-	GUI_DispStringInRect(pInfo->pItem->acText, &pInfo->Rect, GUI_TA_VCENTER);
-	/* �Ƿ���Ҫ��item */
-	if(pInfo->pItem->IconBuffer){
-		U32 width = 0;
-		U32 height = 0;
-		U32 RectHeight = 0;
-		U32 DisPosX = 0;
-		U32 DisPosY = 0;
-		//U32 RectWidth = 0;
-		width = GUI_BMP_GetXSize(pInfo->pItem->IconBuffer);
-		height = GUI_BMP_GetYSize(pInfo->pItem->IconBuffer);
-		//RectWidth = RectItem.x1 - RectItem.x0;
-		RectHeight = pInfo->Rect.y1 - pInfo->Rect.y0;
-		/* �Ҷ��� */
-		DisPosX = pInfo->Rect.x1 - width;
-		/* ���ж��� */
-		if(height < RectHeight){
-			DisPosY = (RectHeight - height)/2;
-		}
-		GUI_BMP_Draw(pInfo->pItem->IconBuffer,DisPosX,DisPosY);
+	if(pObj->DrawItemMethod){
+		pObj->DrawItemMethod(hObj, pInfo);
+	}else{
+		char *pString;
+		LISTVIEW_ItemDef *pDefItem;
+		GUI_SetColor(GUI_WHITE);
+		GUI_DrawHLine(pInfo->Rect.y1 - 1,pInfo->Rect.x0 - LISTVIEW_STRING_X_REDUCE, pInfo->Rect.x1);
+		GUI_SetFont(pObj->Props.pFont);
+		pDefItem = (LISTVIEW_ItemDef *)pInfo->pItem;
+		pString = pDefItem->acText;
+		WM_RectReduceX(&pInfo->Rect, LISTVIEW_STRING_X_REDUCE);
+		GUI_DispStringInRect(pString, &pInfo->Rect, GUI_TA_VCENTER);
 	}
+
 }
 static void _Paint(LISTVIEW_Handle hObj, LISTVIEW_Obj* pObj)
 {
-	ItemDrawInfo	_DrawInfo;
+	LISTVIEW_DrawItemInfo	_DrawInfo;
 	//GUI_RECT RectListView;
 	I32 ListViewHeight = 0, ListViewWidth = 0;
 	I32 TopItem = 0, TopItemOffest = 0, Diff = 0;
@@ -124,10 +108,10 @@ static void _Paint(LISTVIEW_Handle hObj, LISTVIEW_Obj* pObj)
 	if(!WM__IsEnabled(hObj)){
 		return;
 	}
-	/* ��ȡlistview��rect */
+	/* get listview rect width and height */
 	ListViewHeight = WM_GetWindowSizeY(hObj);
 	ListViewWidth = WM_GetWindowSizeX(hObj);
-	TotalItem = LISTVIEW__GetNumItems(pObj);
+	TotalItem = _LISTVIEW__GetNumItems(pObj);
 	TopItem = pObj->MoveDistanceY/pObj->ItemYSize;
 	TopItemOffest = TopItem * pObj->ItemYSize;
 	Diff = pObj->MoveDistanceY - TopItemOffest;
@@ -155,7 +139,6 @@ static void _Paint(LISTVIEW_Handle hObj, LISTVIEW_Obj* pObj)
 			_DrawInfo.Rect.y1 = pObj->ItemYSize;
 		}
 		_DrawInfo.ItemIndex = i;
-		_DrawInfo.xReduce = LISTVIEW_STRING_X_REDUCE;
 		_DrawInfo.pItem = _GetItem(pObj,i);
 		_DrawInfo.Rect.x0 = 0;
 		_DrawInfo.Rect.x1 = ListViewWidth;
@@ -163,8 +146,7 @@ static void _Paint(LISTVIEW_Handle hObj, LISTVIEW_Obj* pObj)
 			return;
 		}
 		WM_SetUserClipArea(&_DrawInfo.Rect);
-		_DrawInfo.Rect.x0 = _DrawInfo.xReduce;
-		LISTVIEW_OwnerDraw(pObj,&_DrawInfo);
+		_LISTVIEW_OwnerDraw(hObj, pObj, &_DrawInfo);
 		ReasultOffest += pObj->ItemYSize;
 	}
 	WM_SetUserClipArea(NULL);
@@ -217,7 +199,7 @@ static I32 _GetPressItem(LISTVIEW_Handle hObj, LISTVIEW_Obj* pObj, I32 x, I32 y)
 		TouchItem = YPosArea/pObj->ItemYSize + TopItem + 1;
 	}
 
-	if(TouchItem > LISTVIEW__GetNumItems(pObj)){
+	if(TouchItem > _LISTVIEW__GetNumItems(pObj)){
 		return -1;
 	}else{
 		return TouchItem;
@@ -407,6 +389,7 @@ LISTVIEW_Handle LISTVIEW_CreateEx(I32 x0, I32 y0, I32 xsize, I32 ysize, WM_HWIN 
 		pObj->CurSel = -1;
 		pObj->ItemYSize = 35;
 		pObj->MoveDistanceY = 0;
+		pObj->DrawItemMethod = NULL;
 		pObj->hScrollbar = SCROLLBAR_CreateAttached(hObj, 0);
 	} 
 	else 
@@ -439,28 +422,49 @@ void LISTVIEW_SetSel(LISTVIEW_Handle hObj, I32 NewSel)
 		LISTVIEW_InvalidateItemRect(hObj, pObj, OldSel);
 	}
 }
-/* LISTVIEW���һ��item */
-void LISTVIEW_AddItem(LISTVIEW_Handle hObj,LISTVIEW_ITEM *item,const char * s)
+/* LISTVIEW add string item*/
+void LISTVIEW_AddStringItem(LISTVIEW_Handle hObj, const char * s)
 {
 	LISTVIEW_Obj* pObj;
-    LISTVIEW_ITEM tItem = {0,0};
-	if((NULL == item) || (0 == hObj)){
+	LISTVIEW_ItemDef tItem;
+	if((NULL == s) || (0 == hObj)){
 		return;
 	}
 	pObj = LISTVIEW_H2P(hObj);
-	/* ��ItemArray�����һ��item Ԫ�� */
-	if (GUI_ARRAY_AddItem(&pObj->ItemArray, &tItem, sizeof(LISTVIEW_ITEM) + GUI_strlen(s)) == 0) {
-		/* ��ȡ�ո���ӵ�item������ */
+	/* add item to item array */
+	if (GUI_ARRAY_AddItem(&pObj->ItemArray, &tItem, sizeof(LISTVIEW_ItemDef) + GUI_strlen(s)) == 0) {
 		unsigned ItemIndex = GUI_ARRAY_GetNumItems(&pObj->ItemArray) - 1;
-		/* ���item����Ϣ */
-		LISTVIEW_ITEM* pItem= (LISTVIEW_ITEM*)GUI_ARRAY_GetpItem(&pObj->ItemArray, ItemIndex);
+		LISTVIEW_ItemDef* pItem= (LISTVIEW_ItemDef*)GUI_ARRAY_GetpItem(&pObj->ItemArray, ItemIndex);
+		//focus to set extern draw item method to NULL
+		pObj->DrawItemMethod = NULL;
 		GUI_strcpy(pItem->acText, s);
-		pItem->Flag = item->Flag;
-		pItem->IconBuffer = item->IconBuffer;
-		pObj->TotalLenghtV = pObj->ItemYSize * LISTVIEW__GetNumItems(pObj);
+		pObj->TotalLenghtV = pObj->ItemYSize * _LISTVIEW__GetNumItems(pObj);
 		WM_InvalidateWindow(hObj);
 		SCROLLBAR_SetActualLength(pObj->hScrollbar, pObj->TotalLenghtV);
 	}
+}
+void LISTVIEW_AddExternItem(LISTVIEW_Handle hObj, void *pExternItem, U32 ItemSize)
+{
+	LISTVIEW_Obj* pObj;
+	if((NULL == pExternItem) || (0 == hObj) || (0 == ItemSize)){
+		return;
+	}
+	pObj = LISTVIEW_H2P(hObj);
+	if (GUI_ARRAY_AddItem(&pObj->ItemArray, pExternItem, ItemSize) == 0) {
+		pObj->TotalLenghtV = pObj->ItemYSize * _LISTVIEW__GetNumItems(pObj);
+		WM_InvalidateWindow(hObj);
+		SCROLLBAR_SetActualLength(pObj->hScrollbar, pObj->TotalLenghtV);
+	}
+}
+void LISTVIEW_SetDrawItemItem(LISTVIEW_Handle hObj, void *pMethod)
+{
+	LISTVIEW_Obj* pObj;
+	if(WM_HWIN_NULL == hObj){
+		return;
+	}
+	pObj = LISTVIEW_H2P(hObj);
+	pObj->DrawItemMethod = (LISTVIEW_DrawItem)pMethod;
+	WM_InvalidateWindow(hObj);
 }
 void LISTVIEW_SetItemYSize(LISTVIEW_Handle hObj, U32 size)
 {
@@ -472,7 +476,7 @@ void LISTVIEW_SetItemYSize(LISTVIEW_Handle hObj, U32 size)
 		pObj = LISTVIEW_H2P(hObj);
 		if(pObj->ItemYSize != size){
 			pObj->ItemYSize = size;
-			pObj->TotalLenghtV = pObj->ItemYSize * LISTVIEW__GetNumItems(pObj);
+			pObj->TotalLenghtV = pObj->ItemYSize * _LISTVIEW__GetNumItems(pObj);
 			WM_InvalidateWindow(hObj);
 			SCROLLBAR_SetActualLength(pObj->hScrollbar, pObj->TotalLenghtV);
 		}
@@ -492,25 +496,33 @@ void LISTVIEW_SetFont(LISTVIEW_Handle hObj, const GUI_FONT GUI_UNI_PTR* pFont)
 		}
 	}
 }
-LISTVIEW_ITEM LISTVIEW_GetItemInfo(LISTVIEW_Handle hObj, I32 itemIndex)
+void LISTVIEW_GetItemInfo(LISTVIEW_Handle hObj, I32 itemIndex, void *pGetItem)
 {
 	LISTVIEW_Obj* pObj;
-	LISTVIEW_ITEM *pItem;
-	if(hObj && (-1 != itemIndex)){
+	if(hObj && (-1 != itemIndex) && (NULL != pGetItem)){
+		void *pItem;
+		U32 ItemNum;
 		pObj = LISTVIEW_H2P(hObj);
-		pItem = (LISTVIEW_ITEM*)GUI_ARRAY_GetpItem(&pObj->ItemArray, itemIndex);
+		ItemNum = GUI_ARRAY_GetNumItems(&pObj->ItemArray) - 1;
+		if(ItemNum < itemIndex){
+			return;
+		}
+		pItem = (void*)GUI_ARRAY_GetpItem(&pObj->ItemArray, itemIndex);
+		pGetItem = pItem;
 	}
-	return *pItem;
+	//return *pGetItem;
+
 }
-LISTVIEW_ITEM *LISTVIEW_GetSelItemInfo(LISTVIEW_Handle hObj)
+void LISTVIEW_GetSelItemInfo(LISTVIEW_Handle hObj, void *pSelItem)
 {
 	LISTVIEW_Obj* pObj;
-	LISTVIEW_ITEM *pItem;
-	if(hObj){
+
+	if(hObj && (NULL != pSelItem)){
+		void *pItem;
 		pObj = LISTVIEW_H2P(hObj);
-		pItem = (LISTVIEW_ITEM*)GUI_ARRAY_GetpItem(&pObj->ItemArray, pObj->CurSel);
+		pItem = (void*)GUI_ARRAY_GetpItem(&pObj->ItemArray, pObj->CurSel);
+		pSelItem = pItem;
 	}
-	return pItem;
 }
 I32 LISTVIEW_GetSel(LISTVIEW_Handle hObj)
 {
