@@ -73,10 +73,7 @@ static void WidgetControlTest(void)
 	char Buffer[3];
 	WM_HMEM hwin;
 	WM_HMEM bWin, tWin;
-	LISTVIEW_ITEM ItemInfo;
-	GUI_Animation_Obj Anim;
-	ItemInfo.IconBuffer = NULL;
-	GUI_UC_SetEncodeUTF8();
+
 
 	hwin = WM_CreateWindowAsChild(0, 0, 854, 480, 0, WM_CF_SHOW, sWin_Callback, 0);
 	GUI_Debug("hwin parent %d\n", (int)hwin);
@@ -99,21 +96,22 @@ static void WidgetControlTest(void)
 	WM_SetAlignWindow(bWin, tWin, OBJ_ALIGN_BROTHER_UNDER_BOTTOM,0,10);
 	for(i = 0; i < 20; i++){
 		GUI_sprintf(Buffer, "%d", i);
-		LISTVIEW_AddItem(bWin, &ItemInfo, Buffer);
+		LISTVIEW_AddStringItem(bWin, Buffer);
 	}
 
 	bWin = TEXT_CreateAsChild(20, 240, 120, 40, hwin, 10, WM_CF_SHOW, "Text", 0);
 	TEXT_SetText(bWin,"二中科技");
 	TEXT_SetFont(bWin, &GUI_FontYH24);
 
-	/*ucGUI_AnimationObjInit(&Anim);
-	Anim.Start = 100;
-	Anim.End = 200;
-	Anim.Time = 1000;
-	Anim.Playback = 1;
-	Anim.PlaybackDelay = -1000;
-	Anim.pFunc = ucWM_SetWindowPosX;
-	ucGUI_AnimationCreate(bWin, &Anim);*/
+//	GUI_Animation_Obj Anim;
+//	GUI_AnimationObjInit(&Anim);
+//	Anim.Start = 100;
+//	Anim.End = 200;
+//	Anim.Time = 1000;
+//	Anim.Playback = 1;
+//	Anim.PlaybackDelay = -1000;
+//	Anim.pFunc = WM_SetWindowPosX;
+//	GUI_AnimationCreate(bWin, &Anim);
 /*	bWin = ucCHECKBOX_Create(300, 50, 100, 100, hwin, 11, ucWM_CF_SHOW);
 	ucCHECKBOX_SetText(bWin, "Check");
 	ucCHECKBOX_EnableStyleCircle(bWin);
@@ -172,7 +170,7 @@ int main (int argc, char *argv[])
 	GUI_EnableLogOut();
 	GUI_UC_SetEncodeUTF8();
 	monitor_fill(0, 0, 854, 480, 0xff000000);
-#if 0
+#if 1
 	WidgetControlTest();
 	//ucGUI_SetFont(&ucGUI_FontASSIC_YH32);
 	//ucGUI_DispCharAt('A', 100, 100);
@@ -180,7 +178,6 @@ int main (int argc, char *argv[])
 #else
 	BootPageCreate();
 #endif
-
 	//SDL_CreateThread(tick_thread, "tick", NULL);
 	while(1){
 		GUI_Exec();
