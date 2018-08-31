@@ -28,6 +28,10 @@ void IMAGEBUTTON_SetUnFocusMapping(IMAGEBUTTON_Handle hObj, IMAGEBUTTON_Handle h
 void IMAGEBUTTON_SetFocusMapping(IMAGEBUTTON_Handle hObj, IMAGEBUTTON_Handle hMap);
 void IMAGEBUTTON_SetUnFocusBitmap(IMAGEBUTTON_Handle hObj, const GUI_BITMAP *pBitmap);
 void IMAGEBUTTON_SetFocusBitmap(IMAGEBUTTON_Handle hObj, const GUI_BITMAP *pBitmap);
+void IMAGEBUTTON_SetUnFocusBitmapHasTrans(IMAGEBUTTON_Handle hObj, GUI_COLOR TransColor);
+void IMAGEBUTTON_ClearUnFocusBitmapHasTrans(IMAGEBUTTON_Handle hObj);
+void IMAGEBUTTON_SetFocusBitmapHasTrans(IMAGEBUTTON_Handle hObj, GUI_COLOR TransColor);
+void IMAGEBUTTON_ClearFocusBitmapHasTrans(IMAGEBUTTON_Handle hObj);
 
 #if defined(__cplusplus)
   }

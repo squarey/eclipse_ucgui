@@ -75,13 +75,15 @@ IMAGEVIEW_Handle IMAGEVIEW_CreateIndirect(const GUI_WIDGET_CREATE_INFO* pCreateI
 IMAGEVIEW_Handle IMAGEVIEW_CreateEx      (I32 x0, I32 y0, I32 xsize, I32 ysize, WM_HWIN hParent,
                                     I32 WinFlags, I32 ExFlags, I32 Id);
 
-void IMAGEVIEW_SetFile					(IMAGEVIEW_Handle hObj, const char *pFile, U8 Flag);
-void IMAGEVIEW_SetBkColor					 (IMAGEVIEW_Handle hObj,GUI_COLOR color);
+void IMAGEVIEW_SetFile						(IMAGEVIEW_Handle hObj, const char *pFile, U8 Flag);
+void IMAGEVIEW_SetBkColor					(IMAGEVIEW_Handle hObj,GUI_COLOR color);
 void IMAGEVIEW_SetChangeColor				(IMAGEVIEW_Handle hObj, GUI_COLOR Color);
 void IMAGEVIEW_SetRotateAngle				(IMAGEVIEW_Handle hObj, I16 Angle);
-void IMAGEVIEW_SetAlpha					(IMAGEVIEW_Handle hObj, U8 Alpha);
+void IMAGEVIEW_SetAlpha						(IMAGEVIEW_Handle hObj, U8 Alpha);
 void IMAGEVIEW_SetMapping					(IMAGEVIEW_Handle hObj, IMAGEVIEW_Handle hMap);
 void IMAGEVIEW_SetBitmap					(IMAGEVIEW_Handle hObj, const GUI_BITMAP *pBitmap);
+void IMAGEVIEW_SetBitmapHasTrans			(IMAGEVIEW_Handle hObj, GUI_COLOR TransColor);
+void IMAGEVIEW_ClearBitmapHasTrans			(IMAGEVIEW_Handle hObj);
 
 #if defined(__cplusplus)
   }

@@ -223,11 +223,18 @@ static void _Paint(IMAGEVIEW_Obj* pObj, IMAGEVIEW_Handle hObj) {
 			GUI_Clear();
 		}
 		if(IMAGEVIEW_COLOR_TYPE_BITMAP == pObj->ImageViewInfo.ColorType){
+			U8 PreMode;
 			_DrawInfo Info;
 			Info.ViewInfo = pObj->ImageViewInfo;
 			Info.AlphaValue = pObj->AlphaValue;
+			PreMode = GUI_GetDrawBitmapHasTrans();
 			_CalculationDrawInfo(hObj, &Info, 1);
+			if(IMAGE_BITMAP_HAS_TRANS == (pObj->Status & IMAGE_BITMAP_HAS_TRANS)){
+				GUI_SetDrawBitmapHasTrans(1);
+				GUI_SetDrawBitmapTransColor(pObj->BitmapTransColor);
+			}
 			GUI_DrawBitmap((GUI_BITMAP *)Info.ViewInfo.pExt, Info.OffestX, Info.OffestY);
+			GUI_SetDrawBitmapHasTrans(PreMode);
 			return;
 		}
 		if(IMAGE_IS_MAPPING == (IMAGE_IS_MAPPING & pObj->Status)){
@@ -507,6 +514,24 @@ void IMAGEVIEW_SetBitmap(IMAGEVIEW_Handle hObj, const GUI_BITMAP *pBitmap)
 		WM_InvalidateWindow(hObj);
 	}
 }
+void IMAGEVIEW_SetBitmapHasTrans(IMAGEVIEW_Handle hObj, GUI_COLOR TransColor)
+{
+	if(hObj){
+		IMAGEVIEW_Obj* pObj;
+		pObj = (IMAGEVIEW_Obj *)GUI_ALLOC_h2p(hObj);
+		pObj->BitmapTransColor = TransColor;
+		pObj->Status |= IMAGE_BITMAP_HAS_TRANS;
+	}
+}
+void IMAGEVIEW_ClearBitmapHasTrans(IMAGEVIEW_Handle hObj)
+{
+	if(hObj){
+		IMAGEVIEW_Obj* pObj;
+		pObj = (IMAGEVIEW_Obj *)GUI_ALLOC_h2p(hObj);
+		pObj->Status &= ~IMAGE_BITMAP_HAS_TRANS;
+	}
+}
+
 void IMAGEVIEW_SetChangeColor(IMAGEVIEW_Handle hObj, GUI_COLOR Color)
 {
 	if(hObj){

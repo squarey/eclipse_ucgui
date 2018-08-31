@@ -35,6 +35,7 @@ Purpose     : IMAGEVIEW private header file
 #define IMAGE_DECODE_NONE	0x00
 #define IMAGE_DECODE_SAVE	0x01
 #define IMAGE_IS_MAPPING	0x02
+#define IMAGE_BITMAP_HAS_TRANS	0x10
 
 typedef struct
 {
@@ -43,6 +44,7 @@ typedef struct
 	ImageViewInfo_t ImageViewInfo;
 	WM_HMEM hpText;
 	GUI_COLOR	BackgroundColor;
+	GUI_COLOR	BitmapTransColor;
 	I16	RotateAngle;
 	U8	AlphaValue;
 #if GUI_DEBUG_LEVEL >1

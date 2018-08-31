@@ -90,14 +90,6 @@ U8 ImageDecodeForPNG(ImageViewInfo_t *pInfo)
 		 }
 		 png_destroy_read_struct(&png_ptr, &info_ptr, 0);
 		 fclose(pic_fp);
-		 {
-			PicMemoryMonitor_t Monitor;
-			GUI_PicMemoryGetMonitor(&Monitor);
-			GUI_Debug("----------------------------------------------\n");
-			GUI_Debug("TotalSize:%d, FreeCount:%d, FreeSize:%d, FreeBiggestSize:%d\n", Monitor.TotalSize, Monitor.FreeCount, Monitor.FreeSize, Monitor.FreeBiggestSize);
-			GUI_Debug("UsedCount:%d, UsedPercent:%d, FragPercent:%d\n", Monitor.UsedCount, Monitor.UsedPercent, Monitor.FragPercent);
-			GUI_Debug("----------------------------------------------\n");
-		}
 		 return 0;
 	}
 }

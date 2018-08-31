@@ -81,5 +81,19 @@ void GUI_DrawBitmap(const GUI_BITMAP GUI_UNI_PTR * pBitmap, I32 x0, I32 y0)
 	GL_DrawBitmap(pBitmap, x0, y0);
 }
 
+void GUI_SetDrawBitmapTransColor(GUI_COLOR TransColor)
+{
+	GUI_Context.BitmapTransColor = TransColor;
+}
+
+void GUI_SetDrawBitmapHasTrans(U8 Status)
+{
+	GUI_Context.BitmapHasTrans = Status;
+}
+
+U8 GUI_GetDrawBitmapHasTrans(void)
+{
+	return GUI_Context.BitmapHasTrans;
+}
 /*************************** End of file ****************************/
 	 	 			 		    	 				 	  			   	 	 	 	 	 	  	  	      	   		 	 	 		  		  	 		 	  	  			     			       	   	 			  		    	 	     	 				  	 					 	 			   	  	  			 				 		 	 	 			     			 

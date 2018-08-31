@@ -32,92 +32,116 @@ Purpose     : Drawing routines for run length encoded bitmaps
 *
 *       _DrawBitmap_RLE4
 */
-static void _DrawBitmap_RLE4(I32 x0,I32 y0,I32 xsize, I32 ysize, const U8 GUI_UNI_PTR * pPixel, const LCD_LOGPALETTE GUI_UNI_PTR* pLogPal, I32 xMag, I32 yMag) {
-  const LCD_PIXELINDEX* pTrans =NULL;
-  char NoTrans = !(GUI_Context.DrawMode & LCD_DRAWMODE_TRANS);
-  LCD_PIXELINDEX aColorIndex[2];
-  LCD_PIXELINDEX PixelIndex;
-  I32 xi,y;
-  I32 xL, yL;
-  char IsMagnified = ((yMag | xMag) != 1);
-  aColorIndex[0] = LCD_ACOLORINDEX[0];
-  aColorIndex[1] = LCD_ACOLORINDEX[1];
-  /* Handle color translation */
-  if ((pLogPal) && (pLogPal->pPalEntries)) {
-    if ((pTrans = LCD_GetpPalConvTable(pLogPal)) == NULL) {
-      return;
-    }
-  }
- /* Check if we can limit the number of lines due to clipping) */
-  if (yMag == 1) {
-    if (ysize > GUI_Context.ClipRect.y1 - y0 + 1)
-      ysize = GUI_Context.ClipRect.y1 - y0 + 1;
-  }
-  /* Repeat until we have reached bottom */
-  for (xi=0, y = 0; y < ysize; ) {
-    U8 Cmd,Data;
-    Cmd= *pPixel++;
-    Data = *pPixel++;
-    if (Cmd) {
-      LCD_SetColorIndex(pTrans ? *(pTrans+Data) : Data);
-      while (Cmd) {
-        I32 xi1 = xi+Cmd;
-        if (xi1>=xsize)
-          xi1 = xsize;
-        Cmd -= (xi1-xi);
-        if (Data || NoTrans) {  /* Skip transparent pixels */
-          if (IsMagnified) {
-            xL = xMag * xi + x0;
-            yL = yMag * y + y0;
-            LCD_FillRect(xL, yL, xL + xMag * (xi1 - xi) -1 , yL + yMag - 1);
-          } else {
-            LCD_DrawHLine(x0+xi, y + y0, xi1+x0-1);
-          }
-        }
-        xi =xi1;
-        if (xi1==xsize) {
-          y++;
-          xi=0;
-        }
-      }
-    } else {
-      while (Data--) {
-        U8 Index = *pPixel++;
-        if ((Index>>4) || NoTrans) {  /* Skip transparent pixels */
-          PixelIndex = pTrans ? *(pTrans+(Index>>4)) : (Index>>4);
-          if (IsMagnified) {
-            LCD_SetColorIndex(PixelIndex);
-            xL = xMag * xi + x0;
-            yL = yMag * y + y0;
-            LCD_FillRect(xL, yL, xL + xMag -1 , yL + yMag - 1);
-          } else {
-            LCD_SetPixelIndex(x0+xi, y + y0, PixelIndex, 0xff);
-          }
-        }
-        if (++xi >= xsize) {
-          xi=0; y++;
-        }
-        if (Data-- == 0)
-          break;
-        if ((Index&15) || NoTrans) {  /* Skip transparent pixels */
-          PixelIndex = pTrans ? *(pTrans+(Index&15)) : (Index&15);
-          if (IsMagnified) {
-            LCD_SetColorIndex(PixelIndex);
-            xL = xMag * xi + x0;
-            yL = yMag * y + y0;
-            LCD_FillRect(xL, yL, xL + xMag -1 , yL + yMag - 1);
-          } else {
-            LCD_SetPixelIndex(x0+xi, y + y0, PixelIndex, 0xff);
-          }
-        }
-        if (++xi >= xsize) {
-          xi=0; y++;
-        }
-      }
-    }
-  }
-  LCD_ACOLORINDEX[0] = aColorIndex[0];
-  LCD_ACOLORINDEX[1] = aColorIndex[1];
+static void _DrawBitmap_RLE4(I32 x0,I32 y0,I32 xsize, I32 ysize, const U8 GUI_UNI_PTR * pPixel, const LCD_LOGPALETTE GUI_UNI_PTR* pLogPal, I32 xMag, I32 yMag)
+{
+	const LCD_PIXELINDEX* pTrans =NULL;
+	char NoTrans = !(GUI_Context.DrawMode & LCD_DRAWMODE_TRANS);
+	LCD_PIXELINDEX aColorIndex[2];
+	LCD_PIXELINDEX PixelIndex;
+	LCD_PIXELINDEX TransColorIndex;
+	LCD_PIXELINDEX DrawColorIndex;
+	I32 xi,y;
+	I32 xL, yL;
+	U8 BitmapHasTrans;
+	char IsMagnified = ((yMag | xMag) != 1);
+	aColorIndex[0] = LCD_ACOLORINDEX[0];
+	aColorIndex[1] = LCD_ACOLORINDEX[1];
+	BitmapHasTrans = GUI_Context.BitmapHasTrans;
+	TransColorIndex = GUI_Color2Index(GUI_Context.BitmapTransColor);
+	/* Handle color translation */
+	if ((pLogPal) && (pLogPal->pPalEntries)) {
+		if ((pTrans = LCD_GetpPalConvTable(pLogPal)) == NULL) {
+			return;
+		}
+	}
+	/* Check if we can limit the number of lines due to clipping) */
+	if (yMag == 1) {
+		if (ysize > GUI_Context.ClipRect.y1 - y0 + 1){
+			ysize = GUI_Context.ClipRect.y1 - y0 + 1;
+		}
+	}
+	/* Repeat until we have reached bottom */
+	for (xi=0, y = 0; y < ysize; ) {
+		U8 Cmd,Data;
+		Cmd= *pPixel++;
+		Data = *pPixel++;
+		if (Cmd) {
+			DrawColorIndex = pTrans ? *(pTrans+Data) : Data;
+			LCD_SetColorIndex(DrawColorIndex);
+			while (Cmd) {
+				I32 xi1 = xi+Cmd;
+				if (xi1>=xsize){
+					xi1 = xsize;
+				}
+				Cmd -= (xi1-xi);
+				if(1 == BitmapHasTrans){
+					if(TransColorIndex != DrawColorIndex){
+						goto DRAW1;
+					}
+				}else{
+DRAW1:
+					if (Data || NoTrans) {  /* Skip transparent pixels */
+						if (IsMagnified) {
+							xL = xMag * xi + x0;
+							yL = yMag * y + y0;
+							LCD_FillRect(xL, yL, xL + xMag * (xi1 - xi) -1 , yL + yMag - 1);
+						} else {
+							LCD_DrawHLine(x0+xi, y + y0, xi1+x0-1);
+						}
+					}
+					xi =xi1;
+					if (xi1==xsize) {
+						y++;
+						xi=0;
+					}
+				}
+			}
+		} else {
+			while (Data--) {
+				U8 Index = *pPixel++;
+				if(1 == BitmapHasTrans){
+					if(TransColorIndex != DrawColorIndex){
+						goto DRAW2;
+					}
+				}else {
+DRAW2:
+					if ((Index>>4) || NoTrans) {  /* Skip transparent pixels */
+						PixelIndex = pTrans ? *(pTrans+(Index>>4)) : (Index>>4);
+						if (IsMagnified) {
+							LCD_SetColorIndex(PixelIndex);
+							xL = xMag * xi + x0;
+							yL = yMag * y + y0;
+							LCD_FillRect(xL, yL, xL + xMag -1 , yL + yMag - 1);
+						} else {
+							LCD_SetPixelIndex(x0+xi, y + y0, PixelIndex, 0xff);
+						}
+					}
+				}
+				if (++xi >= xsize) {
+					xi=0; y++;
+				}
+				if (Data-- == 0){
+					break;
+				}
+				if ((Index&15) || NoTrans) {  /* Skip transparent pixels */
+					PixelIndex = pTrans ? *(pTrans+(Index&15)) : (Index&15);
+					if (IsMagnified) {
+						LCD_SetColorIndex(PixelIndex);
+						xL = xMag * xi + x0;
+						yL = yMag * y + y0;
+						LCD_FillRect(xL, yL, xL + xMag -1 , yL + yMag - 1);
+					} else {
+						LCD_SetPixelIndex(x0+xi, y + y0, PixelIndex, 0xff);
+					}
+				}
+				if (++xi >= xsize) {
+					xi=0; y++;
+				}
+			}
+		}
+	}
+	LCD_ACOLORINDEX[0] = aColorIndex[0];
+	LCD_ACOLORINDEX[1] = aColorIndex[1];
 }
 
 /*********************************************************************
