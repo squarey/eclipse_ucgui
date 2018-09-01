@@ -472,6 +472,8 @@ struct GUI_CONTEXT {
 	/* Required only when changing devices and for speed opt (caching) */
 	GUI_COLOR 				Color, BkColor;
 	U8							Alpha;
+	U8							BitmapHasTrans;
+	GUI_COLOR					BitmapTransColor;
 	/* Variables in WM module */
 #if GUI_WINSUPPORT
 	const GUI_RECT* 			WM__pUserClipRect;
@@ -745,6 +747,13 @@ char  GUI_GotoXY(I32 x, I32 y);
 char  GUI_GotoX(I32 x);
 char  GUI_GotoY(I32 y);
 void  GUI_DispNextLine(void);
+
+
+
+//add some function for bitmap
+U8 			GUI_GetDrawBitmapHasTrans		(void);
+void 		GUI_SetDrawBitmapHasTrans		(U8 Status);
+void 		GUI_SetDrawBitmapTransColor		(GUI_COLOR TransColor);
 
 /*********************************************************************
 *

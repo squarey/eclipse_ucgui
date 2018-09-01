@@ -179,9 +179,16 @@ static void _Paint(IMAGEBUTTON_Obj* pObj, IMAGEBUTTON_Handle hObj)
 		}
 		if(PressState){
 			if(IMAGEVIEW_COLOR_TYPE_BITMAP == pObj->FocusViewInfo.ColorType){
+				U8 PreMode;
 				Info.ViewInfo = pObj->FocusViewInfo;
+				PreMode = GUI_GetBitmapHasTrans();
+				if(IMAGE_BITMAP_FOCUS_HAS_TRANS == (pObj->Status & IMAGE_BITMAP_FOCUS_HAS_TRANS)){
+					GUI_SetBitmapHasTrans(1);
+					GUI_SetBitmapTransColor(pObj->FocusBitmapTransColor);
+				}
 				_CalculationDrawInfo(hObj, &Info, 1);
 				GUI_DrawBitmap((GUI_BITMAP *)Info.ViewInfo.pExt, Info.OffestX, Info.OffestY);
+				GUI_SetBitmapHasTrans(PreMode);
 				return;
 			}
 			if(IMAGE_FOCUS_DECODE_SAVE != (IMAGE_FOCUS_DECODE_SAVE & pObj->Status)){
@@ -191,9 +198,16 @@ static void _Paint(IMAGEBUTTON_Obj* pObj, IMAGEBUTTON_Handle hObj)
 			tViewInfo = pObj->FocusViewInfo;
 		}else{
 			if(IMAGEVIEW_COLOR_TYPE_BITMAP == pObj->UnFocusViewInfo.ColorType){
+				U8 PreMode;
 				Info.ViewInfo = pObj->UnFocusViewInfo;
+				PreMode = GUI_GetBitmapHasTrans();
+				if(IMAGE_BITMAP_UNFOCUS_HAS_TRANS == (pObj->Status & IMAGE_BITMAP_UNFOCUS_HAS_TRANS)){
+					GUI_SetDrawMode(GUI_DRAWMODE_TRANS);
+					GUI_SetBitmapTransColor(pObj->UnFocusBitmapTransColor);
+				}
 				_CalculationDrawInfo(hObj, &Info, 1);
 				GUI_DrawBitmap((GUI_BITMAP *)Info.ViewInfo.pExt, Info.OffestX, Info.OffestY);
+				GUI_SetBitmapHasTrans(PreMode);
 				return;
 			}
 			if(IMAGE_UNFOCUS_DECODE_SAVE != (IMAGE_UNFOCUS_DECODE_SAVE & pObj->Status)){
@@ -479,6 +493,23 @@ void IMAGEBUTTON_SetUnFocusBitmap(IMAGEBUTTON_Handle hObj, const GUI_BITMAP *pBi
 		}
 	}
 }
+void IMAGEBUTTON_SetUnFocusBitmapHasTrans(IMAGEBUTTON_Handle hObj, GUI_COLOR TransColor)
+{
+	if(hObj){
+		IMAGEBUTTON_Obj* pObj;
+		pObj = (IMAGEBUTTON_Obj *)GUI_ALLOC_h2p(hObj);
+		pObj->Status |= IMAGE_BITMAP_UNFOCUS_HAS_TRANS;
+		pObj->UnFocusBitmapTransColor = TransColor;
+	}
+}
+void IMAGEBUTTON_ClearUnFocusBitmapHasTrans(IMAGEBUTTON_Handle hObj)
+{
+	if(hObj){
+		IMAGEBUTTON_Obj* pObj;
+		pObj = (IMAGEBUTTON_Obj *)GUI_ALLOC_h2p(hObj);
+		pObj->Status &= ~IMAGE_BITMAP_UNFOCUS_HAS_TRANS;
+	}
+}
 void IMAGEBUTTON_SetFocusBitmap(IMAGEBUTTON_Handle hObj, const GUI_BITMAP *pBitmap)
 {
 	if(hObj){
@@ -500,6 +531,23 @@ void IMAGEBUTTON_SetFocusBitmap(IMAGEBUTTON_Handle hObj, const GUI_BITMAP *pBitm
 		if(IMAGEBUTTON_STATE_PRESSED == (pObj->Widget.State & IMAGEBUTTON_STATE_PRESSED)){
 			WM_InvalidateWindow(hObj);
 		}
+	}
+}
+void IMAGEBUTTON_SetFocusBitmapHasTrans(IMAGEBUTTON_Handle hObj, GUI_COLOR TransColor)
+{
+	if(hObj){
+		IMAGEBUTTON_Obj* pObj;
+		pObj = (IMAGEBUTTON_Obj *)GUI_ALLOC_h2p(hObj);
+		pObj->Status |= IMAGE_BITMAP_FOCUS_HAS_TRANS;
+		pObj->FocusBitmapTransColor = TransColor;
+	}
+}
+void IMAGEBUTTON_ClearFocusBitmapHasTrans(IMAGEBUTTON_Handle hObj)
+{
+	if(hObj){
+		IMAGEBUTTON_Obj* pObj;
+		pObj = (IMAGEBUTTON_Obj *)GUI_ALLOC_h2p(hObj);
+		pObj->Status &= ~IMAGE_BITMAP_FOCUS_HAS_TRANS;
 	}
 }
 #endif 

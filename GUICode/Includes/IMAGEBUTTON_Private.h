@@ -17,6 +17,9 @@
 #define IMAGE_FOCUS_IS_MAPPING		0x04
 #define IMAGE_UNFOCUS_IS_MAPPING	0x08
 
+#define IMAGE_BITMAP_UNFOCUS_HAS_TRANS		0x10
+#define IMAGE_BITMAP_FOCUS_HAS_TRANS		0x20
+
 typedef struct 
 {
 	WIDGET Widget;
@@ -25,6 +28,8 @@ typedef struct
 	WM_HMEM hFocusText;
 	WM_HMEM hUnFocusText;
 	GUI_COLOR	BkColor;
+	GUI_COLOR	UnFocusBitmapTransColor;
+	GUI_COLOR	FocusBitmapTransColor;
 	U8	  Status;
 }IMAGEBUTTON_Obj;
 

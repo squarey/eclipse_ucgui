@@ -84,16 +84,19 @@ static LCD_PIXELINDEX _GetPixelIndex(const U8 GUI_UNI_PTR ** ppPixel)
 */
 static void _DrawBitmap_RLE(I32 x0, I32 y0, I32 xsize, I32 ysize, const U8 GUI_UNI_PTR * pPixel, I32 xMag, I32 yMag)
 {
-	LCD_PIXELINDEX OldColorIndex, PixelIndex;
+	LCD_PIXELINDEX OldColorIndex, PixelIndex, TransColorIndex;
 	I32 xi, y, xL, yL;
 	const U8 GUI_UNI_PTR * pPixelOrg;
 	char NoTrans, IsMagnified;
+	U8 BitmapHasTrans;
 	pPixelOrg     = pPixel;
 	NoTrans       = !(GUI_Context.DrawMode & LCD_DRAWMODE_TRANS);
 	IsMagnified   = ((yMag | xMag) != 1);
 	OldColorIndex = LCD_ACOLORINDEX[1];
 	_DisplayMode   = LCD_GetFixedPaletteEx(GUI_Context.SelLayer);
 	_DisplaySwapRB = LCD_GetSwapRBEx(GUI_Context.SelLayer);
+	BitmapHasTrans = GUI_Context.BitmapHasTrans;
+	TransColorIndex = GUI_Color2Index(GUI_Context.BitmapTransColor);
 	/* Check if we can limit the number of lines due to clipping) */
 	if (yMag == 1) {
 		if (ysize > GUI_Context.ClipRect.y1 - y0 + 1) {
@@ -131,13 +134,20 @@ static void _DrawBitmap_RLE(I32 x0, I32 y0, I32 xsize, I32 ysize, const U8 GUI_U
 					xi1 = xsize;
 				}
 				NumCompressedPixels -= (xi1 - xi);
-				if (PixelIndex || NoTrans) {  /* Skip transparent pixels */
-					if (IsMagnified) {
-						xL = xMag * xi + x0;
-						yL = yMag * y + y0;
-						LCD_FillRect(xL, yL, xL + xMag * (xi1 - xi) -1 , yL + yMag - 1);
-					} else {
-						LCD_DrawHLine(x0 + xi, y + y0, xi1 + x0 - 1);
+				if(1 == BitmapHasTrans){
+					if(TransColorIndex != PixelIndex){
+						goto DRAW1;
+					}
+				}else{
+DRAW1:
+					if (PixelIndex || NoTrans) {  /* Skip transparent pixels */
+						if (IsMagnified) {
+							xL = xMag * xi + x0;
+							yL = yMag * y + y0;
+							LCD_FillRect(xL, yL, xL + xMag * (xi1 - xi) -1 , yL + yMag - 1);
+						} else {
+							LCD_DrawHLine(x0 + xi, y + y0, xi1 + x0 - 1);
+						}
 					}
 				}
 				xi = xi1;
@@ -150,18 +160,26 @@ static void _DrawBitmap_RLE(I32 x0, I32 y0, I32 xsize, I32 ysize, const U8 GUI_U
 			U8 NumPixels = *pPixel++;
 			do {
 				PixelIndex = _GetPixelIndex(&pPixel);
-				if (PixelIndex || NoTrans) {  /* Skip transparent pixels */
-					I32 x = x0 + xi;
-					if (IsMagnified) {
-						LCD_SetColorIndex(PixelIndex);
-						xL = xMag * xi + x0;
-						yL = yMag * y + y0;
-						LCD_FillRect(xL, yL, xL + xMag - 1 , yL + yMag - 1);
-					} else {
-						if ((y + y0) >= GUI_Context.ClipRect.y0) {
-							if (x >= GUI_Context.ClipRect.x0) {
-								if (x <= GUI_Context.ClipRect.x1) {
-									LCDDEV_L0_SetPixelIndex(x, y + y0, PixelIndex, 0xff);
+				if(1 == BitmapHasTrans){
+					if(TransColorIndex != PixelIndex){
+						goto DRAW2;
+					}
+				}else{
+DRAW2:
+					if (PixelIndex || NoTrans) {  /* Skip transparent pixels */
+						I32 x = 0;
+						x = x0 + xi;
+						if (IsMagnified) {
+							LCD_SetColorIndex(PixelIndex);
+							xL = xMag * xi + x0;
+							yL = yMag * y + y0;
+							LCD_FillRect(xL, yL, xL + xMag - 1 , yL + yMag - 1);
+						} else {
+							if ((y + y0) >= GUI_Context.ClipRect.y0) {
+								if (x >= GUI_Context.ClipRect.x0) {
+									if (x <= GUI_Context.ClipRect.x1) {
+										LCDDEV_L0_SetPixelIndex(x, y + y0, PixelIndex, 0xff);
+									}
 								}
 							}
 						}
