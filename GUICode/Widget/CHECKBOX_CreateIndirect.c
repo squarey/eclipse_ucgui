@@ -37,7 +37,7 @@ CHECKBOX_Handle CHECKBOX_CreateIndirect(const GUI_WIDGET_CREATE_INFO* pCreateInf
 	CHECKBOX_Handle  hThis;
 	GUI_USE_PARA(cb);
 	hThis = CHECKBOX_CreateEx(pCreateInfo->x0 + x0, pCreateInfo->y0 + y0, pCreateInfo->xSize, pCreateInfo->ySize,
-							hWinParent, 0, pCreateInfo->Flags, pCreateInfo->Id);
+							hWinParent, pCreateInfo->Flags, pCreateInfo->Extra, pCreateInfo->Id);
 	return hThis;
 }
 

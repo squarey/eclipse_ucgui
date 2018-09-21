@@ -30,24 +30,13 @@ Purpose     : Implementation of WM_SetTransState
 
 void WM_SetTransState(WM_HWIN hWin, unsigned State) 
 {
-	WM_Obj *pWin;
+	//WM_Obj *pWin;
 	if (hWin) {
-		pWin = WM_H2P(hWin);
+		//pWin = WM_H2P(hWin);
 		if (State & WM_CF_HASTRANS) {
 			WM_SetHasTrans(hWin);
 		} else {
 			WM_ClrHasTrans(hWin);
-		}
-		if (State & WM_CF_CONST_OUTLINE) {
-			if (!(pWin->Status & WM_CF_CONST_OUTLINE)) {
-				pWin->Status |= WM_CF_CONST_OUTLINE;
-				WM_InvalidateWindow(hWin);
-			}
-		} else {
-			if (pWin->Status & WM_CF_CONST_OUTLINE) {
-				pWin->Status &= ~WM_CF_CONST_OUTLINE;
-				WM_InvalidateWindow(hWin);
-			}
 		}
 	}
 }

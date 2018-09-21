@@ -44,6 +44,7 @@ void GUI_AnimationDelete(GUI_HANIMATION hAnimation);
 void GUI_AnimationDeleteByContext(WM_HWIN hContext);
 I32 GUI_AnimationPathLiner(const GUI_Animation_Obj *pAnimation);
 void GUI_AnimationObjInit(GUI_Animation_Obj *pAnim);
-void GUI_SetPageSwitchAnimation(WM_HWIN hWin);
+void GUI_StartPageAnimationMoveIn(WM_HWIN hWin, I32 StartPosX, I32 EndPosX, I32 Duration);
+void GUI_StartPageAnimationMoveOut(WM_HWIN hWin, I32 StartPosX, I32 EndPosX, I32 Duration);
 
 #endif /* GUI_ANIMATION_H_ */

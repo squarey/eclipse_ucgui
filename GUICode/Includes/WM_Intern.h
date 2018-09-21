@@ -51,7 +51,7 @@ extern "C" {     /* Make sure we have C-declarations in C++ programs */
 #define WM_SF_DELETE        	  WM_CF_DELETE
 
 #define WM_SF_STAYONTOP         WM_CF_STAYONTOP
-#define WM_SF_LATE_CLIP         WM_CF_LATE_CLIP
+//#define WM_SF_DISABLE_TOUCH     WM_CF_DISABLE_TOUCH
 #define WM_SF_ANCHOR_RIGHT      WM_CF_ANCHOR_RIGHT
 #define WM_SF_ANCHOR_BOTTOM     WM_CF_ANCHOR_BOTTOM
 #define WM_SF_ANCHOR_LEFT       WM_CF_ANCHOR_LEFT
@@ -59,7 +59,7 @@ extern "C" {     /* Make sure we have C-declarations in C++ programs */
 
 #define WM_SF_INVALID           WM_CF_ACTIVATE  /* We reuse this flag, as it is create only and Invalid is status only */
 
-#define WM_SF_CONST_OUTLINE     WM_CF_CONST_OUTLINE       /* Constant outline.*/
+//#define WM_SF_LATE_INVALID     	WM_CF_LATE_INVALID
 
 #define WM_HANDLE2PTR(hWin) ((WM_Obj*)GUI_ALLOC_h2p(hWin))    /* older form ... to be eliminated */
 #define WM_H2P(hWin)        ((WM_Obj*)GUI_ALLOC_h2p(hWin))

@@ -41,6 +41,8 @@ None
 #include "TOTAST.h"
 #include "TimerPicker.h"
 #include "SimpleKeyboard.h"
+#include "Picker.h"
+#include "WindowList.h"
 
 #if GUI_WINSUPPORT
 
@@ -49,12 +51,10 @@ extern "C" {     /* Make sure we have C-declarations in C++ programs */
 #endif
 
 WM_HWIN WINDOW_CreateIndirect(const GUI_WIDGET_CREATE_INFO* pCreateInfo, WM_HWIN hWinParent, I32 x0, I32 y0, WM_CALLBACK* cb);
-void    WINDOW_SetDefaultBkColor(GUI_COLOR Color);
-void WINDOW_SetBkColor(WM_HWIN hwin, GUI_COLOR color);
-
-
+void    WINDOW_SetDefaultBkStyle(const GUI_FullRectStyle *pStyle);
+void WINDOW_SetBkColor(WM_HWIN hWin, const GUI_FullRectStyle *pStyle);
 void WINDOW_Callback(WM_MESSAGE * pMsg);
-void WINDOW_SetBkColor(WM_HWIN hwin, GUI_COLOR Color);
+
 #if defined(__cplusplus)
   }
 #endif

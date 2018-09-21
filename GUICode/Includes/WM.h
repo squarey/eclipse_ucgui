@@ -251,10 +251,8 @@ The following is the list of windows messages.
 #define WM_CF_ANCHOR_LEFT      (1 << 10)  /* Left anchor ... If parent is resized, distance to left will remain const (left is default) */
 #define WM_CF_ANCHOR_TOP       (1 << 11) /* Top anchor ... If parent is resized, distance to top will remain const (top is default) */
 
-#define WM_CF_CONST_OUTLINE    (1 << 12) /* Constant outline. This is relevant for transparent windows only. If a window is transparent
-                                       and does not have a constant outline, its background is invalided instead of the window itself.
-                                       This causes add. computation time when redrawing. */
-#define WM_CF_LATE_CLIP        (1 << 13)
+//#define WM_CF_LATE_INVALID    (1 << 12) /* late add to invalid link when use WM_SetAlign* function */
+//#define WM_CF_DISABLE_TOUCH    (1 << 13)
 #define WM_CF_MEMDEV_ON_REDRAW (1 << 14)
 #define WM_CF_RESERVED         (1 << 15)
 
@@ -332,6 +330,8 @@ typedef enum
 	OBJ_ALIGN_PARENT_RIGHT_TOP,
 	OBJ_ALIGN_PARENT_LEFT_BOTTOM,
 	OBJ_ALIGN_PARENT_RIGHT_BOTTOM,
+	OBJ_ALIGN_PARENT_RIGHT_CENTER,
+	OBJ_ALIGN_PARENT_LEFT_CENTER,
 	OBJ_ALIGN_PARENT_NUM,
 }GUI_ALIGN_em;
 
@@ -383,6 +383,7 @@ void    WM_SetHasTrans               (WM_HWIN hWin);
 void    WM_SetId                     (WM_HWIN hObj, I32 Id);
 void    WM_SetTransState             (WM_HWIN hWin, unsigned State);
 void    WM_ShowWindow                (WM_HWIN hWin);
+void 	WM_ShowWindowAndChild		 (WM_HWIN hWin);
 I32     WM_GetInvalidRect            (WM_HWIN hWin, GUI_RECT * pRect);
 void    WM_SetStayOnTop              (WM_HWIN hWin, I32 OnOff);
 I32     WM_GetStayOnTop              (WM_HWIN hWin);
@@ -409,7 +410,7 @@ I16 WM_GetRectSizeX				(GUI_RECT Rect);
 I16 WM_GetRectSizeY				(GUI_RECT Rect);
 void WM_SetAlignWindow			(WM_HWIN hObjBasic, WM_HWIN hObjSrc, GUI_ALIGN_em Align, I16 OffestX, I16 OffestY);
 void WM_SetAlignParent			(WM_HWIN hObj, GUI_ALIGN_em Align, I16 OffestX, I16 OffestY);
-
+void WM_SetParent				(WM_HWIN hParent, WM_HWIN hChild);
 /* Diagnostics */
 I32 WM_GetNumWindows(void);
 
@@ -471,7 +472,7 @@ I32 WM_OnKey(I32 Key, I32 Pressed);
 void WM_MakeModal(WM_HWIN hWin);
 
 /* Invalid win function */
-void WM_AddToInvalidateRectLink(GUI_RECT Rect);
+void WM_AddToInvalidateRectLink(WM_HWIN hWIN, GUI_RECT Rect);
 #define WM_UpdateRectEnd	LCD_UpdateRectEnd
 #define WM_UpdateAllEnd	LCD_UpdateAllEnd
 

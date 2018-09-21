@@ -202,14 +202,12 @@ static I32 absI32(I32 a)
 /*
  * 反映射最近邻插值和双线性插值算法
  * */
-#define MAG_BIT		12
 void GUI_ImageDrawRotate(U32 PosX, U32 PosY, ImageRotateInfo *pInfo)
 {
 	U8 		ColorBytes = 0;
 	U8  	a = 0, r = 0, g = 0, b = 0;
 	U32 	A = 0, B = 0, C = 0, D = 0;
 	U32 	Finally_Color = 0;
-	U32 	Magnification = 0;
 	I32   	x = 0, y = 0;
 	I32	  	BytesPerLine = 0;
 	I32   	NewSizeX = 0, NewSizeY = 0;
@@ -217,18 +215,19 @@ void GUI_ImageDrawRotate(U32 PosX, U32 PosY, ImageRotateInfo *pInfo)
 	I32   	RotatMinX = 0, RotatMinY = 0;
 	I32		OffestX = 0, OffestY = 0;
 	I32 	MagPosSinValue = 0, MagPosCosValue = 0;
+	I32 	MagNegSinValue = 0, MagNegCosValue = 0;
 	float 	Rad = 0.0f;
 	float 	PosSinValue = 0.0f, PosCosValue = 0.0f;
 	float 	NegSinValue = 0.0f, NegCosValue = 0.0f;
 	const 	U8 *pColor;
 	const 	U8 *pData;
+	U16 	ColorRGB565;
 
 	//原图四个点的坐标
 	I32 SrcX1,SrcY1,SrcX2,SrcY2,SrcX3,SrcY3,SrcX4,SrcY4;
 	//旋转后四个点的坐标
 	I32 DstX1,DstY1,DstX2,DstY2,DstX3,DstY3,DstX4,DstY4;
 
-	Magnification = (1 << MAG_BIT);
 	pData = pInfo->pImageData;
 	//角度转化成弧度
 	Rad = pInfo->RotatAngle*3.14159f/180;
@@ -236,8 +235,10 @@ void GUI_ImageDrawRotate(U32 PosX, U32 PosY, ImageRotateInfo *pInfo)
 	PosCosValue = cos(Rad);
 	NegSinValue = -PosSinValue;
 	NegCosValue = PosCosValue;
-	MagPosSinValue = (I32)(PosSinValue * Magnification);
-	MagPosCosValue = (I32)(PosCosValue * Magnification);
+	MagPosSinValue = (I32)(PosSinValue * GUI_FIX_DIV);
+	MagPosCosValue = (I32)(PosCosValue * GUI_FIX_DIV);
+	MagNegSinValue = (I32)(NegSinValue * GUI_FIX_DIV);
+	MagNegCosValue = (I32)(NegCosValue * GUI_FIX_DIV);
 	//计算旋转的中心点
 	if((pInfo->RotatX == 0) && (pInfo->RotatY == 0)){
 		OldMidX = pInfo->ImageWidth/2;
@@ -260,17 +261,17 @@ void GUI_ImageDrawRotate(U32 PosX, U32 PosY, ImageRotateInfo *pInfo)
 	SrcY4 = 0;
 
 	//计算旋转后四个点的坐标
-	DstX1 = (((SrcX1 - OldMidX) * MagPosCosValue - (SrcY1 - OldMidY) * MagPosSinValue) >> MAG_BIT) + OldMidX;
-	DstY1 = (((SrcX1 - OldMidX) * MagPosSinValue + (SrcY1 - OldMidY) * MagPosCosValue) >> MAG_BIT) + OldMidY;
+	DstX1 = (((SrcX1 - OldMidX) * MagPosCosValue - (SrcY1 - OldMidY) * MagPosSinValue) >> GUI_FIX_DIV_BIT) + OldMidX;
+	DstY1 = (((SrcX1 - OldMidX) * MagPosSinValue + (SrcY1 - OldMidY) * MagPosCosValue) >> GUI_FIX_DIV_BIT) + OldMidY;
 
-	DstX2 = (((SrcX2 - OldMidX) * MagPosCosValue - (SrcY2 - OldMidY) * MagPosSinValue) >> MAG_BIT) + OldMidX;
-	DstY2 = (((SrcX2 - OldMidX) * MagPosSinValue + (SrcY2 - OldMidY) * MagPosCosValue) >> MAG_BIT) + OldMidY;
+	DstX2 = (((SrcX2 - OldMidX) * MagPosCosValue - (SrcY2 - OldMidY) * MagPosSinValue) >> GUI_FIX_DIV_BIT) + OldMidX;
+	DstY2 = (((SrcX2 - OldMidX) * MagPosSinValue + (SrcY2 - OldMidY) * MagPosCosValue) >> GUI_FIX_DIV_BIT) + OldMidY;
 
-	DstX3 = (((SrcX3 - OldMidX) * MagPosCosValue - (SrcY3 - OldMidY) * MagPosSinValue) >> MAG_BIT) + OldMidX;
-	DstY3 = (((SrcX3 - OldMidX) * MagPosSinValue + (SrcY3 - OldMidY) * MagPosCosValue) >> MAG_BIT) + OldMidY;
+	DstX3 = (((SrcX3 - OldMidX) * MagPosCosValue - (SrcY3 - OldMidY) * MagPosSinValue) >> GUI_FIX_DIV_BIT) + OldMidX;
+	DstY3 = (((SrcX3 - OldMidX) * MagPosSinValue + (SrcY3 - OldMidY) * MagPosCosValue) >> GUI_FIX_DIV_BIT) + OldMidY;
 
-	DstX4 = (((SrcX4 - OldMidX) * MagPosCosValue - (SrcY4 - OldMidY) * MagPosSinValue) >> MAG_BIT) + OldMidX;
-	DstY4 = (((SrcX4 - OldMidX) * MagPosSinValue + (SrcY4 - OldMidY) * MagPosCosValue) >> MAG_BIT) + OldMidY;
+	DstX4 = (((SrcX4 - OldMidX) * MagPosCosValue - (SrcY4 - OldMidY) * MagPosSinValue) >> GUI_FIX_DIV_BIT) + OldMidX;
+	DstY4 = (((SrcX4 - OldMidX) * MagPosSinValue + (SrcY4 - OldMidY) * MagPosCosValue) >> GUI_FIX_DIV_BIT) + OldMidY;
 
 	//计算旋转后外接矩形的高度和宽度
 	NewSizeX = maxI32(absI32(DstX4 - DstX1), absI32(DstX3 - DstX2));
@@ -292,17 +293,36 @@ void GUI_ImageDrawRotate(U32 PosX, U32 PosY, ImageRotateInfo *pInfo)
 		for (y = 0; y < pInfo->ImageHeight; y++){
 			for (x = 0; x < pInfo->ImageWidth; x++){
 				pColor = pData + ColorBytes * x;
-				b = *(pColor + 0);
-				g = *(pColor + 1);
-				r = *(pColor + 2);
-				if(4 == ColorBytes){
-					a = *(pColor + 3);
-				}else{
+				if(ROTATE_PIXEL_FORMAT_RGB565 == pInfo->PixelFormat){
+					ColorRGB565 = (*pColor << 8) | *(pColor + 1);
+					r = ((ColorRGB565 >> 11) & 0x1f) << 3;
+					g = ((ColorRGB565 >> 5 ) & 0x3f) << 2;
+					b = ((ColorRGB565 >> 0 ) & 0x1f) << 3;
 					a = 0xff;
+				}else if(ROTATE_PIXEL_FORMAT_ARGB8565 == pInfo->PixelFormat){
+					a = *pColor++;
+					ColorRGB565 = (*pColor << 8) | *(pColor + 1);
+					r = ((ColorRGB565 >> 11) & 0x1f) << 3;
+					g = ((ColorRGB565 >> 5 ) & 0x3f) << 2;
+					b = ((ColorRGB565 >> 0 ) & 0x1f) << 3;
+				}else if(ROTATE_PIXEL_FORMAT_RGB888 == pInfo->PixelFormat){
+					b = *(pColor + 0);
+					g = *(pColor + 1);
+					r = *(pColor + 2);
+					a = 0xff;
+				}else{
+					b = *(pColor + 0);
+					g = *(pColor + 1);
+					r = *(pColor + 2);
+					a = *(pColor + 3);
 				}
-				a = *(pColor + 3);
-				Finally_Color = ((U32)a << 24) |((U32)r << 16) | (g << 8) | b;
-				LCD_SetPixelIndex(PosX + x, PosY + y, LCD_Color2Index(Finally_Color), a);
+#if (24 == LCD_BITSPERPIXEL) && (LCD_SWAP_RB)
+				Finally_Color = (a << 24) | ((U32)r << 16) | (g << 8) | b;
+#elif (16 == LCD_BITSPERPIXEL) && (LCD_SWAP_RB)
+				Finally_Color = ((r & 0xf8) << 8) | ((g & 0xfc) << 3) | ((b & 0xf8) >> 3);
+				//Color = LCD_L0_Color2Index(((U32)Red << 16) | (Green << 8) | Blue);
+#endif
+				LCD_SetPixelIndex(PosX + x, PosY + y, Finally_Color, a);
 			}
 			pData += BytesPerLine;
 		}
@@ -315,121 +335,223 @@ void GUI_ImageDrawRotate(U32 PosX, U32 PosY, ImageRotateInfo *pInfo)
 			Int_y_temp2 = (y - OldMidY) * MagPosCosValue;
 			for (x = 0; x < pInfo->ImageWidth; x++){
 				pColor = pData + ColorBytes * x;
-				Int_x_temp1 = (((x - OldMidX) * MagPosCosValue - Int_y_temp1) >> MAG_BIT) + OldMidX + PosX;
-				Int_y_temp3 = (((x - OldMidX) * MagPosSinValue + Int_y_temp2) >> MAG_BIT) + OldMidY + PosY;
+				Int_x_temp1 = (((x - OldMidX) * MagPosCosValue - Int_y_temp1) >> GUI_FIX_DIV_BIT) + OldMidX + PosX - 1;
+				Int_y_temp3 = (((x - OldMidX) * MagPosSinValue + Int_y_temp2) >> GUI_FIX_DIV_BIT) + OldMidY + PosY - 1;
 				if((Int_x_temp1 >= 0) && (Int_y_temp3 >= 0)){
-					b = *(pColor + 0);
-					g = *(pColor + 1);
-					r = *(pColor + 2);
-					if(4 == ColorBytes){
-						a = *(pColor + 3);
-					}else{
+					if(ROTATE_PIXEL_FORMAT_RGB565 == pInfo->PixelFormat){
+						ColorRGB565 = (*pColor << 8) | *(pColor + 1);
+						r = ((ColorRGB565 >> 11) & 0x1f) << 3;
+						g = ((ColorRGB565 >> 5 ) & 0x3f) << 2;
+						b = ((ColorRGB565 >> 0 ) & 0x1f) << 3;
 						a = 0xff;
+					}else if(ROTATE_PIXEL_FORMAT_ARGB8565 == pInfo->PixelFormat){
+						a = *pColor++;
+						ColorRGB565 = (*pColor << 8) | *(pColor + 1);
+						r = ((ColorRGB565 >> 11) & 0x1f) << 3;
+						g = ((ColorRGB565 >> 5 ) & 0x3f) << 2;
+						b = ((ColorRGB565 >> 0 ) & 0x1f) << 3;
+					}else if(ROTATE_PIXEL_FORMAT_RGB888 == pInfo->PixelFormat){
+						b = *(pColor + 0);
+						g = *(pColor + 1);
+						r = *(pColor + 2);
+						a = 0xff;
+					}else{
+						b = *(pColor + 0);
+						g = *(pColor + 1);
+						r = *(pColor + 2);
+						a = *(pColor + 3);
 					}
-					Finally_Color = ((U32)a << 24) |((U32)r << 16) | (g << 8) | b;
-					LCD_SetPixelIndex(Int_x_temp1 - RotatMinX + OffestX, Int_y_temp3 + OffestY - RotatMinY, LCD_Color2Index(Finally_Color), a);
+#if (24 == LCD_BITSPERPIXEL) && (LCD_SWAP_RB)
+					Finally_Color = (a << 24) | ((U32)r << 16) | (g << 8) | b;
+#elif (16 == LCD_BITSPERPIXEL) && (LCD_SWAP_RB)
+					Finally_Color = ((r & 0xf8) << 8) | ((g & 0xfc) << 3) | ((b & 0xf8) >> 3);
+#endif
+					LCD_SetPixelIndex(Int_x_temp1 - RotatMinX + OffestX, Int_y_temp3 + OffestY - RotatMinY, Finally_Color, a);
 				}
 			}
 			pData += BytesPerLine;
 		}
 	}else{
 	//	eDbug("angle%90 != 0!\r\n");
-		float 	NewTemp1Y = 0.0f, NewTemp2Y = 0.0f;
-		float 	NewFloatX = 0.0f, NewFloatY = 0.0f;
-		float 	PointFloatX = 0.0f, PointFloatY = 0.0f;
+		I32 	NewTemp1Y = 0, NewTemp2Y = 0;
+		I32 	NewFloatX = 0, NewFloatY = 0;
 		I32	  	MagFloatX = 0, MagFloatY;
 		I32   	NewIntX = 0, NewIntY = 0;
 		I32 	Value1 = 0, Value2 = 0, Value3 = 0, Value4 = 0;
 		for(y = RotatMinY; y < NewSizeY + RotatMinY; y++){
-			NewTemp1Y = (y - OldMidY)*NegSinValue;
-			NewTemp2Y = (y - OldMidY)*NegCosValue;
+			NewTemp1Y = (y - OldMidY) * MagNegSinValue;
+			NewTemp2Y = (y - OldMidY) * MagNegCosValue;
 			for(x = RotatMinX; x < NewSizeX + RotatMinX; x++){
 				//计算反旋转后的坐标
-				NewFloatX = (x - OldMidX)*NegCosValue - NewTemp1Y + OldMidX + 0.5f;
-				NewFloatY = (x - OldMidX)*NegSinValue + NewTemp2Y + OldMidY + 0.5f;
+				NewFloatX = ((x - OldMidX) * MagNegCosValue - NewTemp1Y) + (OldMidX << GUI_FIX_DIV_BIT);
+				NewFloatY = ((x - OldMidX) * MagNegSinValue + NewTemp2Y) + (OldMidY << GUI_FIX_DIV_BIT);
 
 				if(NewFloatX >= 0 && NewFloatY >= 0){
 					//得出反旋转后的坐标整数部分
-					NewIntX = (int)NewFloatX;
-					NewIntY = (int)NewFloatY;
+					NewIntX = NewFloatX >> GUI_FIX_DIV_BIT;
+					NewIntY = NewFloatY >> GUI_FIX_DIV_BIT;
 					//得出反旋转后坐标的小数部分
-					PointFloatX = NewFloatX - NewIntX;
-					PointFloatY = NewFloatY - NewFloatY;
-					MagFloatX = (I32)(PointFloatX * Magnification);
-					MagFloatY = (I32)(PointFloatY * Magnification);
+					MagFloatX = NewFloatX & GUI_FIX_DIV_1;
+					MagFloatY = NewFloatY & GUI_FIX_DIV_1;
 					if((NewIntX >= 0) && (NewIntX < pInfo->ImageWidth) && (NewIntY >= 0) && (NewIntY < pInfo->ImageHeight)){
 						//(1 - x_float) * (1 - y_float)
-						Value1 = (Magnification - MagFloatX) * (Magnification - MagFloatY);
+						Value1 = (GUI_FIX_DIV - MagFloatX) * (GUI_FIX_DIV - MagFloatY);
 						//(1 - x_float) * y_float)
-						Value2 = (Magnification - MagFloatX) * MagFloatY;
+						Value2 = (GUI_FIX_DIV - MagFloatX) * MagFloatY;
 						// x_float * (1 - y_float)
-						Value3 = MagFloatX * (Magnification - MagFloatY);
+						Value3 = MagFloatX * (GUI_FIX_DIV - MagFloatY);
 						// x_float * y_float)
 						Value4 = MagFloatX * MagFloatY;
 						//定位源图像坐标，读取相应坐标的像素值
 						//像素F(x,y)
 						pColor = pData + ColorBytes * NewIntX + BytesPerLine * NewIntY;
-						b = *(pColor + 0);
-						b = (b * Value1) >> (MAG_BIT << 1);
-						g = *(pColor + 1);
-						g = (g * Value1) >> (MAG_BIT << 1);
-						r = *(pColor + 2);
-						r = (r * Value1) >> (MAG_BIT << 1);
-						if(4 == ColorBytes){
-							a = *(pColor + 3);
-							a = (a * Value1) >> (MAG_BIT << 1);
-						}else{
+						if(ROTATE_PIXEL_FORMAT_RGB565 == pInfo->PixelFormat){
+							ColorRGB565 = (*pColor << 8) | *(pColor + 1);
+							r = ((ColorRGB565 >> 11) & 0x1f) << 3;
+							g = ((ColorRGB565 >> 5 ) & 0x3f) << 2;
+							b = ((ColorRGB565 >> 0 ) & 0x1f) << 3;
 							a = 0xff;
+						}else if(ROTATE_PIXEL_FORMAT_ARGB8565 == pInfo->PixelFormat){
+							a = *pColor++;
+							ColorRGB565 = (*pColor << 8) | *(pColor + 1);
+							r = ((ColorRGB565 >> 11) & 0x1f) << 3;
+							g = ((ColorRGB565 >> 5 ) & 0x3f) << 2;
+							b = ((ColorRGB565 >> 0 ) & 0x1f) << 3;
+						}else if(ROTATE_PIXEL_FORMAT_RGB888 == pInfo->PixelFormat){
+							b = *(pColor + 0);
+							g = *(pColor + 1);
+							r = *(pColor + 2);
+							a = 0xff;
+						}else{
+							b = *(pColor + 0);
+							g = *(pColor + 1);
+							r = *(pColor + 2);
+							a = *(pColor + 3);
 						}
+						b = (b * Value1) >> (GUI_FIX_DIV_BIT << 1);
+						g = (g * Value1) >> (GUI_FIX_DIV_BIT << 1);
+						r = (r * Value1) >> (GUI_FIX_DIV_BIT << 1);
+						a = (a * Value1) >> (GUI_FIX_DIV_BIT << 1);
 						A = (((U32)a << 24) |((U32)r << 16) | (g << 8) | b);
 						//像素F(x,y+1)
-						pColor = pData + ColorBytes * NewIntX + BytesPerLine * (NewIntY + 1);
-						b = *(pColor + 0);
-						b = (b * Value2) >> (MAG_BIT << 1);
-						g = *(pColor + 1);
-						g = (g * Value2) >> (MAG_BIT << 1);
-						r = *(pColor + 2);
-						r = (r * Value2) >> (MAG_BIT << 1);
-						if(4 == ColorBytes){
-							a = *(pColor + 3);
-							a = (a * Value2) >> (MAG_BIT << 1);
+						if(NewIntY + 1 < pInfo->ImageHeight){
+							pColor = pData + ColorBytes * NewIntX + BytesPerLine * (NewIntY + 1);
+							if(ROTATE_PIXEL_FORMAT_RGB565 == pInfo->PixelFormat){
+								ColorRGB565 = (*pColor << 8) | *(pColor + 1);
+								r = ((ColorRGB565 >> 11) & 0x1f) << 3;
+								g = ((ColorRGB565 >> 5 ) & 0x3f) << 2;
+								b = ((ColorRGB565 >> 0 ) & 0x1f) << 3;
+								a = 0xff;
+							}else if(ROTATE_PIXEL_FORMAT_ARGB8565 == pInfo->PixelFormat){
+								a = *pColor++;
+								ColorRGB565 = (*pColor << 8) | *(pColor + 1);
+								r = ((ColorRGB565 >> 11) & 0x1f) << 3;
+								g = ((ColorRGB565 >> 5 ) & 0x3f) << 2;
+								b = ((ColorRGB565 >> 0 ) & 0x1f) << 3;
+							}else if(ROTATE_PIXEL_FORMAT_RGB888 == pInfo->PixelFormat){
+								b = *(pColor + 0);
+								g = *(pColor + 1);
+								r = *(pColor + 2);
+								a = 0xff;
+							}else{
+								b = *(pColor + 0);
+								g = *(pColor + 1);
+								r = *(pColor + 2);
+								a = *(pColor + 3);
+							}
+							b = (b * Value2) >> (GUI_FIX_DIV_BIT << 1);
+							g = (g * Value2) >> (GUI_FIX_DIV_BIT << 1);
+							r = (r * Value2) >> (GUI_FIX_DIV_BIT << 1);
+							a = (a * Value2) >> (GUI_FIX_DIV_BIT << 1);
+							B = (((U32)a << 24) |((U32)r << 16) | (g << 8) | b);
 						}else{
-							a = 0xff;
+							B = 0;
 						}
-						B = (((U32)a << 24) |((U32)r << 16) | (g << 8) | b);
+
 						//像素F(x+1,y)
-						pColor = pData + ColorBytes * (NewIntX + 1) + BytesPerLine * NewIntY;
-						b = *(pColor + 0);
-						b = (b * Value3) >> (MAG_BIT << 1);
-						g = *(pColor + 1);
-						g = (g * Value3) >> (MAG_BIT << 1);
-						r = *(pColor + 2);
-						r = (r * Value3) >> (MAG_BIT << 1);
-						if(4 == ColorBytes){
-							a = *(pColor + 3);
-							a = (a * Value3) >> (MAG_BIT << 1);
+						if(NewIntX + 1 < pInfo->ImageWidth){
+							pColor = pData + ColorBytes * (NewIntX + 1) + BytesPerLine * NewIntY;
+							if(ROTATE_PIXEL_FORMAT_RGB565 == pInfo->PixelFormat){
+								ColorRGB565 = (*pColor << 8) | *(pColor + 1);
+								r = ((ColorRGB565 >> 11) & 0x1f) << 3;
+								g = ((ColorRGB565 >> 5 ) & 0x3f) << 2;
+								b = ((ColorRGB565 >> 0 ) & 0x1f) << 3;
+								a = 0xff;
+							}else if(ROTATE_PIXEL_FORMAT_ARGB8565 == pInfo->PixelFormat){
+								a = *pColor++;
+								ColorRGB565 = (*pColor << 8) | *(pColor + 1);
+								r = ((ColorRGB565 >> 11) & 0x1f) << 3;
+								g = ((ColorRGB565 >> 5 ) & 0x3f) << 2;
+								b = ((ColorRGB565 >> 0 ) & 0x1f) << 3;
+							}else if(ROTATE_PIXEL_FORMAT_RGB888 == pInfo->PixelFormat){
+								b = *(pColor + 0);
+								g = *(pColor + 1);
+								r = *(pColor + 2);
+								a = 0xff;
+							}else{
+								b = *(pColor + 0);
+								g = *(pColor + 1);
+								r = *(pColor + 2);
+								a = *(pColor + 3);
+							}
+							b = (b * Value3) >> (GUI_FIX_DIV_BIT << 1);
+							g = (g * Value3) >> (GUI_FIX_DIV_BIT << 1);
+							r = (r * Value3) >> (GUI_FIX_DIV_BIT << 1);
+							a = (a * Value3) >> (GUI_FIX_DIV_BIT << 1);
+							C = (((U32)a << 24) |((U32)r << 16) | (g << 8) | b);
 						}else{
-							a = 0xff;
+							C = 0;
 						}
-						C = (((U32)a << 24) |((U32)r << 16) | (g << 8) | b);
+
 						//像素F(x+1,y+1)
-						pColor = pData + ColorBytes * (NewIntX + 1) + BytesPerLine * (NewIntY + 1);
-						b = *(pColor + 0);
-						b = (b * Value4) >> (MAG_BIT << 1);
-						g = *(pColor + 1);
-						g = (g * Value4) >> (MAG_BIT << 1);
-						r = *(pColor + 2);
-						r = (r * Value4) >> (MAG_BIT << 1);
-						if(4 == ColorBytes){
-							a = *(pColor + 3);
-							a = (a * Value4) >> (MAG_BIT << 1);
+						if((NewIntX + 1 < pInfo->ImageWidth) && (NewIntY + 1 < pInfo->ImageHeight)){
+							pColor = pData + ColorBytes * (NewIntX + 1) + BytesPerLine * (NewIntY + 1);
+							if(ROTATE_PIXEL_FORMAT_RGB565 == pInfo->PixelFormat){
+								ColorRGB565 = (*pColor << 8) | *(pColor + 1);
+								r = ((ColorRGB565 >> 11) & 0x1f) << 3;
+								g = ((ColorRGB565 >> 5 ) & 0x3f) << 2;
+								b = ((ColorRGB565 >> 0 ) & 0x1f) << 3;
+								a = 0xff;
+							}else if(ROTATE_PIXEL_FORMAT_ARGB8565 == pInfo->PixelFormat){
+								a = *pColor++;
+								ColorRGB565 = (*pColor << 8) | *(pColor + 1);
+								r = ((ColorRGB565 >> 11) & 0x1f) << 3;
+								g = ((ColorRGB565 >> 5 ) & 0x3f) << 2;
+								b = ((ColorRGB565 >> 0 ) & 0x1f) << 3;
+							}else if(ROTATE_PIXEL_FORMAT_RGB888 == pInfo->PixelFormat){
+								b = *(pColor + 0);
+								g = *(pColor + 1);
+								r = *(pColor + 2);
+								a = 0xff;
+							}else{
+								b = *(pColor + 0);
+								g = *(pColor + 1);
+								r = *(pColor + 2);
+								a = *(pColor + 3);
+							}
+							b = (b * Value4) >> (GUI_FIX_DIV_BIT << 1);
+							g = (g * Value4) >> (GUI_FIX_DIV_BIT << 1);
+							r = (r * Value4) >> (GUI_FIX_DIV_BIT << 1);
+							a = (a * Value4) >> (GUI_FIX_DIV_BIT << 1);
+							D = (((U32)a << 24) |((U32)r << 16) | (g << 8) | b);
 						}else{
-							a = 0xff;
+							D = 0;
 						}
-						D = (((U32)a << 24) |((U32)r << 16) | (g << 8) | b);
+
 						//计算灰度值
 						Finally_Color = A + B + C + D;
-						LCD_SetPixelIndex(PosX + x + OffestX - RotatMinX, PosY + y + OffestY - RotatMinY, LCD_Color2Index(Finally_Color), (Finally_Color >> 24) & 0xff);
+						b = (Finally_Color >> 0 ) & 0xff;
+						g = (Finally_Color >> 8 ) & 0xff;
+						r = (Finally_Color >> 16) & 0xff;
+						a = (Finally_Color >> 24) & 0xff;
+#if (24 == LCD_BITSPERPIXEL) && (LCD_SWAP_RB)
+						Finally_Color = (a << 24) | ((U32)r << 16) | (g << 8) | b;
+#elif (16 == LCD_BITSPERPIXEL) && (LCD_SWAP_RB)
+						Finally_Color = ((r & 0xf8) << 8) | ((g & 0xfc) << 3) | ((b & 0xf8) >> 3);
+						//Color = LCD_L0_Color2Index(((U32)Red << 16) | (Green << 8) | Blue);
+#endif
+						LCD_SetPixelIndex(PosX + x + OffestX - RotatMinX, PosY + y + OffestY - RotatMinY, Finally_Color, a);
+						//LCD_SetPixelIndex(PosX + x + OffestX - RotatMinX, PosY + y + OffestY - RotatMinY, LCD_Color2Index(Finally_Color), (Finally_Color >> 24) & 0xff);
 					}
 				}
 			}

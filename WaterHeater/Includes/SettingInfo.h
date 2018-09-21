@@ -5,8 +5,8 @@
  *      Author: Administrator
  */
 
-#ifndef SETTINGINFO_H_
-#define SETTINGINFO_H_
+#ifndef __SETTINGINFO_H_
+#define __SETTINGINFO_H_
 
 #include <GUI_main.h>
 

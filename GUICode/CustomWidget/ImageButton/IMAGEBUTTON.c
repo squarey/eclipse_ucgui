@@ -159,6 +159,19 @@ static void _CalculationDrawInfo(IMAGEBUTTON_Handle hObj, _DrawInfo *pInfo, U8 F
 	pInfo->StartY = y;
 	pInfo->ViewInfo = tViewInfo;
 }
+#define USE_PRINTF_DRAW_TAKE_TIME 		0
+#if USE_PRINTF_DRAW_TAKE_TIME
+#include <sys/time.h>
+static long RecodeTime = 0;
+static long get_system_time_us(void)
+{
+	struct timeval tv;
+	long time;
+	gettimeofday(&tv, NULL);
+	time = tv.tv_sec * 1000000 + tv.tv_usec;
+	return time;
+}
+#endif
 static void _Paint(IMAGEBUTTON_Obj* pObj, IMAGEBUTTON_Handle hObj) 
 {
 	WM_Obj *pWin;
@@ -166,6 +179,9 @@ static void _Paint(IMAGEBUTTON_Obj* pObj, IMAGEBUTTON_Handle hObj)
 			return;
 	}*/
 	pWin = WM_H2P(hObj);
+#if USE_PRINTF_DRAW_TAKE_TIME
+	RecodeTime = get_system_time_us();
+#endif
 	if(pWin->Status & WM_SF_ISVIS)
 	{
 		I32 PressState;
@@ -181,14 +197,17 @@ static void _Paint(IMAGEBUTTON_Obj* pObj, IMAGEBUTTON_Handle hObj)
 			if(IMAGEVIEW_COLOR_TYPE_BITMAP == pObj->FocusViewInfo.ColorType){
 				U8 PreMode;
 				Info.ViewInfo = pObj->FocusViewInfo;
-				PreMode = GUI_GetBitmapHasTrans();
+				PreMode = GUI_GetDrawBitmapHasTrans();
 				if(IMAGE_BITMAP_FOCUS_HAS_TRANS == (pObj->Status & IMAGE_BITMAP_FOCUS_HAS_TRANS)){
-					GUI_SetBitmapHasTrans(1);
-					GUI_SetBitmapTransColor(pObj->FocusBitmapTransColor);
+					GUI_SetDrawBitmapHasTrans(1);
+					GUI_SetDrawBitmapTransColor(pObj->FocusBitmapTransColor);
 				}
 				_CalculationDrawInfo(hObj, &Info, 1);
 				GUI_DrawBitmap((GUI_BITMAP *)Info.ViewInfo.pExt, Info.OffestX, Info.OffestY);
-				GUI_SetBitmapHasTrans(PreMode);
+				GUI_SetDrawBitmapHasTrans(PreMode);
+#if USE_PRINTF_DRAW_TAKE_TIME
+				GUI_Debug("Draw size %dx%d take time:%u us\n", Info.ViewInfo.Width, Info.ViewInfo.Height, get_system_time_us() - RecodeTime);
+#endif
 				return;
 			}
 			if(IMAGE_FOCUS_DECODE_SAVE != (IMAGE_FOCUS_DECODE_SAVE & pObj->Status)){
@@ -200,14 +219,17 @@ static void _Paint(IMAGEBUTTON_Obj* pObj, IMAGEBUTTON_Handle hObj)
 			if(IMAGEVIEW_COLOR_TYPE_BITMAP == pObj->UnFocusViewInfo.ColorType){
 				U8 PreMode;
 				Info.ViewInfo = pObj->UnFocusViewInfo;
-				PreMode = GUI_GetBitmapHasTrans();
+				PreMode = GUI_GetDrawBitmapHasTrans();
 				if(IMAGE_BITMAP_UNFOCUS_HAS_TRANS == (pObj->Status & IMAGE_BITMAP_UNFOCUS_HAS_TRANS)){
-					GUI_SetDrawMode(GUI_DRAWMODE_TRANS);
-					GUI_SetBitmapTransColor(pObj->UnFocusBitmapTransColor);
+					GUI_SetDrawBitmapHasTrans(1);
+					GUI_SetDrawBitmapTransColor(pObj->UnFocusBitmapTransColor);
 				}
 				_CalculationDrawInfo(hObj, &Info, 1);
 				GUI_DrawBitmap((GUI_BITMAP *)Info.ViewInfo.pExt, Info.OffestX, Info.OffestY);
-				GUI_SetBitmapHasTrans(PreMode);
+				GUI_SetDrawBitmapHasTrans(PreMode);
+#if USE_PRINTF_DRAW_TAKE_TIME
+				GUI_Debug("Draw size %dx%d take time:%u us\n", Info.ViewInfo.Width, Info.ViewInfo.Height, get_system_time_us() - RecodeTime);
+#endif
 				return;
 			}
 			if(IMAGE_UNFOCUS_DECODE_SAVE != (IMAGE_UNFOCUS_DECODE_SAVE & pObj->Status)){
@@ -228,6 +250,9 @@ static void _Paint(IMAGEBUTTON_Obj* pObj, IMAGEBUTTON_Handle hObj)
 		}else if(2 == DecodeFlag){
 			GUI_ImageResRelease(&pObj->UnFocusViewInfo);
 		}
+#if USE_PRINTF_DRAW_TAKE_TIME
+		GUI_Debug("Draw size %dx%d take time:%u us\n", Info.ViewInfo.Width, Info.ViewInfo.Height, get_system_time_us() - RecodeTime);
+#endif
 	}
 }
 
@@ -483,13 +508,15 @@ void IMAGEBUTTON_SetUnFocusBitmap(IMAGEBUTTON_Handle hObj, const GUI_BITMAP *pBi
 			GUI_ImageResRelease(&pObj->UnFocusViewInfo);
 		}
 		pObj->Status &= ~IMAGE_UNFOCUS_DECODE_SAVE;
-		GUI_memset(&pObj->UnFocusViewInfo, 0, sizeof(ImageViewInfo_t));
-		pObj->UnFocusViewInfo.pExt = (void *)pBitmap;
-		pObj->UnFocusViewInfo.ColorType = IMAGEVIEW_COLOR_TYPE_BITMAP;
-		pObj->UnFocusViewInfo.Width =  pBitmap->XSize;
-		pObj->UnFocusViewInfo.Height = pBitmap->YSize;
-		if(IMAGEBUTTON_STATE_PRESSED != (pObj->Widget.State & IMAGEBUTTON_STATE_PRESSED)){
-			WM_InvalidateWindow(hObj);
+		if(pObj->UnFocusViewInfo.pExt != (void *)pBitmap){
+			GUI_memset(&pObj->UnFocusViewInfo, 0, sizeof(ImageViewInfo_t));
+			pObj->UnFocusViewInfo.pExt = (void *)pBitmap;
+			pObj->UnFocusViewInfo.ColorType = IMAGEVIEW_COLOR_TYPE_BITMAP;
+			pObj->UnFocusViewInfo.Width =  pBitmap->XSize;
+			pObj->UnFocusViewInfo.Height = pBitmap->YSize;
+			if(IMAGEBUTTON_STATE_PRESSED != (pObj->Widget.State & IMAGEBUTTON_STATE_PRESSED)){
+				WM_InvalidateWindow(hObj);
+			}
 		}
 	}
 }
@@ -522,14 +549,15 @@ void IMAGEBUTTON_SetFocusBitmap(IMAGEBUTTON_Handle hObj, const GUI_BITMAP *pBitm
 			GUI_ImageResRelease(&pObj->FocusViewInfo);
 		}
 		pObj->Status &= ~IMAGE_FOCUS_DECODE_SAVE;
-		GUI_memset(&pObj->FocusViewInfo, 0, sizeof(ImageViewInfo_t));
-		pObj->FocusViewInfo.pExt = (void *)pBitmap;
-		pObj->FocusViewInfo.ColorType = IMAGEVIEW_COLOR_TYPE_BITMAP;
-		pObj->FocusViewInfo.Width =  pBitmap->XSize;
-		pObj->FocusViewInfo.Height = pBitmap->YSize;
-
-		if(IMAGEBUTTON_STATE_PRESSED == (pObj->Widget.State & IMAGEBUTTON_STATE_PRESSED)){
-			WM_InvalidateWindow(hObj);
+		if(pObj->FocusViewInfo.pExt != (void *)pBitmap){
+			GUI_memset(&pObj->FocusViewInfo, 0, sizeof(ImageViewInfo_t));
+			pObj->FocusViewInfo.pExt = (void *)pBitmap;
+			pObj->FocusViewInfo.ColorType = IMAGEVIEW_COLOR_TYPE_BITMAP;
+			pObj->FocusViewInfo.Width =  pBitmap->XSize;
+			pObj->FocusViewInfo.Height = pBitmap->YSize;
+			if(IMAGEBUTTON_STATE_PRESSED == (pObj->Widget.State & IMAGEBUTTON_STATE_PRESSED)){
+				WM_InvalidateWindow(hObj);
+			}
 		}
 	}
 }

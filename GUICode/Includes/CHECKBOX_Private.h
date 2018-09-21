@@ -70,7 +70,8 @@ typedef struct
 	GUI_COLOR FocusColor;
 	I16 Align;
 	U8  Spacing;
-	U8  StyleCircleUsed:	1;
+	U8  StyleCircleUsed	: 1;
+	U8  NoDrawDownRect	: 1;
 	CHECKBOX_STYLE_CIRCLE StyleCircle;
 	const GUI_BITMAP * apBm[6];
 } CHECKBOX_PROPS;

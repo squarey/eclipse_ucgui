@@ -17,7 +17,7 @@
 /*********************
  *      DEFINES
  *********************/
-#define SDL_REFR_PERIOD	    50	/*ms*/
+#define SDL_REFR_PERIOD	    20	/*ms*/
 
 /**********************
  *      TYPEDEFS

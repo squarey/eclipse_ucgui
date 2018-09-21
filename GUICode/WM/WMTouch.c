@@ -108,7 +108,9 @@ void WM__SendPIDMessage(WM_HWIN hWin, WM_MESSAGE* pMsg)
 	}
 	/* Send message to the affected window */
 	if(0 == _WaitTouchRelease){
-		WM__SendMessageIfEnabled(hWin, pMsg);
+		if(WM_IsWindow(hWin)){
+			WM__SendMessageIfEnabled(hWin, pMsg);
+		}
 	}
 #else
 	WM_MESSAGE Msg;
@@ -324,6 +326,7 @@ I32 WM_HandlePID(void)
 				if (CHWin.hWin) {
 					/* convert screen into window coordinates */
 					State = StateNew;
+					//WM_SetCapture(CHWin.hWin,1);
 					/* Remember window */
 					if (State.Pressed) {
 						WM__CHWinLast.hWin = CHWin.hWin;

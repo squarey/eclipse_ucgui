@@ -11,6 +11,6 @@
 #include <GUI_main.h>
 
 
-void LockscreenPageCreate(void);
+WM_HWIN LockscreenPageCreate(void);
 
 #endif /* LOCKSCREEN_H_ */

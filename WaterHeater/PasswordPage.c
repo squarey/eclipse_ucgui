@@ -45,6 +45,16 @@
 
 extern GUI_CONST_STORAGE GUI_FONT GUI_FontNUM_YH48;
 extern GUI_CONST_STORAGE GUI_BITMAP bmbg_srmm;
+extern GUI_CONST_STORAGE GUI_BITMAP bmnum_bg_focus;
+extern GUI_CONST_STORAGE GUI_BITMAP bmnum_bg_unfocus;
+extern GUI_CONST_STORAGE GUI_BITMAP bmbtn_confirm_focus;
+extern GUI_CONST_STORAGE GUI_BITMAP bmbtn_confirm_unfocus;
+extern GUI_CONST_STORAGE GUI_BITMAP bmbtn_comeback_focus;
+extern GUI_CONST_STORAGE GUI_BITMAP bmbtn_comeback_unfocus;
+extern GUI_CONST_STORAGE GUI_BITMAP bmbtn_rewrite_focus;
+extern GUI_CONST_STORAGE GUI_BITMAP bmbtn_rewrite_unfocus;
+extern GUI_CONST_STORAGE GUI_BITMAP bmbtn_back2_focus;
+extern GUI_CONST_STORAGE GUI_BITMAP bmbtn_back2_unfocus;
 
 static const GUI_WIDGET_CREATE_INFO _aWindowsPasswordCreate[] = {
 	{ WINDOW_CreateIndirect,	"Window",				ID_WINDOW_PASSWORD, 0, TITLE_BAR_HEIGHT, 1024, 600 - TITLE_BAR_HEIGHT, 0, 0x0,0},
@@ -81,7 +91,6 @@ static WM_HWIN hPasswordPage = WM_HMEM_NULL;
 static void DialogInit(WM_HWIN hParent)
 {
 	WM_HWIN hItem, BaseWin;
-	WM_HWIN MapWin;
 	/* setting keybord bg */
 	hItem = WM_GetDialogItem(hParent, ID_PASSWORD_BG);
 	//IMAGEVIEW_SetFile(hItem, IMAGE_PASSWORD_BG, 0);
@@ -101,14 +110,14 @@ static void DialogInit(WM_HWIN hParent)
 	/* num 1 bg */
 	BaseWin = WM_GetDialogItem(hParent, ID_PASSWORD_BG),
 	hItem = WM_GetDialogItem(hParent, ID_PASSWORD_NUM_1_BG);
-	IMAGEBUTTON_SetUnFocusFile(hItem, IMAGE_PASSWORD_NUM_REALEASE, 1);
-	IMAGEBUTTON_SetFocusFile(hItem, IMAGE_PASSWORD_NUM_PRESS, 1);
+	//IMAGEBUTTON_SetUnFocusFile(hItem, IMAGE_PASSWORD_NUM_REALEASE, 1);
+	//IMAGEBUTTON_SetFocusFile(hItem, IMAGE_PASSWORD_NUM_PRESS, 1);
+	IMAGEBUTTON_SetUnFocusBitmap(hItem, &bmnum_bg_unfocus);
+	IMAGEBUTTON_SetFocusBitmap(hItem, &bmnum_bg_focus);
 	WM_ClrHasTrans(hItem);
 	IMAGEBUTTON_SetBkColor(hItem, GUI_DARKGRAY);
 	WM_SetAlignParent(hItem, OBJ_ALIGN_PARENT_V_CENTRE, 0, -20);
 	WM_SetAlignWindow(BaseWin, hItem, OBJ_ALIGN_BROTHER_LEFT, 100, 0);
-	GUI_Debug("num 1 bg win %d\n", hItem);
-	MapWin = hItem;
 	/* num 1 text */
 	BaseWin = hItem;
 	hItem = WM_GetDialogItem(hParent, ID_PASSWORD_NUM_1_TEXT);
@@ -117,15 +126,15 @@ static void DialogInit(WM_HWIN hParent)
 	TEXT_SetTextAlign(hItem, TEXT_CF_HCENTER | TEXT_CF_VCENTER);
 	WM_DisableWindow(hItem);
 	WM_SetAlignWindow(BaseWin, hItem, OBJ_ALIGN_BROTHER_CENTER, 0, 0);
-	GUI_Debug("num 1 text win %d\n", hItem);
-
 	/* num 2 bg */
 	BaseWin = WM_GetDialogItem(hParent, ID_PASSWORD_NUM_1_BG),
 	hItem = WM_GetDialogItem(hParent, ID_PASSWORD_NUM_2_BG);
 	//IMAGEBUTTON_SetUnFocusFile(hItem, IMAGE_PASSWORD_NUM_REALEASE, 0);
 	//IMAGEBUTTON_SetFocusFile(hItem, IMAGE_PASSWORD_NUM_PRESS, 0);
-	IMAGEBUTTON_SetUnFocusMapping(hItem, MapWin);
-	IMAGEBUTTON_SetFocusMapping(hItem, MapWin);
+	//IMAGEBUTTON_SetUnFocusMapping(hItem, MapWin);
+	//IMAGEBUTTON_SetFocusMapping(hItem, MapWin);
+	IMAGEBUTTON_SetUnFocusBitmap(hItem, &bmnum_bg_unfocus);
+	IMAGEBUTTON_SetFocusBitmap(hItem, &bmnum_bg_focus);
 	WM_ClrHasTrans(hItem);
 	IMAGEBUTTON_SetBkColor(hItem, GUI_DARKGRAY);
 	WM_SetAlignWindow(BaseWin, hItem, OBJ_ALIGN_BROTHER_TOP, 0, 0);
@@ -143,8 +152,10 @@ static void DialogInit(WM_HWIN hParent)
 	hItem = WM_GetDialogItem(hParent, ID_PASSWORD_NUM_3_BG);
 //	IMAGEBUTTON_SetUnFocusFile(hItem, IMAGE_PASSWORD_NUM_REALEASE, 0);
 //	IMAGEBUTTON_SetFocusFile(hItem, IMAGE_PASSWORD_NUM_PRESS, 0);
-	IMAGEBUTTON_SetUnFocusMapping(hItem, MapWin);
-	IMAGEBUTTON_SetFocusMapping(hItem, MapWin);
+	//IMAGEBUTTON_SetUnFocusMapping(hItem, MapWin);
+	//IMAGEBUTTON_SetFocusMapping(hItem, MapWin);
+	IMAGEBUTTON_SetUnFocusBitmap(hItem, &bmnum_bg_unfocus);
+	IMAGEBUTTON_SetFocusBitmap(hItem, &bmnum_bg_focus);
 	WM_ClrHasTrans(hItem);
 	IMAGEBUTTON_SetBkColor(hItem, GUI_DARKGRAY);
 	WM_SetAlignWindow(BaseWin, hItem, OBJ_ALIGN_BROTHER_TOP, 0, 0);
@@ -162,8 +173,10 @@ static void DialogInit(WM_HWIN hParent)
 	hItem = WM_GetDialogItem(hParent, ID_PASSWORD_NUM_4_BG);
 //	IMAGEBUTTON_SetUnFocusFile(hItem, IMAGE_PASSWORD_NUM_REALEASE, 0);
 //	IMAGEBUTTON_SetFocusFile(hItem, IMAGE_PASSWORD_NUM_PRESS, 0);
-	IMAGEBUTTON_SetUnFocusMapping(hItem, MapWin);
-	IMAGEBUTTON_SetFocusMapping(hItem, MapWin);
+	//IMAGEBUTTON_SetUnFocusMapping(hItem, MapWin);
+	//IMAGEBUTTON_SetFocusMapping(hItem, MapWin);
+	IMAGEBUTTON_SetUnFocusBitmap(hItem, &bmnum_bg_unfocus);
+	IMAGEBUTTON_SetFocusBitmap(hItem, &bmnum_bg_focus);
 	WM_ClrHasTrans(hItem);
 	IMAGEBUTTON_SetBkColor(hItem, GUI_DARKGRAY);
 	WM_SetAlignWindow(BaseWin, hItem, OBJ_ALIGN_BROTHER_TOP, 0, 0);
@@ -181,8 +194,10 @@ static void DialogInit(WM_HWIN hParent)
 	hItem = WM_GetDialogItem(hParent, ID_PASSWORD_NUM_5_BG);
 //	IMAGEBUTTON_SetUnFocusFile(hItem, IMAGE_PASSWORD_NUM_REALEASE, 0);
 //	IMAGEBUTTON_SetFocusFile(hItem, IMAGE_PASSWORD_NUM_PRESS, 0);
-	IMAGEBUTTON_SetUnFocusMapping(hItem, MapWin);
-	IMAGEBUTTON_SetFocusMapping(hItem, MapWin);
+	//IMAGEBUTTON_SetUnFocusMapping(hItem, MapWin);
+	//IMAGEBUTTON_SetFocusMapping(hItem, MapWin);
+	IMAGEBUTTON_SetUnFocusBitmap(hItem, &bmnum_bg_unfocus);
+	IMAGEBUTTON_SetFocusBitmap(hItem, &bmnum_bg_focus);
 	WM_ClrHasTrans(hItem);
 	IMAGEBUTTON_SetBkColor(hItem, GUI_DARKGRAY);
 	WM_SetAlignWindow(BaseWin, hItem, OBJ_ALIGN_BROTHER_TOP, 0, 0);
@@ -200,8 +215,10 @@ static void DialogInit(WM_HWIN hParent)
 	hItem = WM_GetDialogItem(hParent, ID_PASSWORD_NUM_6_BG);
 //	IMAGEBUTTON_SetUnFocusFile(hItem, IMAGE_PASSWORD_NUM_REALEASE, 0);
 //	IMAGEBUTTON_SetFocusFile(hItem, IMAGE_PASSWORD_NUM_PRESS, 0);
-	IMAGEBUTTON_SetUnFocusMapping(hItem, MapWin);
-	IMAGEBUTTON_SetFocusMapping(hItem, MapWin);
+	//IMAGEBUTTON_SetUnFocusMapping(hItem, MapWin);
+	//IMAGEBUTTON_SetFocusMapping(hItem, MapWin);
+	IMAGEBUTTON_SetUnFocusBitmap(hItem, &bmnum_bg_unfocus);
+	IMAGEBUTTON_SetFocusBitmap(hItem, &bmnum_bg_focus);
 	WM_ClrHasTrans(hItem);
 	IMAGEBUTTON_SetBkColor(hItem, GUI_DARKGRAY);
 	WM_SetAlignWindow(BaseWin, hItem, OBJ_ALIGN_BROTHER_LEFT, 0, 0);
@@ -219,8 +236,10 @@ static void DialogInit(WM_HWIN hParent)
 	hItem = WM_GetDialogItem(hParent, ID_PASSWORD_NUM_7_BG);
 //	IMAGEBUTTON_SetUnFocusFile(hItem, IMAGE_PASSWORD_NUM_REALEASE, 0);
 //	IMAGEBUTTON_SetFocusFile(hItem, IMAGE_PASSWORD_NUM_PRESS, 0);
-	IMAGEBUTTON_SetUnFocusMapping(hItem, MapWin);
-	IMAGEBUTTON_SetFocusMapping(hItem, MapWin);
+	//IMAGEBUTTON_SetUnFocusMapping(hItem, MapWin);
+	//IMAGEBUTTON_SetFocusMapping(hItem, MapWin);
+	IMAGEBUTTON_SetUnFocusBitmap(hItem, &bmnum_bg_unfocus);
+	IMAGEBUTTON_SetFocusBitmap(hItem, &bmnum_bg_focus);
 	WM_ClrHasTrans(hItem);
 	IMAGEBUTTON_SetBkColor(hItem, GUI_DARKGRAY);
 	WM_SetAlignWindow(BaseWin, hItem, OBJ_ALIGN_BROTHER_OUT_RIGHT, 0, 0);
@@ -238,8 +257,10 @@ static void DialogInit(WM_HWIN hParent)
 	hItem = WM_GetDialogItem(hParent, ID_PASSWORD_NUM_8_BG);
 //	IMAGEBUTTON_SetUnFocusFile(hItem, IMAGE_PASSWORD_NUM_REALEASE, 0);
 //	IMAGEBUTTON_SetFocusFile(hItem, IMAGE_PASSWORD_NUM_PRESS, 0);
-	IMAGEBUTTON_SetUnFocusMapping(hItem, MapWin);
-	IMAGEBUTTON_SetFocusMapping(hItem, MapWin);
+	//IMAGEBUTTON_SetUnFocusMapping(hItem, MapWin);
+	//IMAGEBUTTON_SetFocusMapping(hItem, MapWin);
+	IMAGEBUTTON_SetUnFocusBitmap(hItem, &bmnum_bg_unfocus);
+	IMAGEBUTTON_SetFocusBitmap(hItem, &bmnum_bg_focus);
 	WM_ClrHasTrans(hItem);
 	IMAGEBUTTON_SetBkColor(hItem, GUI_DARKGRAY);
 	WM_SetAlignWindow(BaseWin, hItem, OBJ_ALIGN_BROTHER_OUT_RIGHT, 0, 0);
@@ -257,8 +278,10 @@ static void DialogInit(WM_HWIN hParent)
 	hItem = WM_GetDialogItem(hParent, ID_PASSWORD_NUM_9_BG);
 //	IMAGEBUTTON_SetUnFocusFile(hItem, IMAGE_PASSWORD_NUM_REALEASE, 0);
 //	IMAGEBUTTON_SetFocusFile(hItem, IMAGE_PASSWORD_NUM_PRESS, 0);
-	IMAGEBUTTON_SetUnFocusMapping(hItem, MapWin);
-	IMAGEBUTTON_SetFocusMapping(hItem, MapWin);
+	//IMAGEBUTTON_SetUnFocusMapping(hItem, MapWin);
+	//IMAGEBUTTON_SetFocusMapping(hItem, MapWin);
+	IMAGEBUTTON_SetUnFocusBitmap(hItem, &bmnum_bg_unfocus);
+	IMAGEBUTTON_SetFocusBitmap(hItem, &bmnum_bg_focus);
 	WM_ClrHasTrans(hItem);
 	IMAGEBUTTON_SetBkColor(hItem, GUI_DARKGRAY);
 	WM_SetAlignWindow(BaseWin, hItem, OBJ_ALIGN_BROTHER_OUT_RIGHT, 0, 0);
@@ -276,8 +299,10 @@ static void DialogInit(WM_HWIN hParent)
 	hItem = WM_GetDialogItem(hParent, ID_PASSWORD_NUM_0_BG);
 //	IMAGEBUTTON_SetUnFocusFile(hItem, IMAGE_PASSWORD_NUM_REALEASE, 0);
 //	IMAGEBUTTON_SetFocusFile(hItem, IMAGE_PASSWORD_NUM_PRESS, 0);
-	IMAGEBUTTON_SetUnFocusMapping(hItem, MapWin);
-	IMAGEBUTTON_SetFocusMapping(hItem, MapWin);
+	//IMAGEBUTTON_SetUnFocusMapping(hItem, MapWin);
+	//IMAGEBUTTON_SetFocusMapping(hItem, MapWin);
+	IMAGEBUTTON_SetUnFocusBitmap(hItem, &bmnum_bg_unfocus);
+	IMAGEBUTTON_SetFocusBitmap(hItem, &bmnum_bg_focus);
 	WM_ClrHasTrans(hItem);
 	IMAGEBUTTON_SetBkColor(hItem, GUI_DARKGRAY);
 	WM_SetAlignWindow(BaseWin, hItem, OBJ_ALIGN_BROTHER_OUT_RIGHT, 0, 0);
@@ -293,8 +318,10 @@ static void DialogInit(WM_HWIN hParent)
 	/* btn confirm */
 	BaseWin = WM_GetDialogItem(hParent, ID_PASSWORD_NUM_6_BG);
 	hItem = WM_GetDialogItem(hParent, ID_PASSWORD_COMFIRM);
-	IMAGEBUTTON_SetUnFocusFile(hItem, IMAGE_PASSWORD_COMFIRM_REALEASE, 0);
-	IMAGEBUTTON_SetFocusFile(hItem, IMAGE_PASSWORD_COMFIRM_PRESS, 0);
+	//IMAGEBUTTON_SetUnFocusFile(hItem, IMAGE_PASSWORD_COMFIRM_REALEASE, 0);
+	//IMAGEBUTTON_SetFocusFile(hItem, IMAGE_PASSWORD_COMFIRM_PRESS, 0);
+	IMAGEBUTTON_SetUnFocusBitmap(hItem, &bmbtn_confirm_unfocus);
+	IMAGEBUTTON_SetFocusBitmap(hItem, &bmbtn_confirm_focus);
 	WM_ClrHasTrans(hItem);
 	IMAGEBUTTON_SetBkColor(hItem, GUI_DARKGRAY);
 	WM_SetAlignWindow(BaseWin, hItem, OBJ_ALIGN_BROTHER_UNDER_BOTTOM, 0, 0);
@@ -302,8 +329,10 @@ static void DialogInit(WM_HWIN hParent)
 	/* btn delete */
 	BaseWin = hItem;
 	hItem = WM_GetDialogItem(hParent, ID_PASSWORD_DEL);
-	IMAGEBUTTON_SetUnFocusFile(hItem, IMAGE_PASSWORD_DELETE_REALEASE, 0);
-	IMAGEBUTTON_SetFocusFile(hItem, IMAGE_PASSWORD_DELETE_PRESS, 0);
+	//IMAGEBUTTON_SetUnFocusFile(hItem, IMAGE_PASSWORD_DELETE_REALEASE, 0);
+	//IMAGEBUTTON_SetFocusFile(hItem, IMAGE_PASSWORD_DELETE_PRESS, 0);
+	IMAGEBUTTON_SetUnFocusBitmap(hItem, &bmbtn_comeback_unfocus);
+	IMAGEBUTTON_SetFocusBitmap(hItem, &bmbtn_comeback_focus);
 	WM_ClrHasTrans(hItem);
 	IMAGEBUTTON_SetBkColor(hItem, GUI_DARKGRAY);
 	WM_SetAlignWindow(BaseWin, hItem, OBJ_ALIGN_BROTHER_TOP, 0, 0);
@@ -311,8 +340,10 @@ static void DialogInit(WM_HWIN hParent)
 	/* btn restart */
 	BaseWin = hItem;
 	hItem = WM_GetDialogItem(hParent, ID_PASSWORD_RESTART);
-	IMAGEBUTTON_SetUnFocusFile(hItem, IMAGE_PASSWORD_RESTART_REALEASE, 0);
-	IMAGEBUTTON_SetFocusFile(hItem, IMAGE_PASSWORD_RESTART_PRESS, 0);
+	//IMAGEBUTTON_SetUnFocusFile(hItem, IMAGE_PASSWORD_RESTART_REALEASE, 0);
+	//IMAGEBUTTON_SetFocusFile(hItem, IMAGE_PASSWORD_RESTART_PRESS, 0);
+	IMAGEBUTTON_SetUnFocusBitmap(hItem, &bmbtn_rewrite_unfocus);
+	IMAGEBUTTON_SetFocusBitmap(hItem, &bmbtn_rewrite_focus);
 	WM_ClrHasTrans(hItem);
 	IMAGEBUTTON_SetBkColor(hItem, GUI_DARKGRAY);
 	WM_SetAlignWindow(BaseWin, hItem, OBJ_ALIGN_BROTHER_TOP, 0, 0);
@@ -320,14 +351,14 @@ static void DialogInit(WM_HWIN hParent)
 	/* btn back */
 	BaseWin = hItem;
 	hItem = WM_GetDialogItem(hParent, ID_PASSWORD_BACK);
-	IMAGEBUTTON_SetUnFocusFile(hItem, IMAGE_PASSWORD_BACK_REALEASE, 0);
-	IMAGEBUTTON_SetFocusFile(hItem, IMAGE_PASSWORD_BACK_PRESS, 0);
+	//IMAGEBUTTON_SetUnFocusFile(hItem, IMAGE_PASSWORD_BACK_REALEASE, 0);
+	//IMAGEBUTTON_SetFocusFile(hItem, IMAGE_PASSWORD_BACK_PRESS, 0);
+	IMAGEBUTTON_SetUnFocusBitmap(hItem, &bmbtn_back2_unfocus);
+	IMAGEBUTTON_SetFocusBitmap(hItem, &bmbtn_back2_focus);
 	WM_ClrHasTrans(hItem);
 	IMAGEBUTTON_SetBkColor(hItem, GUI_DARKGRAY);
 	WM_SetAlignWindow(BaseWin, hItem, OBJ_ALIGN_BROTHER_BOTTOM, 0, 0);
 	WM_SetAlignWindow(BaseWin, hItem, OBJ_ALIGN_BROTHER_OUT_RIGHT, 0, 0);
-
-	GUI_Debug("password back win:%d\n", hItem);
 }
 
 static void _cbWindowsPasswordDialog(WM_MESSAGE * pMsg)

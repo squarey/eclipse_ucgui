@@ -15,6 +15,17 @@
 #define ID_DIALOG_BG					(ID_DIALOG_PAGE_BASE + 1)
 #define ID_DIALOG_BACK					(ID_DIALOG_PAGE_BASE + 2)
 
+extern GUI_CONST_STORAGE GUI_BITMAP bmerror_canhuo;
+extern GUI_CONST_STORAGE GUI_BITMAP bmerror_chaowen;
+extern GUI_CONST_STORAGE GUI_BITMAP bmerror_dianhuo;
+extern GUI_CONST_STORAGE GUI_BITMAP bmerror_dingshi;
+extern GUI_CONST_STORAGE GUI_BITMAP bmerror_duanlu;
+extern GUI_CONST_STORAGE GUI_BITMAP bmerror_fengya;
+extern GUI_CONST_STORAGE GUI_BITMAP bmerror_paishui;
+extern GUI_CONST_STORAGE GUI_BITMAP bmerror_passowrd;
+extern GUI_CONST_STORAGE GUI_BITMAP bmerror_tongxin;
+extern GUI_CONST_STORAGE GUI_BITMAP bmerror_xihuo;
+extern GUI_CONST_STORAGE GUI_BITMAP bmbtn_close;
 
 static const GUI_WIDGET_CREATE_INFO _aWindowsDialgNoticeCreate[] =
 {
@@ -30,35 +41,45 @@ static U8 NoticeViewIndex = 0;
 static void _NoticeViewIndexToFullName(WM_HWIN hImage, U8 Index)
 {
 	switch(Index){
-		case ERROR_FIRE:
-			IMAGEVIEW_SetFile(hImage, IMAGE_DIALOG_FIRE, 0);
+		case ERROR_FIRE://残火
+			//IMAGEVIEW_SetFile(hImage, IMAGE_DIALOG_FIRE, 0);
+			IMAGEVIEW_SetBitmap(hImage, &bmerror_canhuo);
 		break;
-		case ERROR_TEMP_CONTROL_OPEN:
-			IMAGEVIEW_SetFile(hImage, IMAGE_DIALOG_TEMP_CONTROL_OPEN, 0);
+		case ERROR_TEMP_CONTROL_OPEN://超温或温控器开路故障
+			//IMAGEVIEW_SetFile(hImage, IMAGE_DIALOG_TEMP_CONTROL_OPEN, 0);
+			IMAGEVIEW_SetBitmap(hImage, &bmerror_chaowen);
 		break;
-		case ERROR_FIRE_ON:
-			IMAGEVIEW_SetFile(hImage, IMAGE_DIALOG_FIRE_ON, 0);
+		case ERROR_FIRE_ON://点火失败
+			//IMAGEVIEW_SetFile(hImage, IMAGE_DIALOG_FIRE_ON, 0);
+			IMAGEVIEW_SetBitmap(hImage, &bmerror_dianhuo);
 		break;
-		case ERROR_TEMP_CONTROL_SHORT:
-			IMAGEVIEW_SetFile(hImage, IMAGE_DIALOG_TEMP_CONTROL_SHORT, 0);
+		case ERROR_TEMP_CONTROL_SHORT://温度传感器开路或短路
+			//IMAGEVIEW_SetFile(hImage, IMAGE_DIALOG_TEMP_CONTROL_SHORT, 0);
+			IMAGEVIEW_SetBitmap(hImage, &bmerror_duanlu);
 		break;
-		case ERROR_TIMER_END:
-			IMAGEVIEW_SetFile(hImage, IMAGE_DIALOG_TIMER_END, 0);
+		case ERROR_TIMER_END://定时到
+			//IMAGEVIEW_SetFile(hImage, IMAGE_DIALOG_TIMER_END, 0);
+			IMAGEVIEW_SetBitmap(hImage, &bmerror_dingshi);
 		break;
-		case ERROR_PASSWORD:
-			IMAGEVIEW_SetFile(hImage, IMAGE_DIALOG_PASSWORD, 0);
+		case ERROR_PASSWORD://密码错误
+			//IMAGEVIEW_SetFile(hImage, IMAGE_DIALOG_PASSWORD, 0);
+			IMAGEVIEW_SetBitmap(hImage, &bmerror_passowrd);
 		break;
-		case ERROR_FAN_SWITCH:
-			IMAGEVIEW_SetFile(hImage, IMAGE_DIALOG_FAN_SWITCH, 0);
+		case ERROR_FAN_SWITCH://风压开关故障
+			//IMAGEVIEW_SetFile(hImage, IMAGE_DIALOG_FAN_SWITCH, 0);
+			IMAGEVIEW_SetBitmap(hImage, &bmerror_fengya);
 		break;
-		case ERROR_WATER:
-			IMAGEVIEW_SetFile(hImage, IMAGE_DIALOG_WATER, 0);
+		case ERROR_WATER://排水异常
+			//IMAGEVIEW_SetFile(hImage, IMAGE_DIALOG_WATER, 0);
+			IMAGEVIEW_SetBitmap(hImage, &bmerror_paishui);
 		break;
-		case ERROR_COMMUNICATION:
-			IMAGEVIEW_SetFile(hImage, IMAGE_DIALOG_COMMUNICATION, 0);
+		case ERROR_COMMUNICATION://通信故障
+			//IMAGEVIEW_SetFile(hImage, IMAGE_DIALOG_COMMUNICATION, 0);
+			IMAGEVIEW_SetBitmap(hImage, &bmerror_tongxin);
 		break;
-		case ERROR_FIRE_ACCIDENT:
-			IMAGEVIEW_SetFile(hImage, IMAGE_DIALOG_FIRE_ACCIDENT, 0);
+		case ERROR_FIRE_ACCIDENT://意外熄火
+			//IMAGEVIEW_SetFile(hImage, IMAGE_DIALOG_FIRE_ACCIDENT, 0);
+			IMAGEVIEW_SetBitmap(hImage, &bmerror_xihuo);
 		break;
 		default:
 		break;

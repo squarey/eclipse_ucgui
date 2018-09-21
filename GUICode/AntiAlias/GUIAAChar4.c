@@ -30,26 +30,107 @@ Purpose     : Display antialiased
 *
 **********************************************************************
 */
+static void _DrawFontScale(I32 x0, I32 y0, I32 XSize, I32 YSize, I32 BytesPerLine, const U8 *pData, U32 Scale)
+{
+	I32 x, y;
+	const U8 *pData0 = pData;
+	U8 FontBuffer[YSize][XSize];
+	U32 Alpha1 = 0, Alpha2 = 0, Alpha3 = 0, Alpha4 = 0;
+	U32 Alpha = 0;
+	float ScaleFloat = 0;
+	U32 Value1, Value2, Value3, Value4;
+	U32 FloatSizeX, FloatSizeY;
+	U32 MagnPointX = 0, MagnPointY = 0, MagnScale = 0;
+	//I32 Magnification = 0;
+	I32 ScaleXSize = 0, ScaleYSize = 0;
+	I32 SrcX = 0, SrcY = 0;
+	ScaleXSize = (XSize * Scale) >> GUI_FIX_DIV_BIT;
+	ScaleYSize = (YSize * Scale) >> GUI_FIX_DIV_BIT;
+	ScaleFloat = (float)XSize/ScaleXSize;
+	MagnScale = ScaleFloat * GUI_FIX_DIV;
+	for (y = 0; y < YSize; y++) {
+		pData0 = pData;
+		for (x = 0; x < XSize - 1; x += 2) {
+			FontBuffer[y][x] = ((*pData0) >> 4)*255/15; /* x0+x changed -> x+x0 to avoid problems with IAR's ICCMC80 */
+			FontBuffer[y][x + 1] = ((*pData0++) & 15)*255/15;
+		}
+		if (XSize & 1) {
+			FontBuffer[y][x] = ((*pData0) & 15)*255/15;
+		}
+		pData += BytesPerLine;
+	}
+	for(y = 0; y < ScaleYSize; y++){
+		FloatSizeY = y * MagnScale;
+		SrcY = FloatSizeY >> GUI_FIX_DIV_BIT;
+		if(SrcY >= YSize){
+			return;
+		}
+		MagnPointY = FloatSizeY & GUI_FIX_DIV_1;
+		for(x = 0; x < ScaleXSize; x++){
+			FloatSizeX = x * MagnScale;
+			SrcX = FloatSizeX >> GUI_FIX_DIV_BIT;
+			MagnPointX = FloatSizeX & GUI_FIX_DIV_1;
+			if(SrcX >= XSize){
+				continue;
+			}
+			Value1 = (GUI_FIX_DIV - MagnPointX) * (GUI_FIX_DIV - MagnPointY);
+			Value2 = (GUI_FIX_DIV - MagnPointX) * MagnPointY;
+			Value3 = MagnPointX * (GUI_FIX_DIV - MagnPointY);
+			Value4 = MagnPointX * MagnPointY;
+			if((SrcX < XSize) && (SrcY < YSize)){
+				Alpha1 = Value1 * FontBuffer[SrcY][SrcX];
+			}else{
+				Alpha1 = 0;
+			}
+			if((SrcX < XSize) && ((SrcY + 1) < YSize)){
+				Alpha2 = Value2 * FontBuffer[SrcY + 1][SrcX];
+			}else{
+				Alpha2 = 0;
+			}
+			if(((SrcX + 1) < XSize) && (SrcY < YSize)){
+				Alpha3 = Value3 * FontBuffer[SrcY][SrcX + 1];
+			}else{
+				Alpha3 = 0;
+			}
+			if(((SrcX + 1) < XSize) && ((SrcY + 1) < YSize)){
+				Alpha4 = Value4 * FontBuffer[SrcY + 1][SrcX + 1];
+			}else{
+				Alpha4 = 0;
+			}
+			Alpha = (((Alpha1 + Alpha2 + Alpha3 + Alpha4) >> (GUI_FIX_DIV_BIT << 1)) * 15)/255;
+			//Alpha = FontBuffer[SrcY * BytesPerLine * 2 + SrcX];
+			LCD_SetPixelAA(x0 + x, y0 + y, (Alpha >= 10) ? 15 : Alpha);
+		}
+		/*if (ScaleXSize & 1) {
+
+		}*/
+	}
+}
 /*********************************************************************
 *
 *       Draw
 */
 static void Draw(I32 x0, I32 y0, I32 XSize, I32 YSize, I32 BytesPerLine, const U8*pData)
 {
-	I32 x, y;
-	tLCD_SetPixelAA* pfSetPixelAA;
-	pfSetPixelAA = (GUI_Context.TextMode && GUI_TM_TRANS) ? LCD_SetPixelAA : LCD_SetPixelAA_NoTrans;
-	for (y = 0; y < YSize; y++) {
-		const U8 *pData0 = pData;
-		for (x = 0; x < XSize - 1; x += 2) {
-			(*pfSetPixelAA)(x + x0, y0 + y,   (*pData0) >> 4); /* x0+x changed -> x+x0 to avoid problems with IAR's ICCMC80 */
-			(*pfSetPixelAA)(x0 + x + 1, y0 + y, (*pData0++) & 15);
+	if(GUI_FIX_DIV == GUI_Context.FontScale){
+		I32 x, y;
+		tLCD_SetPixelAA* pfSetPixelAA;
+		pfSetPixelAA = (GUI_Context.TextMode && GUI_TM_TRANS) ? LCD_SetPixelAA : LCD_SetPixelAA_NoTrans;
+		for (y = 0; y < YSize; y++) {
+			const U8 *pData0 = pData;
+			for (x = 0; x < XSize - 1; x += 2) {
+				(*pfSetPixelAA)(x + x0, y0 + y,   (*pData0) >> 4); /* x0+x changed -> x+x0 to avoid problems with IAR's ICCMC80 */
+				(*pfSetPixelAA)(x0 + x + 1, y0 + y, (*pData0++) & 15);
+			}
+			if (XSize & 1) {
+				(*pfSetPixelAA)(x0 + x,y0 + y, (*pData0) & 15);
+			}
+			pData += BytesPerLine;
 		}
-		if (XSize & 1) {
-			(*pfSetPixelAA)(x0 + x,y0 + y, (*pData0) & 15);
-		}
-		pData += BytesPerLine;
+	}else{
+		_DrawFontScale(x0, y0, XSize, YSize, BytesPerLine, pData, GUI_Context.FontScale);
 	}
+
 }
 
 /*********************************************************************
@@ -91,7 +172,7 @@ void GUIPROP_AA4_DispChar(U16P c)
 				BytesPerLine,
 				(U8 const*)pCharInfo->pData);
 		LCD_SetDrawMode(OldDrawMode); /* Restore draw mode */
-		GUI_Context.DispPosX += pCharInfo->XDist;
+		GUI_Context.DispPosX += (GUI_Context.FontScale * pCharInfo->XDist) >> GUI_FIX_DIV_BIT;
 	}
 }
 

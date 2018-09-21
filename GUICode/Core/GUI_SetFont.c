@@ -38,5 +38,17 @@ const GUI_FONT GUI_UNI_PTR* GUI_SetFont(const GUI_FONT GUI_UNI_PTR * pNewFont)
 	return pOldFont;
 }
 
+float GUI_SetFontScale(float Scale)
+{
+	U32 r = 0;
+	r = GUI_Context.FontScale;
+	GUI_Context.FontScale = (U32)(Scale * GUI_FIX_DIV);
+	return (float)r/GUI_FIX_DIV;
+}
+float GUI_GetFontScale(void)
+{
+	return (float)GUI_Context.FontScale/GUI_FIX_DIV;
+}
+
 /*************************** End of file ****************************/
 	 	 			 		    	 				 	  			   	 	 	 	 	 	  	  	      	   		 	 	 		  		  	 		 	  	  			     			       	   	 			  		    	 	     	 				  	 					 	 			   	  	  			 				 		 	 	 			     			 

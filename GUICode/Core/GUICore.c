@@ -82,6 +82,7 @@ static void _InitContext(GUI_CONTEXT* pContext)
 	pContext->pLCD_HL      = &_HL_APIList;
 #endif
 	pContext->pAFont       = GUI_DEFAULT_FONT;
+	pContext->FontScale	   = GUI_FIX_DIV;
 	pContext->pClipRect_HL = &GUI_Context.ClipRect;
 	pContext->PenSize      = 1;
 	/* Variables in WM module */
@@ -94,6 +95,9 @@ static void _InitContext(GUI_CONTEXT* pContext)
 #endif
 	pContext->Color   = GUI_INVALID_COLOR;
 	pContext->BkColor = GUI_INVALID_COLOR;
+	pContext->BitmapHasTrans = 0;
+	pContext->BitmapFlagChangeColor = 0;
+	pContext->BitmapChangeAlpha = 0xff;
 	LCD_SetBkColor(GUI_DEFAULT_BKCOLOR);
 	LCD_SetColor(GUI_DEFAULT_COLOR);
 #if GUI_SUPPORT_UNICODE

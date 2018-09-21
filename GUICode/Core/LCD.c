@@ -95,6 +95,9 @@ LCD_DRAWMODE LCD_SetDrawMode(LCD_DRAWMODE dm)
 */
 void LCD_DrawPixel(I32 x, I32 y)
 {
+	if(0 == GUI_Context.Alpha){
+		return;
+	}
 	if (GUI_Context.DrawMode & LCD_DRAWMODE_XOR) {
 		LCDDEV_L0_XorPixel(x, y);
 	} else {
@@ -111,8 +114,10 @@ void LCD_DrawHLine(I32 x0, I32 y,  I32 x1)
 	if (x1 < x0){
 		return;
 	}
-	/* Call driver to draw */
-	LCDDEV_L0_DrawHLine(x0, y, x1);
+	if(GUI_Context.Alpha){
+		/* Call driver to draw */
+		LCDDEV_L0_DrawHLine(x0, y, x1);
+	}
 }
 
 /*********************************************************************
@@ -127,8 +132,10 @@ void LCD_FillRect(I32 x0, I32 y0, I32 x1, I32 y1)
 	if (y1 < y0){
 		return;
 	}
-	/* Call driver to draw */
-	LCDDEV_L0_FillRect(x0 , y0, x1, y1);
+	if(GUI_Context.Alpha){
+		/* Call driver to draw */
+		LCDDEV_L0_FillRect(x0 , y0, x1, y1);
+	}
 }
 
 /*********************************************************************

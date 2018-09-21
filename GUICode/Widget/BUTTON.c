@@ -167,29 +167,37 @@ static void _Paint(BUTTON_Obj* pObj, BUTTON_Handle hObj)
 	#if BUTTON_USE_3D
 	{
 		I32 EffectSize;
-		if (PressedState == 0) {
-			if(pObj->NewStyle){
-				GUI_DrawRectMainMiddle(&rButton, &pObj->Style[0]);
-				GUI_DrawRectMainCorner(&rButton, &pObj->Style[0]);
+		if(!WM_GetHasTrans(hObj)){
+			if (PressedState == 0) {
+				if(pObj->NewStyle){
+					GUI_DrawRectMainMiddle(&rButton, &pObj->Style[0]);
+					GUI_DrawRectMainCorner(&rButton, &pObj->Style[0]);
+				}else{
+					pObj->Widget.pEffect->pfDrawUp();  /* _WIDGET_EFFECT_3D_DrawUp(); */
+				}
+				EffectSize = pObj->Widget.pEffect->EffectSize;
 			}else{
-				pObj->Widget.pEffect->pfDrawUp();  /* _WIDGET_EFFECT_3D_DrawUp(); */
+				if(pObj->NewStyle){
+					GUI_DrawRectMainMiddle(&rButton, &pObj->Style[1]);
+					GUI_DrawRectMainCorner(&rButton, &pObj->Style[1]);
+				}else{
+					pObj->Widget.pEffect->pfDrawDown();
+				}
+				EffectSize = 1;
 			}
-			EffectSize = pObj->Widget.pEffect->EffectSize;
 		}else{
-			if(pObj->NewStyle){
-				GUI_DrawRectMainMiddle(&rButton, &pObj->Style[1]);
-				GUI_DrawRectMainCorner(&rButton, &pObj->Style[1]);
+			if (PressedState == 0) {
+				EffectSize = pObj->Widget.pEffect->EffectSize;
 			}else{
-				pObj->Widget.pEffect->pfDrawDown();
+				EffectSize = 1;
 			}
-			EffectSize = 1;
 		}
 		GUI__ReduceRect(&rInside, &rInside, EffectSize);
 	}
 	#endif
 	/* Draw background */
 	//LCD_SetBkColor (pObj->Props.aBkColor[ColorIndex]);
-	if(0 == pObj->NewStyle){
+	if((0 == pObj->NewStyle) && (!WM_GetHasTrans(hObj))){
 		I16 RectHeight = 0;
 		GUI__ReduceRect(&iRect, &rButton, pObj->Widget.pEffect->EffectSize);
 		RectHeight = GUI_RectGetHeight(&rButton);

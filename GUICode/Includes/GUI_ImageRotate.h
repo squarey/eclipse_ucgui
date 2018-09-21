@@ -10,6 +10,11 @@
 
 #include "IMAGEVIEW.h"
 
+#define ROTATE_PIXEL_FORMAT_RGB565		0
+#define ROTATE_PIXEL_FORMAT_ARGB8565	1
+#define ROTATE_PIXEL_FORMAT_RGB888		2
+#define ROTATE_PIXEL_FORMAT_ARGB8888	3
+
 typedef struct
 {
 	U32 	ImageWidth;		//图像的宽度
@@ -20,7 +25,8 @@ typedef struct
 	I16		RotatY;			//图片中任意一点坐标Y (RotatX, RotatY) 旋转的中心点
 	I16		RotatAngle;		//旋转的角度	0-360
 	U8		ImageColorDepth;//图像的色深	24, 32
-	U8* 	pImageData;		//图像的有效数据流
+	const U8* 	pImageData;		//图像的有效数据流
+	U8		PixelFormat;	//0: RGB565 1: ARGB8565  2:RGB888  3:ARGB8888
 }ImageRotateInfo;
 
 

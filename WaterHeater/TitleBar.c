@@ -13,6 +13,9 @@
 #define ID_TITLE_LOGO			(ID_TITLE_BAR_BASE + 1)
 #define ID_TITLE_SETTING		(ID_TITLE_BAR_BASE + 2)
 
+extern GUI_CONST_STORAGE GUI_BITMAP bmtitle_logo;
+extern GUI_CONST_STORAGE GUI_BITMAP bmicon_setting;
+
 static const GUI_WIDGET_CREATE_INFO _aWindowsTitleBarCreate[] = {
 	{ WINDOW_CreateIndirect,	"Window",				ID_WINDOW_TITLE_BAR, 0, 0, 1024, TITLE_BAR_HEIGHT, 0, 0x0,0},
 	{ IMAGEVIEW_CreateIndirect, "logo",				ID_TITLE_LOGO, 0, 0, 264, 42, 0, 0x0,0},
@@ -27,11 +30,14 @@ static void DialogInit(WM_HWIN hParent)
 	WINDOW_SetBkColor(hParent, GUI_GRAY);
 
 	hItem = WM_GetDialogItem(hParent, ID_TITLE_LOGO);
-	IMAGEVIEW_SetFile(hItem, IMAGE_TITLE_LOGO, 0);
+	//IMAGEVIEW_SetFile(hItem, IMAGE_TITLE_LOGO, 0);
+	IMAGEVIEW_SetBitmap(hItem, &bmtitle_logo);
+	IMAGEVIEW_SetBitmapHasTrans(hItem, GUI_GRAY);
 	WM_SetAlignParent(hItem, OBJ_ALIGN_PARENT_V_CENTRE, 10, 0);
 
 	hItem = WM_GetDialogItem(hParent, ID_TITLE_SETTING);
-	IMAGEVIEW_SetFile(hItem, IMAGE_TITLE_SETTING, 0);
+	//IMAGEVIEW_SetFile(hItem, IMAGE_TITLE_SETTING, 0);
+	IMAGEVIEW_SetBitmap(hItem, &bmicon_setting);
 	WM_SetAlignParent(hItem, OBJ_ALIGN_PARENT_V_CENTRE, 0, 0);
 	WM_SetAlignParent(hItem, OBJ_ALIGN_PARENT_RIGHT, -40, 0);
 }

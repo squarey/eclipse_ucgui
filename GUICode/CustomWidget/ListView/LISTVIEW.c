@@ -39,8 +39,8 @@ static LISTVIEW_PROPS LISTVIEW_DefaultProps = {
 	LISTVIEW_TEXTCOLOR1_DEFAULT,		//.aTextColor[1]
 };
 
-static I32 lastTouchYPos = 0;
-static char isFirstTouch = 0;
+static I32 LastTouchYPos = 0;
+static char IsFirstTouch = 0;
 
 
 /* ��ȡitem��Y���С */
@@ -245,12 +245,12 @@ static void _CalculateMoveDistanceY(LISTVIEW_Handle hObj, LISTVIEW_Obj* pObj, I3
 	I32 MoveDistY = 0;
 	I32 CurrentOffestY = 0;
 	I32 ListViewSizeY = 0;
-	if(TouchPosY == lastTouchYPos){
+	if(TouchPosY == LastTouchYPos){
 		return;
 	}
 	CurrentOffestY = pObj->MoveDistanceY;
-	MoveDistY = TouchPosY - lastTouchYPos;
-	lastTouchYPos = TouchPosY;
+	MoveDistY = TouchPosY - LastTouchYPos;
+	LastTouchYPos = TouchPosY;
 	CurrentOffestY -= MoveDistY;
 	pObj->isMove = 1;
 	ListViewSizeY = WM_GetWindowSizeY(hObj);
@@ -300,27 +300,27 @@ static void _OnTouchMoveV(LISTVIEW_Handle hObj, LISTVIEW_Obj* pObj, WM_MESSAGE*p
 	const GUI_PID_STATE* pState = (const GUI_PID_STATE*)pMsg->Data.p;
 	/* ���pStateΪ����˵��������Ч */
 	if((!(pMsg->Data.p)) || (pObj->TotalLenghtV <= WM_GetWindowSizeY(hObj))){
-		isFirstTouch = 0;
-		lastTouchYPos = 0;
+		IsFirstTouch = 0;
+		LastTouchYPos = 0;
 		return;
 	}
 	/* �ͷ� */
 	if(0 == pState->Pressed){
-		if(1 == isFirstTouch){
-			_CreateListAnim(hObj, lastTouchYPos, pState->y);
+		if(1 == IsFirstTouch){
+			_CreateListAnim(hObj, LastTouchYPos, pState->y);
 		}
-		isFirstTouch = 0;
+		IsFirstTouch = 0;
 		//lastTouchYPos = 0;
 		WM_ReleaseCapture();
 		return;
 	}else{/* ���� */
 		WM_SetCapture(hObj,1);
 	}
-	if(0 == isFirstTouch){
-		isFirstTouch = 1;
+	if(0 == IsFirstTouch){
+		IsFirstTouch = 1;
 		SCROLLBAR_DeleteAlphaAnim(pObj->hScrollbar);
 		GUI_AnimationDeleteByContext(hObj);
-		lastTouchYPos = pState->y;
+		LastTouchYPos = pState->y;
 		return;
 	}
 	_CalculateMoveDistanceY(hObj, pObj, pState->y);

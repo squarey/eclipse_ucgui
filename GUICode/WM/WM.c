@@ -62,13 +62,13 @@ typedef struct _WM_InvalidInfo
 */
 
 U8                     		WM_IsActive = 0;
-U16                    		WM__CreateFlags = WM_CF_SHOW;
-WM_HWIN                	WM__hCapture = WM_HWIN_NULL;
-WM_HWIN                	WM__hWinFocus = WM_HWIN_NULL;
+U16                    		WM__CreateFlags = 0;
+WM_HWIN                		WM__hCapture = WM_HWIN_NULL;
+WM_HWIN                		WM__hWinFocus = WM_HWIN_NULL;
 char                   		WM__CaptureReleaseAuto;
-WM_tfPollPID*          	WM_pfPollPID = NULL;
+WM_tfPollPID*          		WM_pfPollPID = NULL;
 U8                    	 	WM__PaintCallbackCnt = 0;      /* Public for assertions only */
-GUI_PID_STATE          	WM_PID__StateLast;
+GUI_PID_STATE          		WM_PID__StateLast;
 
 
 #if WM_SUPPORT_DIAG
@@ -97,43 +97,96 @@ static void _PanitChildren(WM_HWIN hWin, WM_Obj* pWin, const GUI_RECT* pRect);
 static WM_HWIN _CheckNeedPaintWin(WM_HWIN hWin, WM_Obj* pWin, const GUI_RECT* pRect);
 static U8 _CheckParentIsVisable(WM_HWIN hWin, WM_Obj  *pWin);
 static WM_HWIN _CheckNeedPaintInBrother(WM_HWIN hWin, WM_Obj* pWin, const GUI_RECT* pRect);
+static U8 _CheckNeedToJoinInvalidate(WM_HWIN hWin, WM_Obj *pWin, const GUI_RECT *pRect);
 
-void WM_AddToInvalidateRectLink(GUI_RECT Rect)
+
+static void InvalidLinkReduceOneByPos(U8 Pos)
 {
+	U8 n = Pos;
+	for(; n < InvalidRectInfoCnt - 1; n++){
+		InvalidRectInfo[n].Rect = InvalidRectInfo[n + 1].Rect;
+	}
+}
+
+static void _CheckToMaxExistIsIn(void)
+{
+	U8 m = 0, r = 0;
+	for(m = 1; m < InvalidRectInfoCnt; m++){
+		r = WM_RectIsIn(&InvalidRectInfo[0].Rect,  &InvalidRectInfo[m].Rect);
+		if(2 == r){
+			InvalidRectInfo[0].Rect = InvalidRectInfo[m].Rect;
+		}
+		if(r){
+			InvalidLinkReduceOneByPos(m);
+			InvalidRectInfoCnt--;
+		}
+	}
+}
+
+static U8 _CheckToMaxExistIntersect(void)
+{
+	U8 m = 0 , r = 0;
+	for(m = 1; m < InvalidRectInfoCnt; m++){
+		if(GUI_RectsIntersect(&InvalidRectInfo[0].Rect, &InvalidRectInfo[m].Rect)){
+			WM_RectToMax(&InvalidRectInfo[0].Rect, &InvalidRectInfo[0].Rect, &InvalidRectInfo[m].Rect);
+			InvalidLinkReduceOneByPos(m);
+			InvalidRectInfoCnt--;
+			_CheckToMaxExistIntersect();
+			r = 1;
+		}
+	}
+	return r;
+}
+
+void WM_AddToInvalidateRectLink(WM_HWIN hWin, GUI_RECT Rect)
+{
+	U8 r = 0;
+	r = _CheckNeedToJoinInvalidate(hWin, WM_H2P(hWin), &Rect);
+	if(0 == r){
+		return;
+	}
+	//
 	if(0 == InvalidRectInfoCnt){
 		InvalidRectInfo[0].Rect = Rect;
 		InvalidRectInfoCnt++;
 	}else{
 		U8 i = 0;
+		U8 r = 0;
+		U8 NoAdd = 0;
+		WM_InvalidInfo tInfo;
 		for(i = 0; i < InvalidRectInfoCnt; i++){
 			/*if(InvalidRectInfo[i].Joined){
 				InvalidRectInfo[i].Joined = 0;
 				continue;
 			}*/
-			/* 如果需要添加的无效区域在无效区域列表中则不需要添加到无效区域列表中  */
-			if(WM_RectIsIn(&Rect, &InvalidRectInfo[i].Rect)){
+			r = WM_RectIsIn(&Rect, &InvalidRectInfo[i].Rect);
+			if(1 == r){
+				NoAdd = 1;
 				if(0 == InvalidRectInfo[i].Joined){
 					break;
 				}
-				/* 如果无效区域列表中的无效区域在即将要设置的无效区域中, 则直接更新无效区域列表中的无效区域 */
-			}else if(WM_RectIsIn(&InvalidRectInfo[i].Rect, &Rect)){
+			}else if(2 == r){
+				NoAdd = 1;
 				InvalidRectInfo[i].Rect = Rect;
-				if(0 == InvalidRectInfo[i].Joined){
-					break;
-				}
-			}else if(GUI_RectsIntersect(&Rect, &InvalidRectInfo[i].Rect)){
-				WM_RectToMax(&InvalidRectInfo[i].Rect, &InvalidRectInfo[i].Rect, &Rect);
-				InvalidRectInfo[i].Joined = 1;
-				i = 0;
-				Rect = InvalidRectInfo[i].Rect;
-
+				break;
 			}else{
-				if(InvalidRectInfoCnt < 20){
-					InvalidRectInfo[InvalidRectInfoCnt].Rect = Rect;
-					InvalidRectInfoCnt++;
+				if(GUI_RectsIntersect(&Rect, &InvalidRectInfo[i].Rect)){
+					WM_RectToMax(&InvalidRectInfo[i].Rect, &InvalidRectInfo[i].Rect, &Rect);
+					tInfo = InvalidRectInfo[0];
+					InvalidRectInfo[0] = InvalidRectInfo[i];
+					InvalidRectInfo[i] = tInfo;
+					NoAdd = 1;
+					if(_CheckToMaxExistIntersect()){
+						_CheckToMaxExistIsIn();
+					}
 					break;
 				}
 			}
+		}
+		if((0 == NoAdd) && (InvalidRectInfoCnt < 20)){
+		//	GUI_Debug("Index %d, x0:%d, y0:%d, x1:%d, y1:%d\n", InvalidRectInfoCnt, Rect.x0, Rect.y0, Rect.x1, Rect.y1);
+			InvalidRectInfo[InvalidRectInfoCnt].Rect = Rect;
+			InvalidRectInfoCnt++;
 		}
 	}
 }
@@ -175,30 +228,62 @@ static WM_HWIN _ToGetNoTransParent(WM_HWIN hWin)
 	}
 }
 */
-static U8 _CheckNeedToJoinInvalidate(WM_HWIN hWin, WM_Obj *pWin, const GUI_RECT *pRect)
+/*
+ * 判断pRect是否在hWin的兄弟窗口(无透明标记)中
+ * return: 1在  0不在
+ * */
+static U8 _CheckRectInBrotherRect(WM_HWIN hWin, WM_Obj *pWin, const GUI_RECT *pRect)
 {
-	WM_HWIN hNext, hParent, hFind;
-	WM_Obj *pNext, *pParent, *pFind;
-	hParent = WM_GetParent(hWin);
-	for(; hParent; hParent = pParent->hParent){
-		pParent = WM_H2P(hParent);
-		hNext = pParent->hNext;
-		for(; hNext; hNext = pNext->hNext){
-			pNext = WM_H2P(hNext);
-			hFind = _CheckNeedPaintWin(hNext, pNext, pRect);
-			pFind = WM_H2P(hFind);
-			if((0 == (pFind->Status & WM_SF_HASTRANS)) && (WM_RectIsIn(&pWin->Rect, &pFind->Rect))){
-				return 0;
+	WM_HWIN hBrother;
+	WM_Obj *pBrother;
+	for(hBrother = pWin->hNext; hBrother; hBrother = pBrother->hNext){
+		pBrother = WM_H2P(hBrother);
+		//跳过有透明标记的窗口
+		if(pBrother->Status & WM_SF_HASTRANS){
+			continue;
+		}else{
+			//如果在父窗口的兄弟窗口中则不需要添加到无效窗口列表中
+			if(1 == WM_RectIsIn(pRect, &pBrother->Rect)){
+				return 1;
 			}
 		}
 	}
-	if(0 != hParent){
-		hFind = _CheckNeedPaintWin(hWin, pWin, pRect);
-		if(hFind != hWin){
-			return 0;
-		}
+	return 0;
+}
+/*
+ * 判断是否要加入无效窗口列表
+ * hWin: 需加入无效窗口的句柄
+ * pWin:
+ * pRect: 所需加入无效窗口的区域
+ * return: 0 不需加入  1 加入
+ * */
+static U8 _CheckNeedToJoinInvalidate(WM_HWIN hWin, WM_Obj *pWin, const GUI_RECT *pRect)
+{
+	//step1: 判断此无效区域是否在其兄弟窗口的区域中
+	if(1 == _CheckRectInBrotherRect(hWin, pWin, pRect)){
+		return WM_HWIN_NULL;
 	}
-	return 1;
+	//step2: 判断此窗口是否带有透明标记
+	if(WM_SF_HASTRANS != (pWin->Status & WM_SF_HASTRANS)){
+		return 1;
+	}else{
+		//step3: 判断是否在父窗口的兄弟窗口(无透明标记)区域中
+		WM_HWIN hParent;
+		WM_Obj *pParent;
+		hParent = WM_GetParent(hWin);
+		while(hParent){
+			pParent =WM_H2P(hParent);
+			if(1 == _CheckRectInBrotherRect(hWin, pWin, pRect)){
+				return 0;
+			}
+			if(pParent->Status & WM_SF_HASTRANS){
+				hParent = pParent->hParent;
+			}else{
+				return 1;
+			}
+		}
+		return 1;
+	}
 }
 /*********************************************************************
 *
@@ -515,9 +600,7 @@ void WM__InvalidateRectEx(const GUI_RECT* pRect, WM_HWIN hParent)
 	}
 	Rect = *pRect;
 	if(WM_RectIntersectLCD(&Rect, &Rect)){
-		if(_CheckNeedToJoinInvalidate(hParent, pParent, pRect)){
-			WM_AddToInvalidateRectLink(Rect);
-		}
+		WM_AddToInvalidateRectLink(hParent, Rect);
 	}
 }
 
@@ -642,9 +725,7 @@ void WM_InvalidateRect(WM_HWIN hWin, const GUI_RECT*pRect)
 				r = pWin->Rect;
 			}
 			if(WM_RectIntersectLCD(&r, &r)){
-				if(_CheckNeedToJoinInvalidate(hWin, pWin, &r)){
-					WM_AddToInvalidateRectLink(r);
-				}
+				WM_AddToInvalidateRectLink(hWin, r);
 			}
 		}
 	}
@@ -671,9 +752,7 @@ void WM_InvalidateWindow(WM_HWIN hWin)
 			}
 			r = pWin->Rect;
 			if(WM_RectIntersectLCD(&r, &r)){
-				if(_CheckNeedToJoinInvalidate(hWin, pWin, &r)){
-					WM_AddToInvalidateRectLink(r);
-				}
+				WM_AddToInvalidateRectLink(hWin, r);
 			}
 			/*if(pWin->Status & WM_CF_HASTRANS){
 				_ToInvaildNoTransParent(hWin);
@@ -681,7 +760,13 @@ void WM_InvalidateWindow(WM_HWIN hWin)
 		}
 	}
 }
-
+void WM_SetParent(WM_HWIN hParent, WM_HWIN hChild)
+{
+	WM__RemoveFromLinList(hChild);
+	WM__RemoveWindowFromList(hChild);
+	WM__InsertWindowIntoList(hChild, hParent);
+	_AddToLinList(hChild);
+}
 /*********************************************************************
 *
 *       manage windows stack
@@ -740,13 +825,11 @@ WM_HWIN WM_CreateWindowAsChild( I32 x0, I32 y0, I32 width, I32 height
 									WM_CF_MEMDEV_ON_REDRAW |
 									WM_SF_STAYONTOP |
 									WM_CF_DISABLED |
-									WM_SF_CONST_OUTLINE |
 									WM_SF_HASTRANS |
 									WM_CF_ANCHOR_RIGHT |
 									WM_CF_ANCHOR_BOTTOM |
 									WM_CF_ANCHOR_LEFT |
-									WM_CF_ANCHOR_TOP |
-									WM_CF_LATE_CLIP));
+									WM_CF_ANCHOR_TOP));
 		/* Add to linked lists */
 		_AddToLinList(hWin);
 		WM__InsertWindowIntoList(hWin, hParent);
@@ -921,7 +1004,7 @@ static void _PanitBrother(WM_HWIN hWin, WM_Obj* pWin, const GUI_RECT* pRect)
 		pBrother = WM_H2P(hBrother);
 		if (pBrother->Status & WM_SF_ISVIS) {
 			if(WM_RectIntersect(&r, pRect, &pBrother->Rect)){
-				GUI_Debug("To paint brother win %d\n", hBrother);
+				//GUI_Debug("To paint brother win %d\n", hBrother);
 				__SendWinPanitMessage(hBrother, pBrother, r);
 				_PanitChildren(hBrother, pBrother, &r);
 			}
@@ -935,7 +1018,7 @@ static WM_HWIN _CheckNeedPaintInBrother(WM_HWIN hWin, WM_Obj* pWin, const GUI_RE
 	for(hNext = pWin->hNext; hNext; hNext = pNext->hNext){
 		pNext = WM_H2P(hNext);
 		if((pNext->Status & WM_SF_ISVIS) && (WM_SF_HASTRANS != (pNext->Status & WM_SF_HASTRANS))){
-			if(WM_RectIsIn(pRect, &pNext->Rect)){
+			if(1 == WM_RectIsIn(pRect, &pNext->Rect)){
 				hFind = hNext;
 			}
 		}
@@ -953,7 +1036,8 @@ static WM_HWIN _CheckNeedPaintInChildren(WM_HWIN hWin, WM_Obj* pWin, const GUI_R
 	}
 	for(; hChild; hChild = pChild->hNext){
 		pChild = WM_H2P(hChild);
-		if((WM_SF_HASTRANS != (pChild->Status & WM_SF_HASTRANS)) && (WM_RectIsIn(pRect, &pChild->Rect))){
+		if((pChild->Status & WM_SF_ISVIS) && (WM_SF_HASTRANS != (pChild->Status & WM_SF_HASTRANS)) &&
+				(1 == WM_RectIsIn(pRect, &pChild->Rect))){
 			hSaveWin = hChild;
 		}
 	}
@@ -1044,6 +1128,22 @@ static void _PanitChildren(WM_HWIN hWin, WM_Obj* pWin, const GUI_RECT* pRect)
 	}
 }
 #else
+static U8 _CheckNeedPaintInParentBrother(WM_HWIN hParent, WM_Obj* pParent, const GUI_RECT* pRect)
+{
+	WM_HWIN hBrother;
+	WM_Obj *pBrother;
+	for(hBrother = pParent->hNext; hBrother; hBrother = pBrother->hNext){
+		pBrother = WM_H2P(hBrother);
+		if((WM_SF_HASTRANS == (pBrother->Status & WM_SF_HASTRANS)) ||
+				(WM_SF_ISVIS != (pBrother->Status & WM_SF_ISVIS))){
+			continue;
+		}
+		if(1 == WM_RectIsIn(pRect, &pBrother->Rect)){
+			return 0;
+		}
+	}
+	return 1;
+}
 static void _PanitChildren(WM_HWIN hWin, WM_Obj* pWin, const GUI_RECT* pRect)
 {
 	WM_HWIN hChild;
@@ -1076,8 +1176,10 @@ static void _PanitChildren(WM_HWIN hWin, WM_Obj* pWin, const GUI_RECT* pRect)
 				break;
 			}*/
 			if(WM_RectIntersect(&r, pRect, &pChild->Rect)){
-				__SendWinPanitMessage(hChild, pChild, r);
-				_PanitChildren(hChild, pChild, &r);
+				if(_CheckNeedPaintInParentBrother(hWin, pWin, &r)){
+					__SendWinPanitMessage(hChild, pChild, r);
+					_PanitChildren(hChild, pChild, &r);
+				}
 				//_PanitBrother(hChild, pChild, &r);
 			}
 
@@ -1098,37 +1200,28 @@ static void _Paint1(WM_HWIN hWin, WM_Obj* pWin) {
 	I32 Status = pWin->Status;
 	/* Send WM_PAINT if window is visible and a callback is defined */
 	if ((pWin->cb != NULL)  && (Status & WM_SF_ISVIS)) {
-		WM_MESSAGE Msg;
 		WM__PaintCallbackCnt++;
-		if (Status & WM_SF_LATE_CLIP) {
-			Msg.hWin   = hWin;
-			Msg.MsgId  = WM_PAINT;
-			Msg.Data.p = (GUI_RECT*)&pWin->InvalidRect;
-			WM_SetDefault();
-			WM__SendMessage(hWin, &Msg);
-		} else {
-			WM_HWIN hFind;
-			WM_Obj *pFind;
-			hFind = _CheckNeedPaintWin(hWin, pWin, &pWin->InvalidRect);
-			if(hFind == hWin){
-				__SendWinPanitMessage(hWin, pWin, pWin->InvalidRect);
-				_PanitChildren(hWin, pWin, &pWin->InvalidRect);
-			}else{
-				pFind = WM_H2P(hFind);
-				//GUI_Debug("To paint win %d\n", hFind);
-				//GUI_Debug("InvalidRect :%d, %d, %d, %d\n", pWin->InvalidRect.x0, pWin->InvalidRect.y0,
-						//pWin->InvalidRect.x1, pWin->InvalidRect.y1);
-				__SendWinPanitMessage(hFind, pFind, pWin->InvalidRect);
-				_PanitChildren(hFind, pFind, &pWin->InvalidRect);
-				_PanitBrother(hFind, pFind, &pWin->InvalidRect);
-			}
-			//__SendWinPanitMessage(hWin, pWin, pWin->InvalidRect);
-			//GUI_Debug("hWin:%d, hWinNeedPaint:%d\n", hWin, hWinNeedPaint);
-
-			//_PanitBrother(hWin, pWin, &pWin->InvalidRect);
+		WM_HWIN hFind;
+		WM_Obj *pFind;
+		hFind = _CheckNeedPaintWin(hWin, pWin, &pWin->InvalidRect);
+		/*GUI_Debug("To paint win %d\n", hFind);
+		GUI_Debug("InvalidRect :%d, %d, %d, %d\n", pWin->InvalidRect.x0, pWin->InvalidRect.y0,
+							pWin->InvalidRect.x1, pWin->InvalidRect.y1);*/
+		if(hFind == hWin){
+			__SendWinPanitMessage(hWin, pWin, pWin->InvalidRect);
+			_PanitChildren(hWin, pWin, &pWin->InvalidRect);
+		}else{
+			pFind = WM_H2P(hFind);
+			__SendWinPanitMessage(hFind, pFind, pWin->InvalidRect);
+			_PanitChildren(hFind, pFind, &pWin->InvalidRect);
+			_PanitBrother(hFind, pFind, &pWin->InvalidRect);
 		}
-		WM__PaintCallbackCnt--;
+		//__SendWinPanitMessage(hWin, pWin, pWin->InvalidRect);
+		//GUI_Debug("hWin:%d, hWinNeedPaint:%d\n", hWin, hWinNeedPaint);
+
+		//_PanitBrother(hWin, pWin, &pWin->InvalidRect);
 	}
+	WM__PaintCallbackCnt--;
 }
 
 /*********************************************************************

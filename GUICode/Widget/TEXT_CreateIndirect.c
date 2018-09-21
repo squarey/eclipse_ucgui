@@ -35,7 +35,7 @@ TEXT_Handle TEXT_CreateIndirect(const GUI_WIDGET_CREATE_INFO* pCreateInfo, WM_HW
   TEXT_Handle  hThis;
   GUI_USE_PARA(cb);
   hThis = TEXT_CreateEx(pCreateInfo->x0 + x0, pCreateInfo->y0 + y0, pCreateInfo->xSize, pCreateInfo->ySize,
-                        hWinParent, WM_CF_SHOW, pCreateInfo->Flags, pCreateInfo->Id, pCreateInfo->pName);
+                        hWinParent, pCreateInfo->Flags, pCreateInfo->Extra, pCreateInfo->Id, pCreateInfo->pName);
   return hThis;
 }
 

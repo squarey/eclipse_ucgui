@@ -240,6 +240,7 @@ TEXT_Handle TEXT_CreateEx(I32 x0, I32 y0, I32 xsize, I32 ysize, WM_HWIN hParent,
 #if TEXT_SUPPORT_TRANSPARENCY
 	WinFlags |= WM_CF_HASTRANS;
 #endif
+	WinFlags |= ExFlags;
 	hObj = WM_CreateWindowAsChild(x0, y0, xsize, ysize, hParent, WinFlags, TEXT_Callback,
 						sizeof(TEXT_Obj) - sizeof(WM_Obj));
 	if (hObj) {

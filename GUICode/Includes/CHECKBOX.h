@@ -127,6 +127,7 @@ void      CHECKBOX_SetState     (CHECKBOX_Handle hObj, unsigned State);
 void      CHECKBOX_SetText      (CHECKBOX_Handle hObj, const char * pText);
 void      CHECKBOX_SetTextAlign (CHECKBOX_Handle hObj, I32 Align);
 void      CHECKBOX_SetTextColor (CHECKBOX_Handle hObj, GUI_COLOR Color);
+void 	  CHECKBOX_SetNoDrawDownRect(CHECKBOX_Handle hCheckbox, U8 IsDraw);
 
 void CHECKBOX_SetStyleCircleRadius(CHECKBOX_Handle hObj, I16 RadiusExt, I16 RadiusIn);
 void CHECKBOX_SetStyleCircleColor(CHECKBOX_Handle hObj, GUI_COLOR ColorExt, GUI_COLOR ColorIn);
