@@ -29,6 +29,10 @@
 
 extern GUI_CONST_STORAGE GUI_FONT GUI_FontYH48;
 extern GUI_CONST_STORAGE GUI_FONT GUI_FontNUM_YH48;
+extern GUI_CONST_STORAGE GUI_BITMAP bmbtn_save_focus;
+extern GUI_CONST_STORAGE GUI_BITMAP bmbtn_save_unfocus;
+extern GUI_CONST_STORAGE GUI_BITMAP bmbtn_back3_focus;
+extern GUI_CONST_STORAGE GUI_BITMAP bmbtn_back3_unfocus;
 
 static const GUI_WIDGET_CREATE_INFO _WindowSettingPageCreate[] =
 {
@@ -54,7 +58,6 @@ static void _DialogInit(WM_HWIN hParent)
 	hItem = WM_GetDialogItem(hParent, ID_IMAGE_BG);
 	IMAGEVIEW_SetBkColor(hItem, 0xff404040);
 	WM_SetAlignParent(hItem, OBJ_ALIGN_PARENT_CENTRE, 0, 0);
-	GUI_Debug("Setting page background win:%d\n", hItem);
 
 	hItem = WM_GetDialogItem(hParent, ID_TEXT_MODEL);
 	TEXT_SetFont(hItem, &GUI_FontYH48);
@@ -130,14 +133,18 @@ static void _DialogInit(WM_HWIN hParent)
 	WM_SetAlignWindow(WM_GetDialogItem(hParent, ID_TEXT_MIN_VALUE), hItem, OBJ_ALIGN_BROTHER_UNDER_BOTTOM, 0, 5);
 
 	hItem = WM_GetDialogItem(hParent, ID_BTN_SAVE);
-	IMAGEBUTTON_SetFocusFile(hItem, IAMGE_SETTING_FOCUS_SAVE, 0);
-	IMAGEBUTTON_SetUnFocusFile(hItem, IAMGE_SETTING_UNFOCUS_SAVE, 0);
+	//IMAGEBUTTON_SetFocusFile(hItem, IAMGE_SETTING_FOCUS_SAVE, 0);
+	//IMAGEBUTTON_SetUnFocusFile(hItem, IAMGE_SETTING_UNFOCUS_SAVE, 0);
+	IMAGEBUTTON_SetFocusBitmap(hItem, &bmbtn_save_focus);
+	IMAGEBUTTON_SetUnFocusBitmap(hItem, &bmbtn_save_unfocus);
 	WM_SetAlignParent(hItem, OBJ_ALIGN_PARENT_BOTTOM_CENTRE, -90, -70);
 	WM_EnableFocuss(hItem);
 
 	hItem = WM_GetDialogItem(hParent, ID_BTN_BACK);
-	IMAGEBUTTON_SetFocusFile(hItem, IAMGE_SETTING_FOCUS_BACK, 0);
-	IMAGEBUTTON_SetUnFocusFile(hItem, IAMGE_SETTING_UNFOCUS_BACK, 0);
+	//IMAGEBUTTON_SetFocusFile(hItem, IAMGE_SETTING_FOCUS_BACK, 0);
+	//IMAGEBUTTON_SetUnFocusFile(hItem, IAMGE_SETTING_UNFOCUS_BACK, 0);
+	IMAGEBUTTON_SetFocusBitmap(hItem, &bmbtn_back3_focus);
+	IMAGEBUTTON_SetUnFocusBitmap(hItem, &bmbtn_back3_unfocus);
 	WM_SetAlignParent(hItem, OBJ_ALIGN_PARENT_BOTTOM_CENTRE, 90, -70);
 	WM_EnableFocuss(hItem);
 	WM_SetFocus(hItem);

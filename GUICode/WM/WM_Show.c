@@ -41,10 +41,24 @@ void WM_ShowWindow(WM_HWIN hWin)
 		pWin = WM_H2P(hWin);
 		if ((pWin->Status & WM_SF_ISVIS) == 0) {  /* First check if this is necessary at all */
 			pWin->Status |= WM_SF_ISVIS;  /* Set Visibility flag */
-			WM_AddToInvalidateRectLink(pWin->Rect);
+			WM_AddToInvalidateRectLink(hWin, pWin->Rect);
 #if WM_SUPPORT_NOTIFY_VIS_CHANGED
 			WM__NotifyVisChanged(hWin, &pWin->Rect);
 #endif
+		}
+	}
+}
+
+void WM_ShowWindowAndChild(WM_HWIN hWin)
+{
+	if(hWin){
+		WM_HWIN hChild;
+		WM_Obj *pChild, *pWin;
+		WM_ShowWindow(hWin);
+		pWin = WM_H2P(hWin);
+		for(hChild = pWin->hFirstChild; hChild;  hChild = pChild->hNext){
+			pChild = WM_H2P(hChild);
+			WM_ShowWindowAndChild(hChild);
 		}
 	}
 }

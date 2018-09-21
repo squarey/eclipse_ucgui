@@ -31,7 +31,7 @@ Purpose     : WINDOW private header file
 **********************************************************************
 */
 
-extern GUI_COLOR WINDOW__DefaultBkColor;
+extern GUI_FullRectStyle WINDOW__DefaultBkStyle;
 
 #endif   /* GUI_WINSUPPORT */
 #endif   /* WINDOW_PRIVATE_H */

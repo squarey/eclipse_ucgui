@@ -9,14 +9,31 @@
 
 #define GUI_ANIMATION_H2P(h) (GUI_Animation_Obj*)GUI_ALLOC_h2p(h)
 
-static GUI_HANIMATION hFirstAnimation = 0;
+static GUI_HANIMATION hFirstAnimation = WM_HWIN_NULL;
 static U32 LastSystemTime = 0;
+
+static U8 _CheckAnimationIsInList(GUI_HANIMATION hAnimation)
+{
+	GUI_HANIMATION hNext;
+	GUI_Animation_Obj *pNext;
+	for(hNext = hFirstAnimation; hNext; hNext = pNext->hNext){
+		pNext = GUI_ANIMATION_H2P(hNext);
+		if(hNext == hAnimation){
+			return 1;
+		}
+	}
+	return 0;
+}
+
 static void GUI_AnimationReadyHandler(GUI_HANIMATION hAnimation, GUI_Animation_Obj *pAnimation)
 {
 	I32 Tmp = 0;
 	pAnimation->ActTime = 0;
 	if(pAnimation->pEnd){
 		pAnimation->pEnd(pAnimation->hContext);
+	}
+	if(0 == _CheckAnimationIsInList(hAnimation)){
+		return;
 	}
 	if(pAnimation->Playback){
 		Tmp = pAnimation->Start;
@@ -67,10 +84,10 @@ void GUI_AnimationDelete(GUI_HANIMATION hAnimation)
 	if(0 == hAnimation){
 		return;
 	}
-	GUI_Debug("Delete anim:%d\n", hAnimation);
 	pNext = GUI_ANIMATION_H2P(hFirstAnimation);
 	if(hAnimation == hFirstAnimation){
 		hFirstAnimation = pNext->hNext;
+		GUI_ALLOC_Free(hAnimation);
 		return;
 	}
 	pLast = pNext;
@@ -79,6 +96,7 @@ void GUI_AnimationDelete(GUI_HANIMATION hAnimation)
 		pNext = GUI_ANIMATION_H2P(hNext);
 		if(hNext == hAnimation){
 			pLast->hNext = pNext->hNext;
+			GUI_ALLOC_Free(hAnimation);
 			break;
 		}
 		hNext = pNext->hNext;
@@ -88,23 +106,23 @@ void GUI_AnimationDelete(GUI_HANIMATION hAnimation)
 
 void GUI_AnimationDeleteByContext(WM_HWIN hContext)
 {
-	GUI_HANIMATION hAnimation;
+	GUI_HANIMATION hAnimation, hNextAnimation;
 	GUI_Animation_Obj *pAnimation;
 	hAnimation = hFirstAnimation;
 	while(hAnimation){
 		pAnimation = GUI_ANIMATION_H2P(hAnimation);
+		hNextAnimation = pAnimation->hNext;
 		if(pAnimation->hContext == hContext){
 			GUI_AnimationDelete(hAnimation);
-			return;
 		}
-		hAnimation = pAnimation->hNext;
+		hAnimation = hNextAnimation;
 	}
 }
 I32 GUI_Animation_Exec(void)
 {
 	U32 Elapsed = 0;
 	I32 IsDo = 0;
-	GUI_HANIMATION hAnimation;
+	GUI_HANIMATION hAnimation, hNextAnimation;
 	GUI_Animation_Obj *pAnimation;
 	hAnimation = hFirstAnimation;
 	Elapsed = GUI_GetTimeElapsed(LastSystemTime);
@@ -114,6 +132,8 @@ I32 GUI_Animation_Exec(void)
 	while(hAnimation){
 		pAnimation = GUI_ANIMATION_H2P(hAnimation);
 		pAnimation->ActTime += Elapsed;
+		//以防hAnimation被删除
+		hNextAnimation = pAnimation->hNext;
 		if(pAnimation->ActTime > 0){
 			I32 Value = 0;
 			if(pAnimation->ActTime > pAnimation->Time) {
@@ -128,7 +148,7 @@ I32 GUI_Animation_Exec(void)
 			}
 			IsDo = 1;
 		}
-		hAnimation = pAnimation->hNext;
+		hAnimation = hNextAnimation;
 	}
 	LastSystemTime = GUI_GetTime();
 	return IsDo;
@@ -158,13 +178,29 @@ void GUI_AnimationObjInit(GUI_Animation_Obj *pAnim)
 	pAnim->pPath = NULL;
 }
 
-void GUI_SetPageSwitchAnimation(WM_HWIN hWin)
+void GUI_StartPageAnimationMoveIn(WM_HWIN hWin, I32 StartPosX, I32 EndPosX, I32 Duration)
 {
 	GUI_Animation_Obj Anim;
 	GUI_AnimationObjInit(&Anim);
-	Anim.Start = 1024;
-	Anim.End = 0;
-	Anim.Time = 200;
+	Anim.Start = StartPosX;
+	Anim.End = EndPosX;
+	Anim.Time = Duration;
 	Anim.pFunc = WM_SetWindowPosX;
+	GUI_AnimationCreate(hWin, &Anim);
+}
+static void _AnimEndDeleteWindow(WM_HWIN hWin)
+{
+	WM_DeleteWindow(hWin);
+	GUI_Debug("free bytes %d\n", GUI_ALLOC_GetNumFreeBytes());
+}
+void GUI_StartPageAnimationMoveOut(WM_HWIN hWin, I32 StartPosX, I32 EndPosX, I32 Duration)
+{
+	GUI_Animation_Obj Anim;
+	GUI_AnimationObjInit(&Anim);
+	Anim.Start = StartPosX;
+	Anim.End = EndPosX;
+	Anim.Time = Duration;
+	Anim.pFunc = WM_SetWindowPosX;
+	Anim.pEnd = _AnimEndDeleteWindow;
 	GUI_AnimationCreate(hWin, &Anim);
 }

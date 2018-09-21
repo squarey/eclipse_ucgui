@@ -97,6 +97,7 @@ CHECKBOX_PROPS CHECKBOX__DefaultProps =
 	CHECKBOX_TEXTALIGN_DEFAULT,				//.Align
 	CHECKBOX_SPACING_DEFAULT,				//.Spacing
 	0,										//.StyleCircleUsed
+	0,										//.NoDrawDownRect
 	CHECKBOX_STYLE_CIRCLE_RADIUS_EXT,		//.StyleCircle.RadiusExt
 	CHECKBOX_STYLE_CIRCLE_RADIUS_IN,		//.StyleCircle.RadiusIn
 	CHECKBOX_STYLE_CIRCLE_COLOR_EXT,		//.StyleCircle.ColorExt
@@ -124,12 +125,14 @@ static void _Paint(CHECKBOX_Obj* pObj, CHECKBOX_Handle hObj)
 	ColorIndex = WM__IsEnabled(hObj);
 	/* Clear inside ... Just in case      */
 	/* Fill with parents background color */
-	if (pObj->Props.BkColor == GUI_INVALID_COLOR) {
-		LCD_SetBkColor(WIDGET__GetBkColor(hObj));
-	} else {
-		LCD_SetBkColor(pObj->Props.BkColor);
+	if(!WM_GetHasTrans(hObj)){
+		if (pObj->Props.BkColor == GUI_INVALID_COLOR) {
+			LCD_SetBkColor(WIDGET__GetBkColor(hObj));
+		} else {
+			LCD_SetBkColor(pObj->Props.BkColor);
+		}
+		GUI_Clear();
 	}
-	GUI_Clear();
 	if(pObj->Props.StyleCircleUsed){
 		I16 BoxHeight = 0;
 		BoxHeight = WM_GetWindowSizeY(hObj);
@@ -142,19 +145,25 @@ static void _Paint(CHECKBOX_Obj* pObj, CHECKBOX_Handle hObj)
 		}
 		RectBox.x1 = pObj->Props.StyleCircle.RadiusExt * 2 + 3;
 	}else{
+		I32 OffestY;
+		I32 BoxHeight = 0, BitmapHeight = 0;
+		BitmapHeight = pObj->Props.apBm[CHECKBOX_BI_ACTIV]->YSize;
+		BoxHeight = WM_GetWindowSizeY(hObj);
+		OffestY = (BoxHeight - BitmapHeight)/2;
+		Index = pObj->CurrentState * 2 + ColorIndex;
 		/* Get size from bitmap */
+		RectBox.y0 = OffestY;
 		RectBox.x1 = pObj->Props.apBm[CHECKBOX_BI_ACTIV]->XSize - 1 + 2 * EffectSize;
-		RectBox.y1 = pObj->Props.apBm[CHECKBOX_BI_ACTIV]->YSize - 1 + 2 * EffectSize;
+		RectBox.y1 = pObj->Props.apBm[CHECKBOX_BI_ACTIV]->YSize - 1 + 2 * EffectSize + OffestY;
 		WM_SetUserClipRect(&RectBox);
 		/* Clear inside  ... Just in case */
-		LCD_SetBkColor(pObj->Props.aBkColorBox[ColorIndex]);
-		GUI_Clear();
-		Index = pObj->CurrentState * 2 + ColorIndex;
 		if (pObj->Props.apBm[Index]) {
-			GUI_DrawBitmap(pObj->Props.apBm[Index], EffectSize, EffectSize);
+			GUI_DrawBitmap(pObj->Props.apBm[Index], EffectSize, EffectSize + OffestY);
 		}
 		/* Draw the effect arround the box */
-		WIDGET__EFFECT_DrawDownRect(&pObj->Widget, &RectBox);
+		if(0 == pObj->Props.NoDrawDownRect){
+			WIDGET__EFFECT_DrawDownRect(&pObj->Widget, &RectBox);
+		}
 		WM_SetUserClipRect(NULL);
 	}
 	/* Draw text if needed */
@@ -357,7 +366,8 @@ CHECKBOX_Handle CHECKBOX_CreateEx(I32 x0, I32 y0, I32 xsize, I32 ysize, WM_HWIN 
 	if (hObj) {
 		CHECKBOX_Obj* pObj = (CHECKBOX_Obj *)GUI_ALLOC_h2p(hObj); /* Don't use use WIDGET_H2P because WIDGET_INIT_ID() has not be called at this point */
 		/* init widget specific variables */
-		WIDGET__Init(&pObj->Widget, Id, WIDGET_STATE_FOCUSSABLE);
+		//WIDGET__Init(&pObj->Widget, Id, WIDGET_STATE_FOCUSSABLE);
+		WIDGET__Init(&pObj->Widget, Id, 0);
 		CHECKBOX_INIT_ID(pObj);
 		/* init member variables */
 		pObj->Props = CHECKBOX__DefaultProps;
@@ -367,7 +377,20 @@ CHECKBOX_Handle CHECKBOX_CreateEx(I32 x0, I32 y0, I32 xsize, I32 ysize, WM_HWIN 
 	}
 	return hObj;
 }
-
+void CHECKBOX_SetNoDrawDownRect(CHECKBOX_Handle hCheckbox, U8 IsDraw)
+{
+	if(hCheckbox){
+		CHECKBOX_Obj* pObj = (CHECKBOX_Obj *)GUI_ALLOC_h2p(hCheckbox);
+		if(pObj->Props.NoDrawDownRect != IsDraw){
+			if(0 == IsDraw){
+				pObj->Props.NoDrawDownRect = 0;
+			}else{
+				pObj->Props.NoDrawDownRect = 1;
+			}
+		}
+		WM_InvalidateWindow(hCheckbox);
+	}
+}
 #else                            /* Avoid problems with empty object modules */
   void CHECKBOX_C(void);
   void CHECKBOX_C(void) {}

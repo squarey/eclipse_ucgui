@@ -112,9 +112,10 @@ WM_HWIN GUI_CreateDialogBox(const GUI_WIDGET_CREATE_INFO* paWidget, I32 NumWidge
 		return 0;
 	}
 	hDialogClient = WM_GetClientWindow(hDialog);
-	WIDGET_OrState(hDialog, paWidget->Flags);
-	WM_ShowWindow(hDialog);
-	WM_ShowWindow(hDialogClient);
+	//GUI_Debug("hDialogClient %d, hDialog:%d\n", hDialogClient, hDialog);
+	//WIDGET_OrState(hDialog, paWidget->Flags);
+	//WM_ShowWindow(hDialog);
+	//WM_ShowWindow(hDialogClient);
 	while (--NumWidgets > 0) {
 		WM_HWIN hChild;
 		paWidget++;
@@ -123,9 +124,9 @@ WM_HWIN GUI_CreateDialogBox(const GUI_WIDGET_CREATE_INFO* paWidget, I32 NumWidge
 			WM_DeleteWindow(hDialog);
 			return 0;
 		}
-		WM_ShowWindow(hChild);
+		//WM_ShowWindow(hChild);
 	}
-	WM_SetFocusOnNextChild(hDialog);     /* Set the focus to the first child */
+	//WM_SetFocusOnNextChild(hDialog);     /* Set the focus to the first child */
 	WM_SendMessageNoPara(hDialogClient, WM_INIT_DIALOG);
 	return hDialog;
 }

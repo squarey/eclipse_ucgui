@@ -70,13 +70,13 @@ I32 GUI_GetYAdjust(void)
 	I32 r = 0;
 	switch (GUI_Context.TextAlign & GUI_TA_VERTICAL) {
 		case GUI_TA_BOTTOM:
-			r = GUI_Context.pAFont->YSize - 1;
+			r = ((GUI_Context.FontScale * GUI_Context.pAFont->YSize) >> GUI_FIX_DIV_BIT) - 1;
 			break;
 		case GUI_TA_VCENTER:
-			r = GUI_Context.pAFont->YSize / 2;
+			r = ((GUI_Context.FontScale * GUI_Context.pAFont->YSize) >> GUI_FIX_DIV_BIT) / 2;
 			break;
 		case GUI_TA_BASELINE:
-			r = GUI_Context.pAFont->YSize / 2;
+			r = ((GUI_Context.FontScale * GUI_Context.pAFont->YSize) >> GUI_FIX_DIV_BIT) / 2;
 			break;
 	}
 	return r;
@@ -89,7 +89,7 @@ I32 GUI_GetYAdjust(void)
 I32 GUI_GetFontDistY(void)
 {
 	I32 r;
-	r = GUI_Context.pAFont->YDist;
+	r = (GUI_Context.FontScale * GUI_Context.pAFont->YDist) >> GUI_FIX_DIV_BIT;
 	return r;
 }
 
@@ -100,7 +100,7 @@ I32 GUI_GetFontDistY(void)
 I32 GUI_GetCharDistX(U16 c)
 {
 	I32 r;
-	r = GUI_Context.pAFont->pfGetCharDistX(c);
+	r = (GUI_Context.FontScale * GUI_Context.pAFont->pfGetCharDistX(c)) >> GUI_FIX_DIV_BIT;
 	return r;
 }
 

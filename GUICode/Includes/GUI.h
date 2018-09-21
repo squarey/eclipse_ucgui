@@ -356,6 +356,8 @@ extern GUI_CONST_STORAGE GUI_FONT GUI_FontComic18B_ASCII, GUI_FontComic18B_1;
 extern GUI_CONST_STORAGE GUI_FONT GUI_FontComic24B_ASCII, GUI_FontComic24B_1;
 
 /* AntiAlias Font */
+extern GUI_CONST_STORAGE GUI_FONT GUI_FontNumberYH72;
+extern GUI_CONST_STORAGE GUI_FONT GUI_FontNumberYH48;
 extern GUI_CONST_STORAGE GUI_FONT GUI_FontASSIC_YH24;
 extern GUI_CONST_STORAGE GUI_FONT GUI_FontASSIC_YH32;
 extern GUI_CONST_STORAGE GUI_FONT GUI_FontYH24;
@@ -416,6 +418,10 @@ which ever one you like best.
 #define GUI_YMIN -4095
 #define GUI_YMAX  4095
 
+#define GUI_FIX_DIV_BIT 	(12)
+#define GUI_FIX_DIV			(1 << GUI_FIX_DIV_BIT)
+#define GUI_FIX_DIV_1		(GUI_FIX_DIV - 1)
+
 /*********************************************************************
 *
 *       Support for multitasking systems (locking)
@@ -447,20 +453,21 @@ typedef union
 struct GUI_CONTEXT {
 	/* Variables in LCD module */
 	LCD_COLORINDEX_UNION 		LCD;
-	LCD_RECT       			ClipRect;
+	LCD_RECT       				ClipRect;
 	LCD_RECT					SaveCilpRect;
 	U8             				DrawMode;
 	U8            	 			SelLayer;
 	U8             				TextStyle;
 	/* Variables in GL module */
 	/* High level clip rectangle ... Speed optimization so drawing routines can optimize */
-	GUI_RECT* 				pClipRect_HL;
+	GUI_RECT* 					pClipRect_HL;
 	U8        					PenSize;
 	U8        					PenShape;
 	U8        					LineStyle;
 	U8        					FillStyle;
 	/* Variables in GUICHAR module */
 	const GUI_FONT           	GUI_UNI_PTR * pAFont;
+	U32							FontScale;
 #if GUI_SUPPORT_UNICODE
 	/* Unicode encoding API */
 	const GUI_UC_ENC_APILIST*	pUC_API;
@@ -470,10 +477,13 @@ struct GUI_CONTEXT {
 	I16P 						DrawPosX, DrawPosY;
 	I16P 						TextMode, TextAlign;
 	/* Required only when changing devices and for speed opt (caching) */
-	GUI_COLOR 				Color, BkColor;
+	GUI_COLOR 					Color, BkColor;
 	U8							Alpha;
 	U8							BitmapHasTrans;
 	GUI_COLOR					BitmapTransColor;
+	U8  						BitmapChangeAlpha;
+	U8  						BitmapFlagChangeColor;
+	GUI_COLOR 					BitmapChangeColor;
 	/* Variables in WM module */
 #if GUI_WINSUPPORT
 	const GUI_RECT* 			WM__pUserClipRect;
@@ -675,6 +685,10 @@ void GUI_InvertRect       (I32 x0, I32 y0, I32 x1, I32 y1);
 void GUI_MoveRel          (I32 dx, I32 dy);
 void GUI_MoveTo           (I32 x, I32 y);
 
+/*set bitmap transplant function */
+void GUI_SetDrawBitmapTransColor(GUI_COLOR TransColor);
+void GUI_SetDrawBitmapHasTrans(U8 Status);
+U8 GUI_GetDrawBitmapHasTrans(void);
 /*********************************************************************
 *
 *       JPEG support
@@ -743,6 +757,8 @@ char  GUI_SetTextStyle(char Style);
 I32   GUI_SetLBorder(I32 x);
 void  GUI_SetOrg(I32 x, I32 y);
 const GUI_FONT GUI_UNI_PTR * GUI_SetFont(const GUI_FONT GUI_UNI_PTR * pNewFont);
+float GUI_SetFontScale(float Scale);
+float GUI_GetFontScale(void);
 char  GUI_GotoXY(I32 x, I32 y);
 char  GUI_GotoX(I32 x);
 char  GUI_GotoY(I32 y);
@@ -1090,6 +1106,19 @@ extern const GUI_BITMAP_METHODS GUI_BitmapMethodsRLE4;
 extern const GUI_BITMAP_METHODS GUI_BitmapMethodsRLE8;
 extern const GUI_BITMAP_METHODS GUI_BitmapMethodsRLE16;
 extern const GUI_BITMAP_METHODS GUI_BitmapMethodsRLEM16;
+//pixel format is compress REL RGB565
+extern const GUI_BITMAP_METHODS GUI_BitmapMethodsRLEM16M;
+//pixel format is compress REL ARGB8565
+extern const GUI_BITMAP_METHODS GUI_BitmapMethodAlphaRLEM16M;
+//pixel format is compress REL BGR565
+extern const GUI_BITMAP_METHODS GUI_BitmapMethodsRLE16M;
+//pixel format is compress REL BGR8565
+extern const GUI_BITMAP_METHODS GUI_BitmapMethodAlphaRLE16M;
+//pixel format is BMP ARGB8565
+extern const GUI_BITMAP_METHODS GUI_BMPAlphaM16M;
+//pixel format is BMP ABGR8565
+extern const GUI_BITMAP_METHODS GUI_BMPAlpha16M;
+
 extern const GUI_BITMAP_METHODS GUI_BitmapMethods555;
 extern const GUI_BITMAP_METHODS GUI_BitmapMethodsM555;
 extern const GUI_BITMAP_METHODS GUI_BitmapMethods565;
@@ -1100,16 +1129,26 @@ extern const GUI_BITMAP_METHODS GUI_BitmapMethodsM888;
 #define GUI_COMPRESS_RLE4 0
 #define GUI_COMPRESS_RLE8 0
 
-#define GUI_DRAW_RLE4    &GUI_BitmapMethodsRLE4   /* Method table ! */
-#define GUI_DRAW_RLE8    &GUI_BitmapMethodsRLE8   /* Method table ! */
-#define GUI_DRAW_RLE16   &GUI_BitmapMethodsRLE16  /* Method table ! */
-#define GUI_DRAW_RLEM16  &GUI_BitmapMethodsRLEM16 /* Method table ! */
-#define GUI_DRAW_BMP555  &GUI_BitmapMethods555    /* Method table ! */
-#define GUI_DRAW_BMPM555 &GUI_BitmapMethodsM555   /* Method table ! */
-#define GUI_DRAW_BMP565  &GUI_BitmapMethods565    /* Method table ! */
-#define GUI_DRAW_BMPM565 &GUI_BitmapMethodsM565   /* Method table ! */
-#define GUI_DRAW_BMP888  &GUI_BitmapMethods888    /* Method table ! */
-#define GUI_DRAW_BMPM888 &GUI_BitmapMethodsM888   /* Method table ! */
+#define GUI_DRAW_RLE4    			&GUI_BitmapMethodsRLE4   		/* Method table ! */
+#define GUI_DRAW_RLE8    			&GUI_BitmapMethodsRLE8   		/* Method table ! */
+#define GUI_DRAW_RLE16   			&GUI_BitmapMethodsRLE16  		/* Method table ! */
+#define GUI_DRAW_RLEM16  			&GUI_BitmapMethodsRLEM16 		/* Method table ! */
+#define GUI_DRAW_RLEM16M   			&GUI_BitmapMethodsRLEM16M  		/* Method table ! */
+#define GUI_DRAW_AlphaRLEM16M  		&GUI_BitmapMethodAlphaRLEM16M 	/* Method table ! */
+#define GUI_DRAW_RLE16M   			&GUI_BitmapMethodsRLE16M  		/* Method table ! */
+#define GUI_DRAW_AlphaRLE16M  		&GUI_BitmapMethodAlphaRLE16M 	/* Method table ! */
+#define GUI_DRAW_BMP555  			&GUI_BitmapMethods555    		/* Method table ! */
+#define GUI_DRAW_BMPM555 			&GUI_BitmapMethodsM555   		/* Method table ! */
+#define GUI_DRAW_BMP565  			&GUI_BitmapMethods565    		/* Method table ! */
+#define GUI_DRAW_BMPM565 			&GUI_BitmapMethodsM565   		/* Method table ! */
+#define GUI_DRAW_BMP888  			&GUI_BitmapMethods888    		/* Method table ! */
+#define GUI_DRAW_BMPM888 			&GUI_BitmapMethodsM888   		/* Method table ! */
+
+#define GUI_DRAW_BMPAM16M 			&GUI_BMPAlphaM16M   			/* Method table ! */
+#define GUI_DRAW_BMPA16M 			&GUI_BMPAlpha16M   				/* Method table ! */
+
+void GUI_SetBitmapAlpha				(U8 Alpha);
+void GUI_SetBitmapChangeColor		(GUI_COLOR Color);
 
 extern const uctGUI_SIF_APIList GUI_SIF_APIList_Prop;
 extern const uctGUI_SIF_APIList GUI_SIF_APIList_Prop_AA2;

@@ -52,6 +52,7 @@ static void _DrawBitmap_RLE8(I32 x0,I32 y0,I32 xsize, I32 ysize, const U8 GUI_UN
 	LCD_PIXELINDEX TransColorIndex;
 	I32 xi,y;
 	I32 xL, yL;
+	I32 DrawX0, DrawX1;
 	U8 BitmapHasTrans;
 	const U8 GUI_UNI_PTR * pPixelOrg = pPixel;
 	char NoTrans = !(GUI_Context.DrawMode & LCD_DRAWMODE_TRANS);
@@ -117,7 +118,19 @@ DRAW1:
 							yL = yMag * y + y0;
 							LCD_FillRect(xL, yL, xL + xMag * (xi1 - xi) -1 , yL + yMag - 1);
 						} else {
-							LCD_DrawHLine(x0+xi, y + y0, xi1+x0-1);
+							if(((y + y0) >= GUI_Context.ClipRect.y0) && ((y + y0) <= GUI_Context.ClipRect.y1)){
+								if((x0 + xi) > GUI_Context.ClipRect.x0){
+									DrawX0 = x0 + xi;
+								}else{
+									DrawX0 = GUI_Context.ClipRect.x0;
+								}
+								if((xi1 + x0 - 1) > GUI_Context.ClipRect.x1){
+									DrawX1 = GUI_Context.ClipRect.x1;
+								}else{
+									DrawX1 = xi1 + x0 - 1;
+								}
+								LCD_DrawHLine(DrawX0, y + y0, DrawX1);
+							}
 						}
 					}
 				}

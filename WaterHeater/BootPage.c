@@ -11,10 +11,13 @@
 #include "TitleBar.h"
 #include "HomePage.h"
 #include "Lockscreen.h"
+#include "PageListCreate.h"
 
 
 #define ID_WINDOW_BOOT		(ID_BOOT_PAGE + 0)
 #define ID_IMAGE_ANIM		(ID_BOOT_PAGE + 1)
+
+extern GUI_CONST_STORAGE GUI_BITMAP bmboot_anim;
 
 static const GUI_WIDGET_CREATE_INFO _WindowBootPageCreate[] =
 {
@@ -33,8 +36,9 @@ static void _BootImageAnimEnd(WM_HWIN hWin)
 {
 	WM_DeleteWindow(WM_GetParent(hWin));
 	TitleBarCreate();
-	HomePageCreate();
-	LockscreenPageCreate();
+	//HomePageCreate();
+	//LockscreenPageCreate();
+	PageListCreate();
 }
 static void _BootAnimCreate(WM_HWIN hWin)
 {
@@ -53,7 +57,8 @@ static void _DialogInit(WM_HWIN hParent)
 {
 	WM_HWIN hItem;
 	hItem = WM_GetDialogItem(hParent, ID_IMAGE_ANIM);
-	IMAGEVIEW_SetFile(hItem, IMAGE_BOOT_ANIM, 1);
+	//IMAGEVIEW_SetFile(hItem, IMAGE_BOOT_ANIM, 1);
+	IMAGEVIEW_SetBitmap(hItem, &bmboot_anim);
 	WM_SetAlignParent(hItem, OBJ_ALIGN_PARENT_CENTRE, 0, 0);
 	IMAGEVIEW_SetAlpha(hItem, 0);
 	_BootAnimCreate(hItem);

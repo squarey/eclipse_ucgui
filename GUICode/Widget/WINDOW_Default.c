@@ -26,8 +26,8 @@ Purpose     : Window routines
 *
 *       WINDOW_SetDefaultBkColor
 */
-void WINDOW_SetDefaultBkColor(GUI_COLOR Color) {
-  WINDOW__DefaultBkColor = Color;
+void WINDOW_SetDefaultBkStyle(const GUI_FullRectStyle *pStyle) {
+	WINDOW__DefaultBkStyle = *pStyle;
 }
 
 #else

@@ -568,7 +568,6 @@ FRAMEWIN_Handle FRAMEWIN_CreateEx(I32 x0, I32 y0, I32 xsize, I32 ysize, WM_HWIN 
   FRAMEWIN_Handle hObj;
   /* Create the window */
   GUI_LOCK();
-  WinFlags |= WM_CF_LATE_CLIP;    /* Always use late clipping since widget is optimized for it. */
   hObj = WM_CreateWindowAsChild(x0, y0, xsize, ysize, hParent, WinFlags, FRAMEWIN_Callback,
                                 sizeof(FRAMEWIN_Obj) - sizeof(WM_Obj));
   if (hObj) {
@@ -590,7 +589,7 @@ FRAMEWIN_Handle FRAMEWIN_CreateEx(I32 x0, I32 y0, I32 xsize, I32 ysize, WM_HWIN 
                                            Pos.rClient.x1 - Pos.rClient.x0 +1,
                                            Pos.rClient.y1 - Pos.rClient.y0 +1,
                                            hObj, 
-                                           WM_CF_ANCHOR_RIGHT | WM_CF_ANCHOR_LEFT | WM_CF_ANCHOR_TOP | WM_CF_ANCHOR_BOTTOM | WM_CF_SHOW | WM_CF_LATE_CLIP, 
+                                           WM_CF_ANCHOR_RIGHT | WM_CF_ANCHOR_LEFT | WM_CF_ANCHOR_TOP | WM_CF_ANCHOR_BOTTOM | WM_CF_SHOW, 
                                            FRAMEWIN__cbClient, 0);
     /* Normally we disable memory devices for the frame window:
      * The frame window does not flicker, and not using memory devices is usually faster.

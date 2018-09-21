@@ -29,6 +29,17 @@ extern GUI_CONST_STORAGE GUI_FONT GUI_FontNUM_YH40;
 extern GUI_CONST_STORAGE GUI_FONT GUI_FontNUM_YH48;
 extern GUI_CONST_STORAGE GUI_FONT GUI_FontNUM_YH75;
 
+extern GUI_CONST_STORAGE GUI_BITMAP bmicon_bathtub;
+extern GUI_CONST_STORAGE GUI_BITMAP bmline_fgx_s;
+extern GUI_CONST_STORAGE GUI_BITMAP bmiocn_tarrow_unfocus;
+extern GUI_CONST_STORAGE GUI_BITMAP bmiocn_tarrow_focus;
+extern GUI_CONST_STORAGE GUI_BITMAP bmiocn_darrow_unfocus;
+extern GUI_CONST_STORAGE GUI_BITMAP bmiocn_darrow_focus;
+extern GUI_CONST_STORAGE GUI_BITMAP bmbtn_back1_focus;
+extern GUI_CONST_STORAGE GUI_BITMAP bmbtn_back1_unfocus;
+extern GUI_CONST_STORAGE GUI_BITMAP bmline_black;
+extern GUI_CONST_STORAGE GUI_BITMAP bmunit_temp_y;
+
 static const GUI_WIDGET_CREATE_INFO _aWindowsBathtubCreate[] = {
 	{ WINDOW_CreateIndirect,	"Window",				ID_WINDOW_BATHTUB, 0, TITLE_BAR_HEIGHT, 1024, 600 - TITLE_BAR_HEIGHT, 0, 0x0,0},
 	{ IMAGEVIEW_CreateIndirect, "icon",				ID_BATHTUB_ICON, 0, 0, 156, 156, 0, 0x0,0},
@@ -52,12 +63,15 @@ static void DialogInit(WM_HWIN hParent)
 	char Buffer[3] = "";
 	/* icon */
 	hItem = WM_GetDialogItem(hParent, ID_BATHTUB_ICON);
-	IMAGEVIEW_SetFile(hItem, IMAGE_BATHTUB_ICON, 0);
+	//IMAGEVIEW_SetFile(hItem, IMAGE_BATHTUB_ICON, 0);
+	IMAGEVIEW_SetBitmap(hItem, &bmicon_bathtub);
+	IMAGEVIEW_SetBitmapHasTrans(hItem, GUI_BLACK);
 	WM_SetAlignParent(hItem, OBJ_ALIGN_PARENT_V_CENTRE, 40, 0);
 	/* vertical line */
 	BaseWin = hItem;
 	hItem = WM_GetDialogItem(hParent, ID_BATHTUB_LINE_V);
-	IMAGEVIEW_SetFile(hItem, IMAGE_LINE_V, 0);
+	//IMAGEVIEW_SetFile(hItem, IMAGE_LINE_V, 0);
+	IMAGEVIEW_SetBitmap(hItem, &bmline_fgx_s);
 	WM_SetAlignWindow(BaseWin, hItem, OBJ_ALIGN_BROTHER_OUT_RIGHT, 40, 0);
 	WM_SetAlignParent(hItem, OBJ_ALIGN_PARENT_V_CENTRE, 0, 0);
 	/* water text */
@@ -70,9 +84,11 @@ static void DialogInit(WM_HWIN hParent)
 	/* edit */
 	BaseWin = hItem;
 	hItem = WM_GetDialogItem(hParent, ID_BATHTUB_EDIT);
-	EDIT_SetText(hItem, "");
+	GUI_sprintf(Buffer, "%d", GetBathtubWaterValue());
+	EDIT_SetFont(hItem, &GUI_FontNUM_YH48);
+	EDIT_SetText(hItem, Buffer);
 	EDIT_SetTextAlign(hItem, EDIT_CF_VCENTER | EDIT_CF_HCENTER);
-	EDIT_SetMaxLen(hItem, 2);
+	EDIT_SetMaxLen(hItem, 3);
 	WM_SetAlignWindow(BaseWin, hItem, OBJ_ALIGN_BROTHER_OUT_RIGHT, 0, 100);
 	/* water unit */
 	BaseWin = hItem;
@@ -85,35 +101,43 @@ static void DialogInit(WM_HWIN hParent)
 	/* horizontal line */
 	BaseWin = WM_GetDialogItem(hParent, ID_BATHTUB_LINE_V);
 	hItem = WM_GetDialogItem(hParent, ID_BATHTUB_LINE_H);
-	IMAGEVIEW_SetFile(hItem, IMAGE_LINE_H2, 0);
+	//IMAGEVIEW_SetFile(hItem, IMAGE_LINE_H2, 0);
+	IMAGEVIEW_SetBitmap(hItem, &bmline_black);
 	IMAGEVIEW_SetChangeColor(hItem, GUI_GRAY);
 	WM_SetAlignWindow(BaseWin, hItem, OBJ_ALIGN_BROTHER_OUT_RIGHT, 0, 0);
 	WM_SetAlignParent(hItem, OBJ_ALIGN_PARENT_V_CENTRE, 0, 0);
 	/* btn inc */
 	BaseWin = hItem;
 	hItem = WM_GetDialogItem(hParent, ID_BATHTUB_INC);
-	IMAGEBUTTON_SetUnFocusFile(hItem, IMAGE_BTN_INC_REALEASE, 0);
-	IMAGEBUTTON_SetFocusFile(hItem, IMAGE_BTN_INC_PRESS, 0);
+	//IMAGEBUTTON_SetUnFocusFile(hItem, IMAGE_BTN_INC_REALEASE, 1);
+	//IMAGEBUTTON_SetFocusFile(hItem, IMAGE_BTN_INC_PRESS, 0);
+	IMAGEBUTTON_SetUnFocusBitmap(hItem, &bmiocn_tarrow_focus);
+	IMAGEBUTTON_SetFocusBitmap(hItem, &bmiocn_tarrow_unfocus);
 	WM_SetAlignParent(hItem, OBJ_ALIGN_PARENT_H_CENTRE, -80, 0);
 	WM_SetAlignWindow(BaseWin, hItem, OBJ_ALIGN_BROTHER_UNDER_BOTTOM, 0, 60);
 	/* btn dec */
 	BaseWin = WM_GetDialogItem(hParent, ID_BATHTUB_LINE_H);
 	hItem = WM_GetDialogItem(hParent, ID_BATHTUB_DEC);
-	IMAGEBUTTON_SetUnFocusFile(hItem, IMAGE_BTN_DEC_REALEASE, 0);
-	IMAGEBUTTON_SetFocusFile(hItem, IMAGE_BTN_DEC_PRESS, 0);
+	//IMAGEBUTTON_SetUnFocusFile(hItem, IMAGE_BTN_DEC_REALEASE, 1);
+	//IMAGEBUTTON_SetFocusFile(hItem, IMAGE_BTN_DEC_PRESS, 0);
+	IMAGEBUTTON_SetUnFocusBitmap(hItem, &bmiocn_darrow_focus);
+	IMAGEBUTTON_SetFocusBitmap(hItem, &bmiocn_darrow_unfocus);
 	WM_SetAlignParent(hItem, OBJ_ALIGN_PARENT_H_CENTRE, 250, 0);
 	WM_SetAlignWindow(BaseWin, hItem, OBJ_ALIGN_BROTHER_UNDER_BOTTOM, 0, 60);
 	/* unit */
 	BaseWin = WM_GetDialogItem(hParent, ID_BATHTUB_LINE_H);
 	hItem = WM_GetDialogItem(hParent, ID_BATHTUB_UNIT);
-	IMAGEVIEW_SetFile(hItem, IMAGE_TEMP_UNIT, 0);
+	//IMAGEVIEW_SetFile(hItem, IMAGE_TEMP_UNIT, 0);
+	IMAGEVIEW_SetBitmap(hItem, &bmunit_temp_y);
 	//WM_SetAlignWindow(BaseWin, hItem, OBJ_ALIGN_BROTHER_OUT_RIGHT, 0, 0);
 	WM_SetAlignWindow(BaseWin, hItem, OBJ_ALIGN_BROTHER_UNDER_BOTTOM, 0, 70);
 	WM_SetAlignParent(hItem, OBJ_ALIGN_PARENT_H_CENTRE, 150, 0);
 	/* btn back */
 	hItem = WM_GetDialogItem(hParent, ID_BATHTUB_BACK);
-	IMAGEBUTTON_SetUnFocusFile(hItem, IMAGE_BTN_BACK_REALEASE, 0);
-	IMAGEBUTTON_SetFocusFile(hItem, IMAGE_BTN_BACK_PRESS, 0);
+	//IMAGEBUTTON_SetUnFocusFile(hItem, IMAGE_BTN_BACK_REALEASE, 1);
+	//IMAGEBUTTON_SetFocusFile(hItem, IMAGE_BTN_BACK_PRESS, 0);
+	IMAGEBUTTON_SetUnFocusBitmap(hItem, &bmbtn_back1_focus);
+	IMAGEBUTTON_SetFocusBitmap(hItem, &bmbtn_back1_unfocus);
 	WM_SetAlignParent(hItem, OBJ_ALIGN_PARENT_RIGHT_BOTTOM, -20, -20);
 	/* temperature value */
 	GUI_sprintf(Buffer, "%d", GetBathtubTempValue());

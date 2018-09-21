@@ -558,7 +558,6 @@ EDIT_Handle EDIT_CreateEx(I32 x0, I32 y0, I32 xsize, I32 ysize, WM_HWIN hParent,
 	EDIT_Handle hObj;
 	GUI_USE_PARA(ExFlags);
 	/* Alloc memory for obj */
-	//WinFlags |= WM_CF_LATE_CLIP;    /* Always use late clipping since widget is optimized for it. */
 	hObj = WM_CreateWindowAsChild(x0, y0, xsize, ysize, hParent, WM_CF_SHOW | WinFlags, EDIT_Callback,
 									sizeof(EDIT_Obj) - sizeof(WM_Obj));
 	if (hObj) {

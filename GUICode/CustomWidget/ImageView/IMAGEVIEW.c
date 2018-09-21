@@ -75,7 +75,7 @@ static U8 __ImageDecode(ImageViewInfo_t* pInfo)
 	}else if(IMAGEVIEW_FORMAT_JPG == ImageFormat){
 		GUI_ImageDecodeJPG(pInfo);
 	}else{
-		GUI_Debug("image format is error, %s\n", pInfo->pFile);
+		//GUI_Debug("image format is error, %s\n", pInfo->pFile);
 		return 0;
 	}
 	return 1;
@@ -212,12 +212,28 @@ static void _CalculationDrawInfo(IMAGEVIEW_Handle hObj, _DrawInfo *pInfo, U8 Fla
 	pInfo->StartY = y;
 	pInfo->ViewInfo = tViewInfo;
 }
+#define USE_PRINTF_DRAW_TAKE_TIME 		0
+#if USE_PRINTF_DRAW_TAKE_TIME
+static long RecodeTime = 0;
+static long get_system_time_us(void)
+{
+	struct timeval tv;
+	long time;
+	gettimeofday(&tv, NULL);
+	time = tv.tv_sec * 1000000 + tv.tv_usec;
+	return time;
+}
+#endif
 static void _Paint(IMAGEVIEW_Obj* pObj, IMAGEVIEW_Handle hObj) {
 	WM_Obj *pWin;
 	pWin = WM_H2P(hObj);
+#if USE_PRINTF_DRAW_TAKE_TIME
+	RecodeTime = get_system_time_us();
+#endif
 	if(pWin->Status & WM_SF_ISVIS)
 	{
 		ImageViewInfo_t tViewInfo;
+
 		if(pObj->BackgroundColor & 0xff000000){
 			GUI_SetBkColor(pObj->BackgroundColor);
 			GUI_Clear();
@@ -225,6 +241,9 @@ static void _Paint(IMAGEVIEW_Obj* pObj, IMAGEVIEW_Handle hObj) {
 		if(IMAGEVIEW_COLOR_TYPE_BITMAP == pObj->ImageViewInfo.ColorType){
 			U8 PreMode;
 			_DrawInfo Info;
+			if(pObj->RotateAngle){
+				goto DRAW_ROTAT;
+			}
 			Info.ViewInfo = pObj->ImageViewInfo;
 			Info.AlphaValue = pObj->AlphaValue;
 			PreMode = GUI_GetDrawBitmapHasTrans();
@@ -233,8 +252,15 @@ static void _Paint(IMAGEVIEW_Obj* pObj, IMAGEVIEW_Handle hObj) {
 				GUI_SetDrawBitmapHasTrans(1);
 				GUI_SetDrawBitmapTransColor(pObj->BitmapTransColor);
 			}
+			if(1 == Info.ViewInfo.IsChangeColor){
+				GUI_SetBitmapChangeColor(Info.ViewInfo.Color);
+			}
+			GUI_SetBitmapAlpha(Info.AlphaValue);
 			GUI_DrawBitmap((GUI_BITMAP *)Info.ViewInfo.pExt, Info.OffestX, Info.OffestY);
 			GUI_SetDrawBitmapHasTrans(PreMode);
+#if USE_PRINTF_DRAW_TAKE_TIME
+			GUI_Debug("Draw bitmap size %dx%d take time:%u us\n", Info.ViewInfo.Width, Info.ViewInfo.Height, get_system_time_us() - RecodeTime);
+#endif
 			return;
 		}
 		if(IMAGE_IS_MAPPING == (IMAGE_IS_MAPPING & pObj->Status)){
@@ -245,18 +271,38 @@ static void _Paint(IMAGEVIEW_Obj* pObj, IMAGEVIEW_Handle hObj) {
 
 		tViewInfo = pObj->ImageViewInfo;
 		if(tViewInfo.pBuffer){
+DRAW_ROTAT:
 			if(pObj->RotateAngle){
 				ImageRotateInfo Info;
 				I32 ViewWidth = 0, ViewHeight = 0;
 				ViewWidth = WM_GetWindowSizeX(hObj);
 				ViewHeight = WM_GetWindowSizeY(hObj);
-				Info.ImageWidth = tViewInfo.Width;
-				Info.ImageHeight = tViewInfo.Height;
+				if(IMAGEVIEW_COLOR_TYPE_BITMAP == pObj->ImageViewInfo.ColorType){
+					tViewInfo = pObj->ImageViewInfo;
+					GUI_BITMAP *tBitmap = (GUI_BITMAP *)tViewInfo.pExt;
+					Info.ImageWidth = tBitmap->XSize;
+					Info.ImageHeight = tBitmap->YSize;
+					Info.ImageColorDepth = tBitmap->BitsPerPixel;
+					Info.pImageData = tBitmap->pData;
+					if(16 == Info.ImageColorDepth){
+						Info.PixelFormat = ROTATE_PIXEL_FORMAT_RGB565;
+					}else if(24 == Info.ImageColorDepth){
+						Info.PixelFormat = ROTATE_PIXEL_FORMAT_ARGB8565;
+					}
+				}else{
+					Info.ImageWidth = tViewInfo.Width;
+					Info.ImageHeight = tViewInfo.Height;
+					Info.ImageColorDepth = tViewInfo.ColorDepth;
+					Info.pImageData = tViewInfo.pBuffer;
+					if(24 == Info.ImageColorDepth){
+						Info.PixelFormat = ROTATE_PIXEL_FORMAT_RGB888;
+					}else if(32 == Info.ImageColorDepth){
+						Info.PixelFormat = ROTATE_PIXEL_FORMAT_ARGB8888;
+					}
+				}
 				Info.DstWidth = ViewWidth;
 				Info.DstHeight = ViewHeight;
-				Info.ImageColorDepth = tViewInfo.ColorDepth;
 				Info.RotatAngle = pObj->RotateAngle;
-				Info.pImageData = tViewInfo.pBuffer;
 				Info.RotatX = 0;
 				Info.RotatY = 0;
 				GUI_ImageDrawRotate(pObj->Widget.Win.Rect.x0, pObj->Widget.Win.Rect.y0, &Info);
@@ -271,6 +317,9 @@ static void _Paint(IMAGEVIEW_Obj* pObj, IMAGEVIEW_Handle hObj) {
 		if(IMAGE_DECODE_SAVE != (IMAGE_DECODE_SAVE & pObj->Status)){
 			GUI_ImageResRelease(&pObj->ImageViewInfo);
 		}
+#if USE_PRINTF_DRAW_TAKE_TIME
+		//GUI_Debug("Draw size %dx%d take time:%u us\n", Info.ViewInfo.Width, Info.ViewInfo.Height, get_system_time_us() - RecodeTime);
+#endif
 	}
 }
 
@@ -504,14 +553,15 @@ void IMAGEVIEW_SetBitmap(IMAGEVIEW_Handle hObj, const GUI_BITMAP *pBitmap)
 		if(IMAGE_DECODE_SAVE == (IMAGE_DECODE_SAVE & pObj->Status)){
 			GUI_ImageResRelease(&pObj->ImageViewInfo);
 		}
-		pObj->ImageViewInfo.ColorType = IMAGEVIEW_COLOR_TYPE_NONE;
 		pObj->Status = IMAGE_DECODE_NONE;
-		GUI_memset(&pObj->ImageViewInfo, 0, sizeof(ImageViewInfo_t));
-		pObj->ImageViewInfo.pExt = (void *)pBitmap;
-		pObj->ImageViewInfo.ColorType = IMAGEVIEW_COLOR_TYPE_BITMAP;
-		pObj->ImageViewInfo.Width =  pBitmap->XSize;
-		pObj->ImageViewInfo.Height = pBitmap->YSize;
-		WM_InvalidateWindow(hObj);
+		if(pObj->ImageViewInfo.pExt != (void *)pBitmap){
+			GUI_memset(&pObj->ImageViewInfo, 0, sizeof(ImageViewInfo_t));
+			pObj->ImageViewInfo.pExt = (void *)pBitmap;
+			pObj->ImageViewInfo.ColorType = IMAGEVIEW_COLOR_TYPE_BITMAP;
+			pObj->ImageViewInfo.Width =  pBitmap->XSize;
+			pObj->ImageViewInfo.Height = pBitmap->YSize;
+			WM_InvalidateWindow(hObj);
+		}
 	}
 }
 void IMAGEVIEW_SetBitmapHasTrans(IMAGEVIEW_Handle hObj, GUI_COLOR TransColor)
@@ -537,7 +587,7 @@ void IMAGEVIEW_SetChangeColor(IMAGEVIEW_Handle hObj, GUI_COLOR Color)
 	if(hObj){
 		IMAGEVIEW_Obj* pObj;
 		pObj = (IMAGEVIEW_Obj *)GUI_ALLOC_h2p(hObj);
-		if(pObj->ImageViewInfo.Color != Color){
+		if((pObj->ImageViewInfo.Color != Color) || (0 == pObj->ImageViewInfo.IsChangeColor)){
 			pObj->ImageViewInfo.IsChangeColor = 1;
 			pObj->ImageViewInfo.Color = Color;
 			WM_InvalidateWindow(hObj);
@@ -549,7 +599,10 @@ void IMAGEVIEW_SetBkColor(IMAGEVIEW_Handle hObj,GUI_COLOR color)
 	if(hObj){
 		IMAGEVIEW_Obj* pObj;
 		pObj = (IMAGEVIEW_Obj *)GUI_ALLOC_h2p(hObj);
-		pObj->BackgroundColor = color;
+		if(pObj->BackgroundColor != color){
+			pObj->BackgroundColor = color;
+			WM_InvalidateWindow(hObj);
+		}
 	}
 }
 void IMAGEVIEW_SetRotateAngle(IMAGEVIEW_Handle hObj, I16 Angle)
@@ -580,7 +633,6 @@ void IMAGEVIEW_SetAlpha(IMAGEVIEW_Handle hObj, U8 Alpha)
 		pObj = (IMAGEVIEW_Obj *)GUI_ALLOC_h2p(hObj);
 		if(pObj->AlphaValue != Alpha){
 			pObj->AlphaValue = Alpha;
-			//GUI_Debug("Alpha:%d\n", Alpha);
 			WM_InvalidateWindow(hObj);
 		}
 	}

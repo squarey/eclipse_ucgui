@@ -54,8 +54,9 @@ void WM_RectToMax(GUI_RECT* pRectResult, const GUI_RECT* pRect1, const GUI_RECT*
 	pRectResult->y1 = GUI_MATH_MAX(pRect1->y1, pRect2->y1);
 }
 /* 判断 pRect1是否在pRect2中
- * 在  返回 1
- * 不在 返回0
+ * 返回 1  pRect1 在  pRect2 中
+ * 返回 2  pRect2 在  pRect1 中
+ * 返回0  都不在
  * */
 U8 WM_RectIsIn(const GUI_RECT * pRect1, const GUI_RECT * pRect2)
 {
@@ -68,8 +69,14 @@ U8 WM_RectIsIn(const GUI_RECT * pRect1, const GUI_RECT * pRect2)
     	RectResult1.y0  >= RectResult2.y0 &&
 		RectResult1.x1  <= RectResult2.x1 &&
 		RectResult1.y1  <= RectResult2.y1){
-    	IsIn = 1;
+    	return 1;
     }
+    if( RectResult2.x0  >= RectResult1.x0 &&
+       	RectResult2.y0  >= RectResult1.y0 &&
+   		RectResult2.x1  <= RectResult1.x1 &&
+   		RectResult2.y1  <= RectResult1.y1){
+       	return 2;
+   }
     return IsIn;
 }
 

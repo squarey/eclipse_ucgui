@@ -29,7 +29,7 @@
 #define IMAGE_HOME_TIMER_REALEASE		"C:\\Users\\Administrator\\Desktop\\waterheater\\btn_ds01.png"
 #define IMAGE_HOME_TIMER_PRESS			"C:\\Users\\Administrator\\Desktop\\waterheater\\btn_ds02.png"
 #define IMAGE_HOME_TEMP_ON				"C:\\Users\\Administrator\\Desktop\\waterheater\\btn_wd03.png"
-#define IMAGE_HOME_TEMP_OFF				"C:\\Users\\Administrator\\Desktop\\waterheater\\btn_wd01.png"
+#define IMAGE_HOME_TEMP_OFF				"C:\\Users\\Administrator\\Desktop\\waterheater\\wendu_unfocus.png"
 #define IMAGE_HOME_KITCHEN_REALEASE		"C:\\Users\\Administrator\\Desktop\\waterheater\\kitchen_01.png"
 #define IMAGE_HOME_KITCHEN_PRESS		"C:\\Users\\Administrator\\Desktop\\waterheater\\kitchen_02.png"
 #define IMAGE_HOME_KITCHEN_SELECT		"C:\\Users\\Administrator\\Desktop\\waterheater\\btn_cf01_b.png"

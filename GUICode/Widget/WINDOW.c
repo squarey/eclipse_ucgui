@@ -47,7 +47,7 @@ typedef struct
 	WM_CALLBACK* cb;
 	WM_HWIN hFocussedChild;
 	WM_DIALOG_STATUS* pDialogStatus;
-	GUI_COLOR BkColor;
+	GUI_FullRectStyle RectStyle;
 } WINDOW_OBJ;
 
 #define WINDOW_H2P(h) (WINDOW_OBJ*)WM_H2P(h)
@@ -59,7 +59,13 @@ typedef struct
 **********************************************************************
 */
 
-GUI_COLOR WINDOW__DefaultBkColor = WINDOW_BKCOLOR_DEFAULT;
+GUI_FullRectStyle WINDOW__DefaultBkStyle =
+{
+	.GradColor = 0,
+	.GradColor = 0,
+	.Radius = 0,
+	.Opacity = 0xff,
+};
 
 /*********************************************************************
 *
@@ -141,12 +147,19 @@ void WINDOW_Callback(WM_MESSAGE* pMsg)
 			}
 		break;
 		case WM_PAINT:
-			LCD_SetBkColor(pObj->BkColor);
+		{
+			GUI_RECT WinRect;
+			WM_GetClientRectEx(pMsg->hWin, &WinRect);
+			GUI_DrawRectMainMiddle(&WinRect, &pObj->RectStyle);
+			GUI_DrawRectMainCorner(&WinRect, &pObj->RectStyle);
+		}
+
 			//LCD_SetBkColor(pObj->BkColor);
-			GUI_Clear();
+			//LCD_SetBkColor(pObj->BkColor);
+			//GUI_Clear();
 		break;
 		case WM_GET_BKCOLOR:
-			pMsg->Data.Color = WINDOW__DefaultBkColor;
+			pMsg->Data.Color = WINDOW__DefaultBkStyle.MainColor;
 		return;                       /* Message handled */
 	}
 	if (cb) {
@@ -174,20 +187,21 @@ WM_HWIN WINDOW_CreateIndirect(const GUI_WIDGET_CREATE_INFO* pCreateInfo, WM_HWIN
 		WIDGET__Init(&pObj->Widget, pCreateInfo->Id, WIDGET_STATE_FOCUSSABLE);
 		pObj->cb             = cb;
 		pObj->hFocussedChild = 0;
-		pObj->BkColor = WINDOW__DefaultBkColor;
+		pObj->RectStyle = WINDOW__DefaultBkStyle;
 	}
 	return hObj;
 }
-void WINDOW_SetBkColor(WM_HWIN hwin, GUI_COLOR Color)
+void WINDOW_SetBkColor(WM_HWIN hWin, const GUI_FullRectStyle *pStyle)
 {
-	WINDOW_OBJ* pWin;
-	pWin = WINDOW_H2P(hwin);
-	if(pWin->BkColor != Color){
-		pWin->BkColor = Color;
-		WM_InvalidateWindow(hwin);
+	if(hWin){
+		WINDOW_OBJ* pWin;
+		pWin = WINDOW_H2P(hWin);
+		if(GUI_memcmp(&pWin->RectStyle, pStyle, sizeof(GUI_FullRectStyle))){
+			pWin->RectStyle = *pStyle;
+			WM_InvalidateWindow(hWin);
+		}
 	}
 }
-
 #else
   void WINDOW_c(void);
   void WINDOW_c(void) {} /* avoid empty object files */
