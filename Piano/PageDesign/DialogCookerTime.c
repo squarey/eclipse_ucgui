@@ -62,6 +62,9 @@ static void _CookerSetDialogInit(WM_HWIN hParent)
 	CHECKBOX_SetImage(hItem, &bmbtn_close, CHECKBOX_BI_ACTIV_UNCHECKED);
 	CHECKBOX_SetImage(hItem, &bmbtn_open, CHECKBOX_BI_ACTIV_CHECKED);
 	CHECKBOX_SetNoDrawDownRect(hItem, 1);
+	if(COOKER_TIMER_CLOSE != Setting_GetCookerTimerStatus()){
+		CHECKBOX_SetState(hItem, 1);
+	}
 	WM_SetAlignParent(hItem, OBJ_ALIGN_PARENT_RIGHT, 0, 0);
 	//上方分割线
 	hItem = WM_GetDialogItem(hParent, ID_COOKER_LINE_H1);
@@ -72,14 +75,35 @@ static void _CookerSetDialogInit(WM_HWIN hParent)
 	hItem = WM_GetDialogItem(hParent, ID_COOKER_SELECT);
 	CHECKBOX_SetImage(hItem, &bmcooker_left, CHECKBOX_BI_ACTIV_UNCHECKED);
 	CHECKBOX_SetImage(hItem, &bmcooker_right, CHECKBOX_BI_ACTIV_CHECKED);
+	CHECKBOX_SetImage(hItem, &bmcooker_left, CHECKBOX_BI_INACTIV_UNCHECKED);
+	CHECKBOX_SetImage(hItem, &bmcooker_left, CHECKBOX_BI_INACTIV_CHECKED);
 	CHECKBOX_SetNoDrawDownRect(hItem, 1);
+	if(COOKER_TIMER_CLOSE == Setting_GetCookerTimerStatus()){
+		WM_DisableWindow(hItem);
+	}
+	if(COOKER_TIMER_START == Setting_GetCookerTimerLeftStatus()){
+		CHECKBOX_SetState(hItem, 0);
+	}else if(COOKER_TIMER_START == Setting_GetCookerTimerRightStatus()){
+		CHECKBOX_SetState(hItem, 1);
+	}
 	WM_SetAlignWindow(hBase, hItem, OBJ_ALIGN_BROTHER_UNDER_BOTTOM, 10, 10);
 	//picker
 	hItem = WM_GetDialogItem(hParent, ID_COOKER_PICKER);
 	WM_SetHasTrans(hItem);
 	Picker_SetMaxValue(hItem, 99);
-	Picker_SetMinValue(hItem, 1);
+	Picker_SetMinValue(hItem, 0);
 	Picker_SetFontColor(hItem, GUI_BLACK, GUI_GRAY, GUI_GRAY);
+
+	Picker_SetValue(hItem, Setting_GetCookerTimerLeftCnt()/60);
+	if(COOKER_TIMER_CLOSE == Setting_GetCookerTimerStatus()){
+		WM_DisableWindow(hItem);
+	}else{
+		if(COOKER_TIMER_START == Setting_GetCookerTimerLeftStatus()){
+			Picker_SetValue(hItem, Setting_GetCookerTimerLeftCnt()/60);
+		}else if(COOKER_TIMER_START == Setting_GetCookerTimerRightStatus()){
+			Picker_SetValue(hItem, Setting_GetCookerTimerRightCnt()/60);
+		}
+	}
 	WM_SetAlignParent(hItem, OBJ_ALIGN_PARENT_CENTRE, 0, 0);
 	//取消按钮
 	hItem = WM_GetDialogItem(hParent, ID_COOKER_BTN_CANLE);
@@ -103,6 +127,9 @@ static void _CookerSetDialogInit(WM_HWIN hParent)
 	BUTTON_SetPressNewStyle(hItem, &BtnStyle);
 	BUTTON_SetRelNewStyle(hItem, &BtnStyle);
 	WM_SetHasTrans(hItem);
+	if(COOKER_TIMER_CLOSE == Setting_GetCookerTimerStatus()){
+		WM_DisableWindow(hItem);
+	}
 	WM_SetAlignParent(hItem, OBJ_ALIGN_PARENT_RIGHT_BOTTOM, 0, 0);
 
 	//下方分割线
@@ -136,11 +163,48 @@ static void _cbCookerTimeDialog(WM_MESSAGE * pMsg) {
 			if(NCode == WM_NOTIFICATION_RELEASED){
 				switch(Id){
 					case ID_COOKER_SWITCH:
+						if(CHECKBOX_IsChecked(WM_GetDialogItem(pMsg->hWin, ID_COOKER_SWITCH))){
+							WM_EnableWindow(WM_GetDialogItem(pMsg->hWin, ID_COOKER_SELECT));
+							WM_EnableWindow(WM_GetDialogItem(pMsg->hWin, ID_COOKER_PICKER));
+							WM_EnableWindow(WM_GetDialogItem(pMsg->hWin, ID_COOKER_BTN_CONFIRM));
+							Setting_SetCookerTimerStatus(COOKER_TIMER_OPEN);
+						}else{
+							WM_DisableWindow(WM_GetDialogItem(pMsg->hWin, ID_COOKER_SELECT));
+							WM_DisableWindow(WM_GetDialogItem(pMsg->hWin, ID_COOKER_PICKER));
+							WM_DisableWindow(WM_GetDialogItem(pMsg->hWin, ID_COOKER_BTN_CONFIRM));
+							Setting_SetCookerTimerStatus(COOKER_TIMER_CLOSE);
+						}
+					break;
+					case ID_COOKER_SELECT:
+						if(CHECKBOX_IsChecked(WM_GetDialogItem(pMsg->hWin, ID_COOKER_SELECT))){
+							Setting_SetCookerTimerLeftCnt(Picker_GetCurValue(WM_GetDialogItem(pMsg->hWin, ID_COOKER_PICKER))*60);
+							Picker_SetValue(WM_GetDialogItem(pMsg->hWin, ID_COOKER_PICKER),
+									Setting_GetCookerTimerRightCnt()/60);
+						}else{
+							Setting_SetCookerTimerRightCnt(Picker_GetCurValue(WM_GetDialogItem(pMsg->hWin, ID_COOKER_PICKER))*60);
+							Picker_SetValue(WM_GetDialogItem(pMsg->hWin, ID_COOKER_PICKER),
+							Setting_GetCookerTimerLeftCnt()/60);
+						}
 					break;
 					case ID_COOKER_BTN_CANLE:
 						WM_DeleteWindow(pMsg->hWin);
 					break;
 					case ID_COOKER_BTN_CONFIRM:
+						if(!CHECKBOX_IsChecked(WM_GetDialogItem(pMsg->hWin, ID_COOKER_SELECT))){
+							Setting_SetCookerTimerLeftCnt(Picker_GetCurValue(WM_GetDialogItem(pMsg->hWin, ID_COOKER_PICKER))*60);
+						}else{
+							Setting_SetCookerTimerRightCnt(Picker_GetCurValue(WM_GetDialogItem(pMsg->hWin, ID_COOKER_PICKER))*60);
+						}
+						if(0 != Setting_GetCookerTimerLeftCnt()){
+							Setting_SetCookerTimerLeftStatus(COOKER_TIMER_START);
+						}else{
+							Setting_SetCookerTimerRightStatus(COOKER_TIMER_CLOSE);
+						}
+						if(0 != Setting_GetCookerTimerRightCnt()){
+							Setting_SetCookerTimerRightStatus(COOKER_TIMER_START);
+						}else{
+							Setting_SetCookerTimerRightStatus(COOKER_TIMER_CLOSE);
+						}
 						WM_DeleteWindow(pMsg->hWin);
 					break;
 				}

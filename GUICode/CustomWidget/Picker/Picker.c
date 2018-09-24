@@ -9,6 +9,8 @@
 #if GUI_WINSUPPORT && PICKER_SUPPORT
 
 
+#define DEF_PICKER_DISABLE_FONT_COLOR	GUI_GRAY
+
 static I32 LastTouchYPos = 0;
 static char IsFirstTouch = 0;
 
@@ -96,8 +98,15 @@ static void __DrawOwn(Picker_Obj* pObj, U32 PickerWidth, U32 PickerHeight, U32 *
 }
 static void _Paint(Picker_Obj* pObj, Picker_Handle hObj)
 {
+	GUI_COLOR EnableLargeColor, EnableMiddleColor, EnableSmallColor;
+	EnableLargeColor = pObj->LargeColor;
+	EnableMiddleColor = pObj->MiddleColor;
+	EnableSmallColor = pObj->SmallColor;
 	if(!WM__IsEnabled(hObj)){
-		return;
+		pObj->LargeColor = pObj->DisableFontColor;
+		pObj->MiddleColor = pObj->DisableFontColor;
+		pObj->SmallColor = pObj->DisableFontColor;
+		//return;
 	}
 	if(!WM_GetHasTrans(hObj)){
 		GUI_SetBkColor(pObj->BkColor);
@@ -123,6 +132,9 @@ static void _Paint(Picker_Obj* pObj, Picker_Handle hObj)
 		GUI_DrawHLine(SaveYPos2,0,PickerWidth);
 		pObj->TouchVaildDist = (SaveYPos2 - SaveYPos1) >> 2;
 	}
+	pObj->LargeColor = EnableLargeColor;
+	pObj->MiddleColor = EnableMiddleColor;
+	pObj->SmallColor = EnableSmallColor;
 }
 
 static void _OnPickerPressed(Picker_Handle hObj, Picker_Obj* pObj)
@@ -257,6 +269,7 @@ Picker_Handle Picker_CreateEx(I32 x0, I32 y0, I32 xsize, I32 ysize, WM_HWIN hPar
 		pObj->MiddleColor = GUI_WHITE;
 		pObj->SmallColor = GUI_WHITE;
 		pObj->BkColor = GUI_BLACK;
+		pObj->DisableFontColor = DEF_PICKER_DISABLE_FONT_COLOR;
 	}else{
 		GUI_DEBUG_ERROROUT_IF(hObj==0, "SLIDER_Create failed")
 	}
@@ -353,6 +366,19 @@ void Picker_SetBkColor(Picker_Handle hObj, GUI_COLOR BkColor)
 		if(pObj->BkColor != BkColor){
 			pObj->BkColor = BkColor;
 			WM_Invalidate(hObj);
+		}
+	}
+}
+void Picker_SetDisableFontColor(Picker_Handle hObj, GUI_COLOR DisableColor)
+{
+	if (hObj) {
+		Picker_Obj* pObj;
+		pObj = Picker_H2P(hObj);
+		if(pObj->DisableFontColor != DisableColor){
+			pObj->DisableFontColor = DisableColor;
+			if(!WM_IsEnabled(hObj)){
+				WM_Invalidate(hObj);
+			}
 		}
 	}
 }

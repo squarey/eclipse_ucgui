@@ -71,6 +71,9 @@ static void _TimingAirDialogInit(WM_HWIN hParent)
 	CHECKBOX_SetImage(hItem, &bmbtn_close, CHECKBOX_BI_ACTIV_UNCHECKED);
 	CHECKBOX_SetImage(hItem, &bmbtn_open, CHECKBOX_BI_ACTIV_CHECKED);
 	CHECKBOX_SetNoDrawDownRect(hItem, 1);
+	if(TIMING_AIR_CLOSE != Setting_GetTimingAirStatus()){
+		CHECKBOX_SetState(hItem, 1);
+	}
 	WM_SetAlignParent(hItem, OBJ_ALIGN_PARENT_RIGHT, 0, 0);
 	//上方分割线
 	hItem = WM_GetDialogItem(hParent, ID_TIMING_AIR_LINE_H1);
@@ -90,6 +93,15 @@ static void _TimingAirDialogInit(WM_HWIN hParent)
 	Picker_SetMaxValue(hItem, 59);
 	Picker_SetMinValue(hItem, 0);
 	Picker_SetFontColor(hItem, GUI_BLACK, GUI_GRAY, GUI_GRAY);
+	if(TIMING_AIR_CLOSE == Setting_GetTimingAirStatus()){
+		WM_DisableWindow(hBase);
+		WM_DisableWindow(hItem);
+	}else{
+		U8 Hours, Minutes;
+		Setting_GetTimingAirTime(&Hours, &Minutes);
+		Picker_SetValue(hBase, Hours);
+		Picker_SetValue(hItem, Minutes);
+	}
 	WM_SetAlignParent(hItem, OBJ_ALIGN_PARENT_CENTRE, 0, 0);
 	WM_SetAlignWindow(hBase, hItem, OBJ_ALIGN_BROTHER_OUT_RIGHT, 0, 0);
 	//取消按钮
@@ -114,6 +126,9 @@ static void _TimingAirDialogInit(WM_HWIN hParent)
 	BUTTON_SetPressNewStyle(hItem, &BtnStyle);
 	BUTTON_SetRelNewStyle(hItem, &BtnStyle);
 	WM_SetHasTrans(hItem);
+	if(TIMING_AIR_CLOSE == Setting_GetTimingAirStatus()){
+		WM_DisableWindow(hItem);
+	}
 	WM_SetAlignParent(hItem, OBJ_ALIGN_PARENT_RIGHT_BOTTOM, 0, 0);
 
 	//下方分割线
@@ -147,12 +162,25 @@ static void _cbTimingAirDialog(WM_MESSAGE * pMsg) {
 			if(NCode == WM_NOTIFICATION_RELEASED){
 				switch(Id){
 					case ID_TIMING_AIR_SWITCH:
-
+						if(CHECKBOX_IsChecked(WM_GetDialogItem(pMsg->hWin, ID_TIMING_AIR_SWITCH))){
+							WM_EnableWindow(WM_GetDialogItem(pMsg->hWin, ID_TIMING_AIR_PICKER1));
+							WM_EnableWindow(WM_GetDialogItem(pMsg->hWin, ID_TIMING_AIR_PICKER2));
+							WM_EnableWindow(WM_GetDialogItem(pMsg->hWin, ID_TIMING_AIR_BTN_CONFIRM));
+							Setting_SetTimingAirStatus(TIMING_AIR_OPEN);
+						}else{
+							WM_DisableWindow(WM_GetDialogItem(pMsg->hWin, ID_TIMING_AIR_PICKER1));
+							WM_DisableWindow(WM_GetDialogItem(pMsg->hWin, ID_TIMING_AIR_PICKER2));
+							WM_DisableWindow(WM_GetDialogItem(pMsg->hWin, ID_TIMING_AIR_BTN_CONFIRM));
+							Setting_SetTimingAirStatus(TIMING_AIR_CLOSE);
+						}
 					break;
 					case ID_TIMING_AIR_BTN_CANLE:
 						WM_DeleteWindow(pMsg->hWin);
 					break;
 					case ID_TIMING_AIR_BTN_CONFIRM:
+						Setting_SetTimingAirTime(Picker_GetCurValue(WM_GetDialogItem(pMsg->hWin, ID_TIMING_AIR_PICKER1)),
+								Picker_GetCurValue(WM_GetDialogItem(pMsg->hWin, ID_TIMING_AIR_PICKER2)));
+						Setting_SetTimingAirStatus(TIMING_AIR_START);
 						WM_DeleteWindow(pMsg->hWin);
 					break;
 				}

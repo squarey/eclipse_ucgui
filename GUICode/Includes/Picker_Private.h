@@ -21,6 +21,7 @@ typedef struct Picker_Obj_t
 	GUI_COLOR	MiddleColor;
 	GUI_COLOR	SmallColor;
 	GUI_COLOR	BkColor;
+	GUI_COLOR	DisableFontColor;
 	U8 IsMove;
 	const GUI_FONT *pMiddleFont;
 	const GUI_FONT *pLargeFont;

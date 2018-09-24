@@ -134,10 +134,73 @@ static void _DialogInit(WM_HWIN hParent)
 	TEXT_SetTextAlign(hItem, TEXT_CF_HCENTER | TEXT_CF_VCENTER);
 	WM_SetAlignWindow(WM_GetDialogItem(hParent, ID_MAIN_BTN_COOKER_TIMER), hItem, OBJ_ALIGN_BROTHER_CENTER, 20, 15);
 	WM_ShowWindowAndChild(hParent);
+
+	WM_HideWindow(WM_GetDialogItem(hParent, ID_MAIN_DELAY_REMAIN_TEXT));
+	WM_HideWindow(WM_GetDialogItem(hParent, ID_MAIN_TIMING_REMAIN_TEXT));
+	WM_HideWindow(WM_GetDialogItem(hParent, ID_MAIN_COOKER_REMAIN_LEFT_TEXT));
+	WM_HideWindow(WM_GetDialogItem(hParent, ID_MAIN_COOKER_REMAIN_RIGHT_TEXT));
+}
+
+static void _RefreshDelayCloseCnt(WM_HWIN hParent)
+{
+	char Buffer[32];
+	GUI_sprintf(Buffer, "距关机还剩%d分", Setting_GetDelayCloseCnt()/60);
+	TEXT_SetText(WM_GetDialogItem(hParent, ID_MAIN_DELAY_REMAIN_TEXT), Buffer);
+}
+
+static void _RefreshTimingAirCnt(WM_HWIN hParent)
+{
+	char Buffer[32];
+	U8 Hours, Minutes;
+	Setting_GetTimingAirTime(&Hours, &Minutes);
+	GUI_sprintf(Buffer, "距换气还剩%d时%d分", Hours, Minutes);
+	TEXT_SetText(WM_GetDialogItem(hParent, ID_MAIN_TIMING_REMAIN_TEXT), Buffer);
+}
+
+static void _RefreshCookerTimeLeftCnt(WM_HWIN hParent)
+{
+	char Buffer[32];
+	GUI_sprintf(Buffer, "左灶剩余%d分", Setting_GetCookerTimerLeftCnt()/60);
+	TEXT_SetText(WM_GetDialogItem(hParent, ID_MAIN_COOKER_REMAIN_LEFT_TEXT), Buffer);
+}
+static void _RefreshCookerTimeRightCnt(WM_HWIN hParent)
+{
+	char Buffer[32];
+	GUI_sprintf(Buffer, "右灶剩余%dn分", Setting_GetCookerTimerRightCnt()/60);
+	TEXT_SetText(WM_GetDialogItem(hParent, ID_MAIN_COOKER_REMAIN_RIGHT_TEXT), Buffer);
 }
 static void __PageMainTimer_cb(GUI_TIMER_MESSAGE *pContext)
 {
-	IMAGEVIEW_SetBitmap(WM_GetDialogItem(pContext->Context, ID_MAIN_BTN_COOKER_TIMER), &bmcooker_timer_pic);
+	//IMAGEVIEW_SetBitmap(WM_GetDialogItem(pContext->Context, ID_MAIN_BTN_COOKER_TIMER), &bmcooker_timer_pic);
+	if(DELAY_START == Setting_GetDelayCloseStatus()){
+		_RefreshDelayCloseCnt(pContext->Context);
+		WM_ShowWindow(WM_GetDialogItem(pContext->Context, ID_MAIN_DELAY_REMAIN_TEXT));
+	}else{
+		WM_HideWindow(WM_GetDialogItem(pContext->Context, ID_MAIN_DELAY_REMAIN_TEXT));
+	}
+	if(TIMING_AIR_START == Setting_GetTimingAirStatus()){
+		_RefreshTimingAirCnt(pContext->Context);
+		WM_ShowWindow(WM_GetDialogItem(pContext->Context, ID_MAIN_TIMING_REMAIN_TEXT));
+	}else{
+		WM_HideWindow(WM_GetDialogItem(pContext->Context, ID_MAIN_TIMING_REMAIN_TEXT));
+	}
+	if((COOKER_TIMER_START == Setting_GetCookerTimerLeftStatus()) || (COOKER_TIMER_START == Setting_GetCookerTimerRightStatus())){
+		IMAGEVIEW_SetBitmap(WM_GetDialogItem(pContext->Context, ID_MAIN_BTN_COOKER_TIMER), &bmcooker_timer_pic);
+	}else{
+		IMAGEVIEW_SetBitmap(WM_GetDialogItem(pContext->Context, ID_MAIN_BTN_COOKER_TIMER), &bmcooker_timer_unfocus);
+	}
+	if(COOKER_TIMER_START == Setting_GetCookerTimerLeftStatus()){
+		_RefreshCookerTimeLeftCnt(pContext->Context);
+		WM_ShowWindow(WM_GetDialogItem(pContext->Context, ID_MAIN_COOKER_REMAIN_LEFT_TEXT));
+	}else{
+		WM_HideWindow(WM_GetDialogItem(pContext->Context, ID_MAIN_COOKER_REMAIN_LEFT_TEXT));
+	}
+	if(COOKER_TIMER_START == Setting_GetCookerTimerRightStatus()){
+		_RefreshCookerTimeRightCnt(pContext->Context);
+		WM_ShowWindow(WM_GetDialogItem(pContext->Context, ID_MAIN_COOKER_REMAIN_RIGHT_TEXT));
+	}else{
+		WM_HideWindow(WM_GetDialogItem(pContext->Context, ID_MAIN_COOKER_REMAIN_RIGHT_TEXT));
+	}
 	GUI_TIMER_Restart(_hPageMainTimer);
 }
 

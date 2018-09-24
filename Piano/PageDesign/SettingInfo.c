@@ -14,6 +14,16 @@ typedef struct
 	U8 StatusLight;
 	U8 StatusWind;
 	U8 StatusDelayClose;
+	U16 DelayCloseCnt;
+	U8 StatusTimingAir;
+	U32 TimingAirCnt;
+	U8 TimingAirTimeHours;
+	U8 TimingAirTimeMinutes;
+	U8 StatusCookerTimer;
+	U8 StatusCookerTimerLeft;
+	U8 StatusCookerTimerRight;
+	U16 CookerTimerLeftCnt;
+	U16 CookerTimerRightCnt;
 }SettingStatus;
 
 
@@ -34,6 +44,48 @@ void Setting_SetDelayCloseStatus(U8 Status)
 {
 	_mSettingStatus.StatusDelayClose = Status;
 }
+void Setting_SetDelayCloseCnt(U16 Cnt)
+{
+	_mSettingStatus.DelayCloseCnt = Cnt;
+}
+void Setting_SetTimingAirStatus(U8 Status)
+{
+	_mSettingStatus.StatusTimingAir = Status;
+}
+void Setting_SetTimingAirCnt(U32 Cnt)
+{
+	_mSettingStatus.TimingAirCnt = Cnt;
+}
+void Setting_SetTimingAirTime(U8 Hours, U8 Minutes)
+{
+	_mSettingStatus.TimingAirTimeHours = Hours;
+	_mSettingStatus.TimingAirTimeMinutes = Minutes;
+}
+void Setting_SetCookerTimerStatus(U8 Status)
+{
+	_mSettingStatus.StatusCookerTimer = Status;
+	if(COOKER_TIMER_CLOSE == Status){
+		_mSettingStatus.StatusCookerTimerLeft = COOKER_TIMER_CLOSE;
+		_mSettingStatus.StatusCookerTimerRight = COOKER_TIMER_CLOSE;
+	}
+}
+void Setting_SetCookerTimerLeftStatus(U8 Status)
+{
+	_mSettingStatus.StatusCookerTimerLeft = Status;
+}
+void Setting_SetCookerTimerRightStatus(U8 Status)
+{
+	_mSettingStatus.StatusCookerTimerRight = Status;
+}
+void Setting_SetCookerTimerLeftCnt(U16 Cnt)
+{
+	_mSettingStatus.CookerTimerLeftCnt = Cnt;
+}
+void Setting_SetCookerTimerRightCnt(U16 Cnt)
+{
+	_mSettingStatus.CookerTimerRightCnt = Cnt;
+}
+
 
 U8 Setting_GetLightStatus(void)
 {
@@ -48,4 +100,41 @@ U8 Setting_GetWindStatus(void)
 U8 Setting_GetDelayCloseStatus(void)
 {
 	return _mSettingStatus.StatusDelayClose;
+}
+U16 Setting_GetDelayCloseCnt(void)
+{
+	return _mSettingStatus.DelayCloseCnt;
+}
+U8 Setting_GetTimingAirStatus(void)
+{
+	return _mSettingStatus.StatusTimingAir;
+}
+U32 Setting_GetTimingAirCnt(void)
+{
+	return _mSettingStatus.TimingAirCnt;
+}
+void Setting_GetTimingAirTime(U8 *pHours, U8 *pMinutes)
+{
+	*pHours = _mSettingStatus.TimingAirTimeHours;
+	*pMinutes = _mSettingStatus.TimingAirTimeMinutes;
+}
+U8 Setting_GetCookerTimerStatus(void)
+{
+	return _mSettingStatus.StatusCookerTimer;
+}
+U8 Setting_GetCookerTimerLeftStatus(void)
+{
+	return _mSettingStatus.StatusCookerTimerLeft;
+}
+U8 Setting_GetCookerTimerRightStatus(void)
+{
+	return _mSettingStatus.StatusCookerTimerRight;
+}
+U16 Setting_GetCookerTimerLeftCnt(void)
+{
+	return _mSettingStatus.CookerTimerLeftCnt;
+}
+U16 Setting_GetCookerTimerRightCnt(void)
+{
+	return _mSettingStatus.CookerTimerRightCnt;
 }

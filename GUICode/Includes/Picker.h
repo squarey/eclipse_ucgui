@@ -25,7 +25,7 @@ I32 Picker_GetCurValue(Picker_Handle hObj);
 void Picker_SetValue(Picker_Handle hObj, I32 Value);
 void Picker_SetFontColor(Picker_Handle hObj, GUI_COLOR LargeColor, GUI_COLOR MiddleColor, GUI_COLOR SmallColor);
 void Picker_SetBkColor(Picker_Handle hObj, GUI_COLOR BkColor);
-
+void Picker_SetDisableFontColor(Picker_Handle hObj, GUI_COLOR DisableColor);
 
 #if defined(__cplusplus)
   }

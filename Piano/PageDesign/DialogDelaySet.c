@@ -60,6 +60,9 @@ static void _DelayDialogInit(WM_HWIN hParent)
 	CHECKBOX_SetImage(hItem, &bmbtn_close, CHECKBOX_BI_ACTIV_UNCHECKED);
 	CHECKBOX_SetImage(hItem, &bmbtn_open, CHECKBOX_BI_ACTIV_CHECKED);
 	CHECKBOX_SetNoDrawDownRect(hItem, 1);
+	if(DELAY_OPEN == Setting_GetDelayCloseStatus()){
+		CHECKBOX_SetState(hItem, 1);
+	}
 	WM_SetAlignParent(hItem, OBJ_ALIGN_PARENT_RIGHT, 0, 0);
 	//上方分割线
 	hItem = WM_GetDialogItem(hParent, ID_DELAY_LINE_H1);
@@ -69,8 +72,13 @@ static void _DelayDialogInit(WM_HWIN hParent)
 	hItem = WM_GetDialogItem(hParent, ID_DELAY_PICKER);
 	WM_SetHasTrans(hItem);
 	Picker_SetMaxValue(hItem, 99);
-	Picker_SetMinValue(hItem, 1);
+	Picker_SetMinValue(hItem, 0);
 	Picker_SetFontColor(hItem, GUI_BLACK, GUI_GRAY, GUI_GRAY);
+	if(DELAY_CLOSE == Setting_GetDelayCloseStatus()){
+		WM_DisableWindow(hItem);
+	}else{
+		Picker_SetValue(hItem, Setting_GetDelayCloseCnt()/60);
+	}
 	WM_SetAlignParent(hItem, OBJ_ALIGN_PARENT_CENTRE, 0, 0);
 	//取消按钮
 	hItem = WM_GetDialogItem(hParent, ID_DELAY_BTN_CANLE);
@@ -94,6 +102,9 @@ static void _DelayDialogInit(WM_HWIN hParent)
 	BUTTON_SetPressNewStyle(hItem, &BtnStyle);
 	BUTTON_SetRelNewStyle(hItem, &BtnStyle);
 	WM_SetHasTrans(hItem);
+	if(DELAY_CLOSE == Setting_GetDelayCloseStatus()){
+		WM_DisableWindow(hItem);
+	}
 	WM_SetAlignParent(hItem, OBJ_ALIGN_PARENT_RIGHT_BOTTOM, 0, 0);
 
 	//下方分割线
@@ -127,11 +138,29 @@ static void _cbDelaySetDialog(WM_MESSAGE * pMsg) {
 			if(NCode == WM_NOTIFICATION_RELEASED){
 				switch(Id){
 					case ID_DELAY_SWITCH:
+						if(CHECKBOX_IsChecked(WM_GetDialogItem(pMsg->hWin, ID_DELAY_SWITCH))){
+							WM_EnableWindow(WM_GetDialogItem(pMsg->hWin, ID_DELAY_PICKER));
+							WM_EnableWindow(WM_GetDialogItem(pMsg->hWin, ID_DELAY_BTN_CONFIRM));
+							Setting_SetDelayCloseStatus(DELAY_OPEN);
+						}else{
+							WM_DisableWindow(WM_GetDialogItem(pMsg->hWin, ID_DELAY_PICKER));
+							WM_DisableWindow(WM_GetDialogItem(pMsg->hWin, ID_DELAY_BTN_CONFIRM));
+							Setting_SetDelayCloseStatus(DELAY_CLOSE);
+						}
 					break;
 					case ID_DELAY_BTN_CANLE:
 						WM_DeleteWindow(pMsg->hWin);
 					break;
 					case ID_DELAY_BTN_CONFIRM:
+					{
+						I32 Value = Picker_GetCurValue(WM_GetDialogItem(pMsg->hWin, ID_DELAY_PICKER));
+						if(0 != Value){
+							Setting_SetDelayCloseCnt(Value * 60);
+							Setting_SetDelayCloseStatus(DELAY_START);
+						}else{
+							Setting_SetDelayCloseStatus(DELAY_CLOSE);
+						}
+					}
 						WM_DeleteWindow(pMsg->hWin);
 					break;
 				}
