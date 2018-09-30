@@ -500,8 +500,8 @@ void LCD_L0_DrawVLine  (I32 x, I32 y0,  I32 y1)
 
 void LCD_L0_FillRect(I32 x0, I32 y0, I32 x1, I32 y1)
 {
+	I32 x = 0;
 	if (GUI_Context.DrawMode & LCD_DRAWMODE_XOR) {
-		I32 x = 0;
 		for (; y0 <= y1; y0++) {
 			for(x = x0; x <= x1; x++){
 				LCD_L0_XorPixel(x, y0);
@@ -511,7 +511,6 @@ void LCD_L0_FillRect(I32 x0, I32 y0, I32 x1, I32 y1)
 		if(tLCD_Driver.LCD_PutRect){
 			tLCD_Driver.LCD_PutRect(x0, y0, x1, y1, LCD_COLORINDEX);
 		}else{
-			I32 x = 0;
 			for(; y0 <= y1; y0++){
 				for(x = x0; x <= x1; x++){
 					LCD_L0_SetPixelIndex(x, y0, LCD_COLORINDEX, 0xff);
@@ -519,7 +518,6 @@ void LCD_L0_FillRect(I32 x0, I32 y0, I32 x1, I32 y1)
 			}
 		}
 	}else{
-		I32 x = 0;
 		for(; y0 <= y1; y0++){
 			for(x = x0; x <= x1; x++){
 				LCD_L0_SetPixelIndex(x, y0, LCD_COLORINDEX, GUI_Context.Alpha);

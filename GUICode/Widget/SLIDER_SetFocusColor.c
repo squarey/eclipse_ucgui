@@ -31,22 +31,34 @@ Purpose     : Implementation of SLIDER_SetFocusColor
 *
 *       SLIDER_SetFocusColor
 */
-GUI_COLOR SLIDER_SetFocusColor(SLIDER_Handle hObj, GUI_COLOR Color) {
-  GUI_COLOR OldColor = 0;
-  if (hObj) {
-    SLIDER_Obj* pObj;
-    WM_LOCK();
-    pObj = SLIDER_H2P(hObj);
-    if (Color != pObj->Props.FocusColor) {
-      OldColor = pObj->Props.FocusColor;
-      pObj->Props.FocusColor = Color;
-      WM_InvalidateWindow(hObj);
-    }
-    WM_UNLOCK();
-  }
-  return OldColor;
+GUI_COLOR SLIDER_SetFocusColor(SLIDER_Handle hObj, GUI_COLOR Color)
+{
+	GUI_COLOR OldColor = 0;
+	if (hObj) {
+		SLIDER_Obj* pObj;
+		pObj = SLIDER_H2P(hObj);
+		if (Color != pObj->Props.FocusColor) {
+			OldColor = pObj->Props.FocusColor;
+			pObj->Props.FocusColor = Color;
+			WM_InvalidateWindow(hObj);
+		}
+	}
+	return OldColor;
 }
-
+GUI_COLOR SLIDER_SetColor(SLIDER_Handle hObj, GUI_COLOR Color)
+{
+	GUI_COLOR OldColor = 0;
+	if (hObj) {
+		SLIDER_Obj* pObj;
+		pObj = SLIDER_H2P(hObj);
+		if (Color != pObj->Props.Color) {
+			OldColor = pObj->Props.Color;
+			pObj->Props.Color = Color;
+			WM_InvalidateWindow(hObj);
+		}
+	}
+	return OldColor;
+}
 #else                            /* Avoid problems with empty object modules */
   void SLIDER_SetFocusColor_C(void);
   void SLIDER_SetFocusColor_C(void) {}

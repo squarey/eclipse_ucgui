@@ -18,6 +18,7 @@
 #define ID_COOKER_BTN_CANLE				(ID_PAGE_COOKER_TIME_BASE + 7)
 #define ID_COOKER_BTN_CONFIRM			(ID_PAGE_COOKER_TIME_BASE + 8)
 #define ID_COOKER_SELECT			(ID_PAGE_COOKER_TIME_BASE + 9)
+#define ID_COOKER_TIMER_UNIT			(ID_PAGE_COOKER_TIME_BASE + 10)
 
 static const GUI_WIDGET_CREATE_INFO _aDialogCookerTimeCreate[] = {
 	{ WINDOW_CreateIndirect,	"Window",				ID_WINDOW_COOKER_TIME, 0, 0, DEF_DIALOG_WIDTH, DEF_DIALOG_HEIGHT, 0, 0x0,0},
@@ -30,6 +31,7 @@ static const GUI_WIDGET_CREATE_INFO _aDialogCookerTimeCreate[] = {
 	{ Picker_CreateIndirect, 	"cooker picker",		ID_COOKER_PICKER, 0, 0, 150, 240, 0, 0x0, 0},
 	{ BUTTON_CreateIndirect, 	"cooker cancle",		ID_COOKER_BTN_CANLE, 0, 0, 198, 50, 0, 0x0, 0},
 	{ BUTTON_CreateIndirect, 	"cooker confirm",		ID_COOKER_BTN_CONFIRM, 0, 0, 198, 50, 0, 0x0, 0},
+	{ TEXT_CreateIndirect, 		"timer unit",			ID_COOKER_TIMER_UNIT, 0, 0, 50, 30, 0, 0x0, 0},
 };
 
 static WM_HWIN _hCookerTime = WM_HMEM_NULL;
@@ -142,6 +144,17 @@ static void _CookerSetDialogInit(WM_HWIN hParent)
 	//WM_SetAlignWindow(hBase, hItem, OBJ_ALIGN_BROTHER_V_CENTER, 0, 0);
 	WM_SetAlignParent(hItem, OBJ_ALIGN_PARENT_BOTTOM_CENTRE, 0, -5);
 	//WM_SetAlignWindow(hBase, hItem, OBJ_ALIGN_BROTHER_OUT_RIGHT, 0, 0);
+	//picker单位
+	hItem = WM_GetDialogItem(hParent, ID_COOKER_TIMER_UNIT);
+	if(COOKER_TIMER_CLOSE == Setting_GetCookerTimerStatus()){
+		TEXT_SetTextColor(hItem, GUI_GRAY);
+	}else{
+		TEXT_SetTextColor(hItem, GUI_BLACK);
+	}
+	TEXT_SetFont(hItem, &GUI_FontDialogYH24);
+	TEXT_SetText(hItem, "分钟");
+	WM_DisableWindow(hItem);
+	WM_SetAlignWindow(WM_GetDialogItem(hParent, ID_COOKER_PICKER), hItem, OBJ_ALIGN_BROTHER_CENTER, 70, 20);
 
 	WM_ShowWindowAndChild(hParent);
 }
@@ -167,13 +180,16 @@ static void _cbCookerTimeDialog(WM_MESSAGE * pMsg) {
 							WM_EnableWindow(WM_GetDialogItem(pMsg->hWin, ID_COOKER_SELECT));
 							WM_EnableWindow(WM_GetDialogItem(pMsg->hWin, ID_COOKER_PICKER));
 							WM_EnableWindow(WM_GetDialogItem(pMsg->hWin, ID_COOKER_BTN_CONFIRM));
+							TEXT_SetTextColor(WM_GetDialogItem(pMsg->hWin, ID_COOKER_TIMER_UNIT), GUI_BLACK);
 							Setting_SetCookerTimerStatus(COOKER_TIMER_OPEN);
 						}else{
 							WM_DisableWindow(WM_GetDialogItem(pMsg->hWin, ID_COOKER_SELECT));
 							WM_DisableWindow(WM_GetDialogItem(pMsg->hWin, ID_COOKER_PICKER));
 							WM_DisableWindow(WM_GetDialogItem(pMsg->hWin, ID_COOKER_BTN_CONFIRM));
+							TEXT_SetTextColor(WM_GetDialogItem(pMsg->hWin, ID_COOKER_TIMER_UNIT), GUI_GRAY);
 							Setting_SetCookerTimerStatus(COOKER_TIMER_CLOSE);
 						}
+						HoodCom_SendTouchVoice();
 					break;
 					case ID_COOKER_SELECT:
 						if(CHECKBOX_IsChecked(WM_GetDialogItem(pMsg->hWin, ID_COOKER_SELECT))){
@@ -185,9 +201,11 @@ static void _cbCookerTimeDialog(WM_MESSAGE * pMsg) {
 							Picker_SetValue(WM_GetDialogItem(pMsg->hWin, ID_COOKER_PICKER),
 							Setting_GetCookerTimerLeftCnt()/60);
 						}
+						HoodCom_SendTouchVoice();
 					break;
 					case ID_COOKER_BTN_CANLE:
 						WM_DeleteWindow(pMsg->hWin);
+						HoodCom_SendTouchVoice();
 					break;
 					case ID_COOKER_BTN_CONFIRM:
 						if(!CHECKBOX_IsChecked(WM_GetDialogItem(pMsg->hWin, ID_COOKER_SELECT))){
@@ -206,6 +224,7 @@ static void _cbCookerTimeDialog(WM_MESSAGE * pMsg) {
 							Setting_SetCookerTimerRightStatus(COOKER_TIMER_CLOSE);
 						}
 						WM_DeleteWindow(pMsg->hWin);
+						HoodCom_SendTouchVoice();
 					break;
 				}
 			}

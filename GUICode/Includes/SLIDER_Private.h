@@ -32,22 +32,24 @@ Purpose     : SLIDER private header file
 *
 **********************************************************************
 */
-typedef struct {
-  GUI_COLOR BkColor;
-  GUI_COLOR Color;
-  GUI_COLOR FocusColor;
+typedef struct
+{
+	GUI_COLOR BkColor;
+	GUI_COLOR Color;
+	GUI_COLOR FocusColor;
 } SLIDER_PROPS;
 
-typedef struct {
-  WIDGET Widget;
-  SLIDER_PROPS Props;
-  I32 Min, Max, v;
-  I32 Flags;
-  I32 NumTicks;
-  I16 Width;
-  #if GUI_DEBUG_LEVEL >1
-    I32 DebugId;
-  #endif
+typedef struct
+{
+	WIDGET Widget;
+	SLIDER_PROPS Props;
+	I32 Min, Max, v;
+	I32 Flags;
+	I32 NumTicks;
+	I16 Width;
+#if GUI_DEBUG_LEVEL >1
+	I32 DebugId;
+#endif
 } SLIDER_Obj;
 
 /*********************************************************************
@@ -57,12 +59,12 @@ typedef struct {
 **********************************************************************
 */
 #if GUI_DEBUG_LEVEL >= GUI_DEBUG_LEVEL_CHECK_ALL
-  SLIDER_Obj * SLIDER_h2p(SLIDER_Handle h);
-  #define SLIDER_H2P(h) SLIDER_h2p(h)
-  #define SLIDER_INIT_ID(p) p->DebugId = SLIDER_ID
+SLIDER_Obj * SLIDER_h2p(SLIDER_Handle h);
+#define SLIDER_H2P(h) SLIDER_h2p(h)
+#define SLIDER_INIT_ID(p) p->DebugId = SLIDER_ID
 #else
-  #define SLIDER_H2P(h) (SLIDER_Obj *)GUI_ALLOC_h2p(h)
-  #define SLIDER_INIT_ID(p)
+#define SLIDER_H2P(h) (SLIDER_Obj *)GUI_ALLOC_h2p(h)
+#define SLIDER_INIT_ID(p)
 #endif
 
 /*********************************************************************

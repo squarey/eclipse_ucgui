@@ -34,7 +34,6 @@ Purpose     : Implementation of progbar widget
 void PROGBAR_SetMinMax(PROGBAR_Handle hObj, I32 Min, I32 Max) {
   PROGBAR_Obj* pObj;
   if (hObj) {
-    WM_LOCK();
     pObj = PROGBAR_H2P(hObj);
     if (Max > Min) {
       if ((Max != pObj->Max) || (Min != pObj->Min)) {
@@ -43,7 +42,6 @@ void PROGBAR_SetMinMax(PROGBAR_Handle hObj, I32 Min, I32 Max) {
         WM_InvalidateWindow(hObj);
       }
     }
-    WM_UNLOCK();
   }
 }
 

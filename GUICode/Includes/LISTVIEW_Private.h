@@ -40,6 +40,7 @@ typedef struct
 	I32 MoveDistanceY;
 	U8	isMove;
 	LISTVIEW_DrawItem DrawItemMethod;
+	LISTVIEW_DeleteItem DeleteItemMedthod;
 }LISTVIEW_Obj;
 
 #define LISTVIEW_H2P(h) (LISTVIEW_Obj *)GUI_ALLOC_h2p(h)

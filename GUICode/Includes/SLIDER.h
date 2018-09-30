@@ -57,7 +57,6 @@ extern "C" {     /* Make sure we have C-declarations in C++ programs */
 
 */
 typedef WM_HMEM SLIDER_Handle;
-
 /*********************************************************************
 *
 *                 Create functions
@@ -98,6 +97,7 @@ void      SLIDER_SetNumTicks  (SLIDER_Handle hObj, I32 NumTicks);
 void      SLIDER_SetRange     (SLIDER_Handle hObj, I32 Min, I32 Max);
 void      SLIDER_SetValue     (SLIDER_Handle hObj, I32 v);
 void      SLIDER_SetWidth     (SLIDER_Handle hObj, I32 Width);
+GUI_COLOR SLIDER_SetColor	  (SLIDER_Handle hObj, GUI_COLOR Color);
 
 /*********************************************************************
 *

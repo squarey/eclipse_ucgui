@@ -8,6 +8,7 @@
 
 #include "WindowList_Private.h"
 
+
 static void _MoveAnimCallback(WM_HWIN hWin, I32 Value)
 {
 	WindowList_Obj *pObj;
@@ -38,6 +39,38 @@ static void _StartWindowSwitchAnim(WM_HWIN hMoveOutWin, WM_HWIN hMoveInWin)
 	GUI_AnimationCreate(hParent, &Anim);
 }
 
+static void _OnTouch(WM_HWIN hObj, WindowList_Obj* pObj, WM_MESSAGE *pMsg)
+{
+	//const GUI_PID_STATE* pState = (const GUI_PID_STATE*)pMsg->Data.p;
+	GUI_PID_STATE tState;
+	WM_PID__GetCurState(&tState);
+	if(tState.Pressed){
+		if(0 == pObj->FirstTouch){
+			pObj->FirstTouch = 1;
+			pObj->LastTouchXPos = tState.x;
+		}else{
+			I16 WinWidth = WM_GetWindowSizeX(hObj);
+			I32 Dist = pObj->LastTouchXPos - tState.x;
+			if((0 == pObj->IsMove) && ((Dist >= 30) || (Dist <= -30))){
+				//WM_SetCapture(hObj, 1);
+				WM_SetCaptureHWin(hObj);
+				pObj->IsMove = 1;
+			}
+			if((1 == pObj->IsMove) && (hObj == WM_GetCaptureHWin())){
+				if(Dist > (WinWidth/5)){
+					WindowList_ShowNextWin(hObj, 0);
+				}else if((WinWidth/5) < -Dist){
+					WindowList_ShowPrevWin(hObj, 0);
+				}
+			}
+		}
+	}else{
+		pObj->IsMove = 0;
+		pObj->FirstTouch = 0;
+		pObj->LastTouchXPos = -1;
+		//WM_ReleaseCapture();
+	}
+}
 
 static void _WinowList_Callback (WM_MESSAGE *pMsg)
 {
@@ -46,7 +79,7 @@ static void _WinowList_Callback (WM_MESSAGE *pMsg)
 	hObj = pMsg->hWin;
 	pObj = (WindowList_Obj *)GUI_ALLOC_h2p(hObj); /* Don't use use WIDGET_H2P because WIDGET_INIT_ID() has not be called at this point */
 	/* Let widget handle the standard messages */
-//	GUI_Debug("pMsg->MsgId:%d\n", pMsg->MsgId);
+	//GUI_Debug("pMsg->MsgId:%d\n", pMsg->MsgId);
 //	if (WIDGET_HandleActive(hObj, pMsg) == 0) {
 //		return;
 //	}
@@ -56,7 +89,8 @@ static void _WinowList_Callback (WM_MESSAGE *pMsg)
 			//_Paint(pObj, hObj);
 		return;
 		case WM_TOUCH:
-			//_OnTouch(hObj, pObj, pMsg);
+		case WM_TOUCH_CHILD:
+			_OnTouch(hObj, pObj, pMsg);
 		break;
 		case WM_DELETE:
 			GUI_ARRAY_Delete(&pObj->WinArray);
@@ -216,11 +250,12 @@ void WindowList_SetShowWin(WM_HWIN hWinList, WM_HWIN hShowWin)
 	}
 }
 
-void WindowList_ShowNextWin(WM_HWIN hWinList)
+void WindowList_ShowNextWin(WM_HWIN hWinList, U8 UseAnim)
 {
 	if(hWinList){
 		WindowList_Obj *pWinList;
 		WindowListItem* pItem;
+		char *pWinName;
 		U32 i = 0;
 		U32 ItemNumber = 0;
 		pWinList = (WindowList_Obj *)GUI_ALLOC_h2p(hWinList);
@@ -230,18 +265,30 @@ void WindowList_ShowNextWin(WM_HWIN hWinList)
 			if((pItem->hWin == pWinList->hCurShowWin) && (i < ItemNumber - 1)){
 				pItem = (WindowListItem*)GUI_ARRAY_GetpItem(&pWinList->WinArray, i + 1);
 				pWinList->hNextShowWin = pItem->hWin;
-				_StartWindowSwitchAnim(pWinList->hCurShowWin, pWinList->hNextShowWin);
+				pWinName = pItem->WinName;
+				if(UseAnim){
+					_StartWindowSwitchAnim(pWinList->hCurShowWin, pWinList->hNextShowWin);
+				}else{
+					WM_SetWindowPosX(pWinList->hCurShowWin, -2000);
+					WM_SetWindowPosX(pWinList->hNextShowWin, WM_GetWindowOrgX(hWinList));
+					pWinList->hLastShowWin = pWinList->hCurShowWin;
+					pWinList->hCurShowWin = pWinList->hNextShowWin;
+				}
+				if(pWinList->fWinShowChange){
+					pWinList->fWinShowChange(pWinList->hNextShowWin, pWinName);
+				}
 				return;
 			}
 		}
 	}
 }
 
-void WindowList_ShowPrevWin(WM_HWIN hWinList)
+void WindowList_ShowPrevWin(WM_HWIN hWinList, U8 UseAnim)
 {
 	if(hWinList){
 		WindowList_Obj *pWinList;
 		WindowListItem* pItem;
+		char *pWinName;
 		U32 i = 0;
 		U32 ItemNumber = 0;
 		pWinList = (WindowList_Obj *)GUI_ALLOC_h2p(hWinList);
@@ -251,9 +298,30 @@ void WindowList_ShowPrevWin(WM_HWIN hWinList)
 			if((pItem->hWin == pWinList->hCurShowWin) && (0 != i)){
 				pItem = (WindowListItem*)GUI_ARRAY_GetpItem(&pWinList->WinArray, i - 1);
 				pWinList->hNextShowWin = pItem->hWin;
-				_StartWindowSwitchAnim(pWinList->hCurShowWin, pWinList->hNextShowWin);
+				pWinName = pItem->WinName;
+				//_StartWindowSwitchAnim(pWinList->hCurShowWin, pWinList->hNextShowWin);
+				if(UseAnim){
+					_StartWindowSwitchAnim(pWinList->hCurShowWin, pWinList->hNextShowWin);
+				}else{
+					WM_SetWindowPosX(pWinList->hCurShowWin, -2000);
+					WM_SetWindowPosX(pWinList->hNextShowWin, WM_GetWindowOrgX(hWinList));
+					pWinList->hLastShowWin = pWinList->hCurShowWin;
+					pWinList->hCurShowWin = pWinList->hNextShowWin;
+				}
+				if(pWinList->fWinShowChange){
+					pWinList->fWinShowChange(pWinList->hNextShowWin, pWinName);
+				}
 				return;
 			}
 		}
+	}
+}
+
+void WindowList_SetShowWinChangeCallback(WM_HWIN hWinList, void *pFunc)
+{
+	if(hWinList){
+		WindowList_Obj *pWinList;
+		pWinList = (WindowList_Obj *)GUI_ALLOC_h2p(hWinList);
+		pWinList->fWinShowChange = (WinListShowChange)pFunc;
 	}
 }

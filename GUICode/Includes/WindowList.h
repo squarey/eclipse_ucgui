@@ -23,8 +23,9 @@ void WindowList_RemoveWinByName(WM_HWIN hWinList, const char *pWinName);
 void WindowList_RemoveWin(WM_HWIN hWinList, WM_HWIN hRemoveWin);
 void WindowList_SetShowByNameWin(WM_HWIN hWinList, const char *pShowWinName, U8 UseAnim);
 void WindowList_SetShowWin(WM_HWIN hWinList, WM_HWIN hShowWin);
-void WindowList_ShowNextWin(WM_HWIN hWinList);
-void WindowList_ShowPrevWin(WM_HWIN hWinList);
+void WindowList_ShowNextWin(WM_HWIN hWinList, U8 UseAnim);
+void WindowList_ShowPrevWin(WM_HWIN hWinList, U8 UseAnim);
+void WindowList_SetShowWinChangeCallback(WM_HWIN hWinList, void *pFunc);
 
 
 #endif /* _WINDOWLIST_H_ */

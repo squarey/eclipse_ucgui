@@ -10,5 +10,6 @@
 
 #include "GUI_main.h"
 WM_HWIN PageTitleBarCreate(void);
+WM_HWIN PageTitleBarGetHander(void);
 
 #endif /* _PAGETITLEBAR_H_ */

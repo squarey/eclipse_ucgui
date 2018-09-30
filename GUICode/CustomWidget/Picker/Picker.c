@@ -188,6 +188,7 @@ static void _OnTouchMoveV(Picker_Handle hObj, Picker_Obj* pObj, WM_MESSAGE*pMsg)
 	}
 	if(pState->Pressed){
 		WM_SetCapture(hObj,1);
+		WM_SetCaptureVWin(hObj);
 		if(0 == IsFirstTouch){
 			IsFirstTouch = 1;
 			LastTouchYPos = pState->y;

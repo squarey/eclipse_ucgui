@@ -242,6 +242,7 @@ I32 WM_HandlePID(void)
 			/*
 			 * Send WM_PID_STATE_CHANGED message if state has changed (just pressed or just released)
 			 */
+			WM_PID__SetCurState(&StateNew);
 			if ((WM_PID__StateLast.Pressed != StateNew.Pressed) && CHWin.hWin) {
 				GUI_PID_STATE PID_StateOld;
 				WM_HWIN hWinOld;

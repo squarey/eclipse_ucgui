@@ -1182,7 +1182,6 @@ static void _PanitChildren(WM_HWIN hWin, WM_Obj* pWin, const GUI_RECT* pRect)
 				}
 				//_PanitBrother(hChild, pChild, &r);
 			}
-
 		}
 	}
 }
@@ -1201,8 +1200,8 @@ static void _Paint1(WM_HWIN hWin, WM_Obj* pWin) {
 	/* Send WM_PAINT if window is visible and a callback is defined */
 	if ((pWin->cb != NULL)  && (Status & WM_SF_ISVIS)) {
 		WM__PaintCallbackCnt++;
-		WM_HWIN hFind;
-		WM_Obj *pFind;
+		WM_HWIN hFind, hAncestors;
+		WM_Obj *pFind, *pAncestors;
 		hFind = _CheckNeedPaintWin(hWin, pWin, &pWin->InvalidRect);
 		/*GUI_Debug("To paint win %d\n", hFind);
 		GUI_Debug("InvalidRect :%d, %d, %d, %d\n", pWin->InvalidRect.x0, pWin->InvalidRect.y0,
@@ -1211,10 +1210,33 @@ static void _Paint1(WM_HWIN hWin, WM_Obj* pWin) {
 			__SendWinPanitMessage(hWin, pWin, pWin->InvalidRect);
 			_PanitChildren(hWin, pWin, &pWin->InvalidRect);
 		}else{
+			U8 ToPaintAncestors = 0;
 			pFind = WM_H2P(hFind);
 			__SendWinPanitMessage(hFind, pFind, pWin->InvalidRect);
 			_PanitChildren(hFind, pFind, &pWin->InvalidRect);
 			_PanitBrother(hFind, pFind, &pWin->InvalidRect);
+			hAncestors = pFind->hParent;
+			while(hAncestors && (hAncestors != hWin)){
+				pAncestors = WM_H2P(hAncestors);
+				if(pAncestors->hParent == hWin){
+					ToPaintAncestors = 1;
+					break;
+				}else{
+					hAncestors = pAncestors->hParent;
+				}
+			}
+			if(ToPaintAncestors && (hAncestors != pFind->hParent)){
+				GUI_RECT InsertRect;
+				hAncestors = pAncestors->hNext;
+				if(hAncestors){
+					pAncestors = WM_H2P(hAncestors);
+					if(WM_RectIntersect(&InsertRect, &pAncestors->Rect, &pWin->InvalidRect)){
+						__SendWinPanitMessage(hAncestors, pAncestors, InsertRect);
+						_PanitChildren(hAncestors, pAncestors, &InsertRect);
+					}
+					_PanitBrother(hAncestors, pAncestors, &pWin->InvalidRect);
+				}
+			}
 		}
 		//__SendWinPanitMessage(hWin, pWin, pWin->InvalidRect);
 		//GUI_Debug("hWin:%d, hWinNeedPaint:%d\n", hWin, hWinNeedPaint);
@@ -1288,6 +1310,7 @@ I32 WM_Exec1(void)
 	}
 #else
 	if (WM_IsActive){
+		WM_DistributionMessageFromQueue();
 		_DrawNext();
 	}
 #endif
@@ -1395,6 +1418,12 @@ void WM_DefaultProc(WM_MESSAGE* pMsg)
 		case WM_NOTIFY_ENABLE:
 			WM_InvalidateWindow(hWin);
 		return;                       /* Message handled */
+		default:
+			if(pMsg->MsgId >= WM_USER){
+				WM_SendToParent(hWin, pMsg);
+				return;
+			}
+		break;
 	}
 	/* Message not handled. If it queries something, we return 0 to be on the safe side. */
 	pMsg->Data.v = 0;

@@ -73,15 +73,14 @@ static void _LISTVIEW_OwnerDraw(LISTVIEW_Handle hObj, LISTVIEW_Obj* pObj, LISTVI
 	if(pObj->CurSel == pInfo->ItemIndex){
 		GUI_SetColor(pObj->Props.aTextColor[1]);
 		GUI_SetBkColor(pObj->Props.aBackColor[1]);
-	}
-	else {
+	}else {
 		GUI_SetColor(pObj->Props.aTextColor[0]);
 		GUI_SetBkColor(pObj->Props.aBackColor[0]);
 	}
 	GUI_Clear();
 	/* ��ָ��RECT����ʾ�ַ��� */
 	if(pObj->DrawItemMethod){
-		pObj->DrawItemMethod(hObj, pInfo);
+		pObj->DrawItemMethod(pInfo);
 	}else{
 		char *pString;
 		LISTVIEW_ItemDef *pDefItem;
@@ -124,6 +123,8 @@ static void _Paint(LISTVIEW_Handle hObj, LISTVIEW_Obj* pObj)
 		_DrawInfo.Rect.y0 = 0;
 		_DrawInfo.Rect.y1 = pObj->ItemYSize;
 	}
+	GUI_SetBkColor(pObj->Props.aBackColor[0]);
+	GUI_Clear();
 	for(i = TopItem; i < TotalItem; i++){
 		/* �����item�Ƿ�����Ч����ʾ��Χ�� */
 		if(2 == Flag){
@@ -205,8 +206,28 @@ static I32 _GetPressItem(LISTVIEW_Handle hObj, LISTVIEW_Obj* pObj, I32 x, I32 y)
 		return TouchItem;
 	}
 }
+
+static void _DeleteArrayItem(LISTVIEW_Obj* pObj)
+{
+	if(pObj->DrawItemMethod){
+		I32 i = 0;
+		void* pItem;
+		unsigned ItemTotal = GUI_ARRAY_GetNumItems(&pObj->ItemArray);
+		for(i = 0; i < ItemTotal; i++){
+			pItem = (void *)GUI_ARRAY_GetpItem(&pObj->ItemArray, i);
+			if(pObj->DeleteItemMedthod){
+				pObj->DeleteItemMedthod(pItem);
+			}
+		}
+		for(i = ItemTotal - 1; i >= 0; i--){
+			GUI_ARRAY_DeleteItem(&pObj->ItemArray, i);
+		}
+	}
+	pObj->DrawItemMethod = NULL;
+}
 static void _FreeAttached(LISTVIEW_Obj* pObj)
 {
+	_DeleteArrayItem(pObj);
 	GUI_ARRAY_Delete(&pObj->ItemArray);
 }
 /*
@@ -229,13 +250,14 @@ static void _OnTouch(LISTVIEW_Handle hObj, LISTVIEW_Obj* pObj, WM_MESSAGE*pMsg)
 	const GUI_PID_STATE* pState = (const GUI_PID_STATE*)pMsg->Data.p;
 	if(pMsg->Data.p){
 		if(0 == pState->Pressed){
-			if(0 == pObj->isMove){
+			if((0 == pObj->isMove) && (pObj->CurSel == _GetPressItem(hObj, pObj, pState->x, pState->y))){
 				_OnListViewReleased(hObj,pObj,WM_NOTIFICATION_RELEASED);
 			}
 			pObj->isMove = 0;
 			LISTVIEW_SetSel(hObj,-1);
 		}
 	}else {
+		LISTVIEW_SetSel(hObj,-1);
 		_OnListViewReleased(hObj,pObj,WM_NOTIFICATION_MOVED_OUT);
 	}
 }
@@ -315,6 +337,7 @@ static void _OnTouchMoveV(LISTVIEW_Handle hObj, LISTVIEW_Obj* pObj, WM_MESSAGE*p
 		return;
 	}else{/* ���� */
 		WM_SetCapture(hObj,1);
+		WM_SetCaptureVWin(hObj);
 	}
 	if(0 == IsFirstTouch){
 		IsFirstTouch = 1;
@@ -431,17 +454,45 @@ void LISTVIEW_AddStringItem(LISTVIEW_Handle hObj, const char * s)
 		return;
 	}
 	pObj = LISTVIEW_H2P(hObj);
+	_DeleteArrayItem(pObj);
 	/* add item to item array */
-	if (GUI_ARRAY_AddItem(&pObj->ItemArray, &tItem, sizeof(LISTVIEW_ItemDef) + GUI_strlen(s)) == 0) {
+	if (GUI_ARRAY_AddItem(&pObj->ItemArray, &tItem, sizeof(LISTVIEW_ItemDef) + GUI_strlen(s) + 1) == 0) {
 		unsigned ItemIndex = GUI_ARRAY_GetNumItems(&pObj->ItemArray) - 1;
 		LISTVIEW_ItemDef* pItem= (LISTVIEW_ItemDef*)GUI_ARRAY_GetpItem(&pObj->ItemArray, ItemIndex);
 		//focus to set extern draw item method to NULL
-		pObj->DrawItemMethod = NULL;
 		GUI_strcpy(pItem->acText, s);
 		pObj->TotalLenghtV = pObj->ItemYSize * _LISTVIEW__GetNumItems(pObj);
 		WM_InvalidateWindow(hObj);
 		SCROLLBAR_SetActualLength(pObj->hScrollbar, pObj->TotalLenghtV);
 	}
+}
+U8 LISTVIEW_InsertStringItem(LISTVIEW_Handle hObj, U32 ItemIndex, const char * s)
+{
+	if(hObj && (NULL != s)){
+		LISTVIEW_Obj* pObj;
+		LISTVIEW_ItemDef* pItem;
+		U16 TotalNum;
+		WM_HMEM hNewItem;
+		pObj = LISTVIEW_H2P(hObj);
+		TotalNum = GUI_ARRAY_GetNumItems(&pObj->ItemArray);
+		if(ItemIndex >= TotalNum){
+			return 0;
+		}
+		if(0 == TotalNum){
+			LISTVIEW_AddStringItem(hObj, s);
+			return 1;
+		}
+		hNewItem = GUI_ARRAY_InsertItem(&pObj->ItemArray, ItemIndex, GUI_strlen(s) + 1);
+		if(hNewItem){
+			pItem = (LISTVIEW_ItemDef *)GUI_ALLOC_h2p(hNewItem);
+			GUI_strcpy(pItem->acText, s);
+			pObj->TotalLenghtV = pObj->ItemYSize * _LISTVIEW__GetNumItems(pObj);
+			SCROLLBAR_SetActualLength(pObj->hScrollbar, pObj->TotalLenghtV);
+			WM_InvalidateWindow(hObj);
+			return 1;
+		}
+	}
+	return 0;
 }
 void LISTVIEW_AddExternItem(LISTVIEW_Handle hObj, void *pExternItem, U32 ItemSize)
 {
@@ -452,18 +503,96 @@ void LISTVIEW_AddExternItem(LISTVIEW_Handle hObj, void *pExternItem, U32 ItemSiz
 	pObj = LISTVIEW_H2P(hObj);
 	if (GUI_ARRAY_AddItem(&pObj->ItemArray, pExternItem, ItemSize) == 0) {
 		pObj->TotalLenghtV = pObj->ItemYSize * _LISTVIEW__GetNumItems(pObj);
-		WM_InvalidateWindow(hObj);
 		SCROLLBAR_SetActualLength(pObj->hScrollbar, pObj->TotalLenghtV);
+		WM_InvalidateWindow(hObj);
 	}
 }
-void LISTVIEW_SetDrawItemItem(LISTVIEW_Handle hObj, void *pMethod)
+U8 ListView_InsertExternItem(LISTVIEW_Handle hObj, U32 ItemIndex, void *pExternItem, U32 ItemSize)
+{
+	if(hObj){
+		LISTVIEW_Obj* pObj;
+		void *pNewItemBuffer;
+		U16 TotalNum;
+		WM_HMEM hNewItem;
+		pObj = LISTVIEW_H2P(hObj);
+		TotalNum = GUI_ARRAY_GetNumItems(&pObj->ItemArray);
+		if(0 == TotalNum){
+			LISTVIEW_AddExternItem(hObj, pExternItem, ItemSize);
+			return 1;
+		}
+		if(ItemIndex >= TotalNum){
+			return 0;
+		}
+		hNewItem = GUI_ARRAY_InsertItem(&pObj->ItemArray, ItemIndex, ItemSize);
+		if(hNewItem){
+			pNewItemBuffer = (void *)GUI_ALLOC_h2p(hNewItem);
+			GUI_memcpy(pNewItemBuffer, pExternItem, ItemSize);
+			pObj->TotalLenghtV = pObj->ItemYSize * _LISTVIEW__GetNumItems(pObj);
+			SCROLLBAR_SetActualLength(pObj->hScrollbar, pObj->TotalLenghtV);
+			WM_InvalidateWindow(hObj);
+			return 1;
+		}
+	}
+	return 0;
+}
+void ListView_DeleteItemByIndex(LISTVIEW_Handle hObj, U32 DeleteIndex)
+{
+	if(hObj){
+		LISTVIEW_Obj* pObj;
+		pObj = LISTVIEW_H2P(hObj);
+		if(DeleteIndex >= GUI_ARRAY_GetNumItems(&pObj->ItemArray)){
+			return;
+		}
+		if(pObj->DrawItemMethod){
+			void *pItem = (void *)GUI_ARRAY_GetpItem(&pObj->ItemArray, DeleteIndex);
+			if(pObj->DeleteItemMedthod){
+				pObj->DeleteItemMedthod(pItem);
+			}
+		}
+		GUI_ARRAY_DeleteItem(&pObj->ItemArray, DeleteIndex);
+		pObj->TotalLenghtV = pObj->ItemYSize * _LISTVIEW__GetNumItems(pObj);
+		SCROLLBAR_SetActualLength(pObj->hScrollbar, pObj->TotalLenghtV);
+		WM_InvalidateWindow(hObj);
+	}
+}
+void LISTVIEW_ClearItem(LISTVIEW_Handle hObj)
+{
+	if(hObj){
+		I32 i = 0;
+		U32 ItemTotal;
+		LISTVIEW_Obj* pObj;
+		pObj = LISTVIEW_H2P(hObj);
+		ItemTotal = GUI_ARRAY_GetNumItems(&pObj->ItemArray);
+		if(0 == ItemTotal){
+			return;
+		}
+		if(pObj->DrawItemMethod){
+			void* pItem;
+			for(i = 0; i < ItemTotal; i++){
+				pItem = (void *)GUI_ARRAY_GetpItem(&pObj->ItemArray, i);
+				if(pObj->DeleteItemMedthod){
+					pObj->DeleteItemMedthod(pItem);
+				}
+			}
+		}
+		for(i = ItemTotal - 1; i >= 0; i--){
+			GUI_ARRAY_DeleteItem(&pObj->ItemArray, i);
+		}
+		pObj->TotalLenghtV = 0;
+		pObj->MoveDistanceY = 0;
+		SCROLLBAR_SetActualLength(pObj->hScrollbar, pObj->TotalLenghtV);
+		SCROLLBAR_SetOffest(pObj->hScrollbar, pObj->MoveDistanceY);
+	}
+}
+void LISTVIEW_SetDrawItemMethod(LISTVIEW_Handle hObj, void *pDrawMethod, void *pDeleteMethod)
 {
 	LISTVIEW_Obj* pObj;
 	if(WM_HWIN_NULL == hObj){
 		return;
 	}
 	pObj = LISTVIEW_H2P(hObj);
-	pObj->DrawItemMethod = (LISTVIEW_DrawItem)pMethod;
+	pObj->DrawItemMethod = (LISTVIEW_DrawItem)pDrawMethod;
+	pObj->DeleteItemMedthod = (LISTVIEW_DeleteItem)pDeleteMethod;
 	WM_InvalidateWindow(hObj);
 }
 void LISTVIEW_SetItemYSize(LISTVIEW_Handle hObj, U32 size)
@@ -511,17 +640,17 @@ void LISTVIEW_GetItemInfo(LISTVIEW_Handle hObj, I32 itemIndex, void *pGetItem)
 		pGetItem = pItem;
 	}
 	//return *pGetItem;
-
 }
 void LISTVIEW_GetSelItemInfo(LISTVIEW_Handle hObj, void *pSelItem)
 {
 	LISTVIEW_Obj* pObj;
-
 	if(hObj && (NULL != pSelItem)){
 		void *pItem;
+		WM_HMEM hItem;
 		pObj = LISTVIEW_H2P(hObj);
+		hItem = GUI_ARRAY_GethItem(&pObj->ItemArray, pObj->CurSel);
 		pItem = (void*)GUI_ARRAY_GetpItem(&pObj->ItemArray, pObj->CurSel);
-		pSelItem = pItem;
+		GUI_memcpy(pSelItem, pItem, GUI_ALLOC_GetSize(hItem));
 	}
 }
 I32 LISTVIEW_GetSel(LISTVIEW_Handle hObj)
@@ -533,6 +662,14 @@ I32 LISTVIEW_GetSel(LISTVIEW_Handle hObj)
 		r = pObj->CurSel;
 	}
 	return r;
+}
+void LISTVIEW_HideScrollbar(LISTVIEW_Handle hObj)
+{
+	if(hObj){
+		LISTVIEW_Obj* pObj;
+		pObj = LISTVIEW_H2P(hObj);
+		WM_HideWindow(pObj->hScrollbar);
+	}
 }
 #endif 
 

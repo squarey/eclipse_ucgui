@@ -175,6 +175,8 @@ I32     	WM__SetScrollbarV           	(WM_HWIN hWin, I32 OnOff);
 void    	WM__UpdateChildPositions    	(WM_Obj* pObj, I32 dx0, I32 dy0, I32 dx1, I32 dy1);
 void    	WM_PID__GetPrevState        	(GUI_PID_STATE* pPrevState);
 void    	WM_PID__SetPrevState        	(GUI_PID_STATE* pPrevState);
+void    	WM_PID__GetCurState        		(GUI_PID_STATE* pCurState);
+void    	WM_PID__SetCurState        		(GUI_PID_STATE* pCurState);
 void    	WM__SendTouchMessage        	(WM_HWIN hWin, WM_MESSAGE* pMsg);
 void 		WM_GetClipRect				(GUI_RECT *pRect);
 U16     	WM_GetFlags					(WM_HWIN hWin);

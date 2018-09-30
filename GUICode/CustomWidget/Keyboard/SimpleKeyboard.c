@@ -7,7 +7,7 @@
 
 #include "SimpleKeyboard.h"
 
-#define DEFAULT_KEYBOARD_WIDTH		350
+#define DEFAULT_KEYBOARD_WIDTH		400
 #define DEFAULT_KEYBOARD_HEIGHT		300
 
 #define DEFAULT_SIMPLE_KEYBOARD_BKCOLOR	GUI_DARKGRAY
@@ -57,7 +57,17 @@ void SimpleKeyboardReSize(I32 Width, I32 Height)
 }
 void SimpleKeyboardShow(void)
 {
-	WM_ShowWindow(hKeyboard);
+	if(hKeyboard){
+		WM_ShowWindow(hKeyboard);
+	}else{
+		I32 LCDWidht, LCDHeight;
+		GUI_RECT LCDRect;
+		LCD_L0_GetRect(&LCDRect);
+		LCDWidht = WM_GetRectSizeX(LCDRect);
+		LCDHeight = WM_GetRectSizeY(LCDRect);
+		SimpleKeyboardCreate((LCDWidht - DEFAULT_KEYBOARD_WIDTH)/2, LCDHeight - DEFAULT_KEYBOARD_HEIGHT);
+	}
+
 }
 void SimpleKeyboardHide(void)
 {

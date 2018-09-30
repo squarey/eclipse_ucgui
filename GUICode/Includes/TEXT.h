@@ -104,7 +104,7 @@ void TEXT_SetTextAlign(TEXT_Handle pObj, I32 Align);
 void TEXT_SetTextColor(TEXT_Handle pObj, GUI_COLOR Color);
 void TEXT_SetWrapMode (TEXT_Handle hObj, GUI_WRAPMODE WrapMode);
 void ucText_SetFocussable(TEXT_Handle hObj, I32 State);
-
+const char* TEXT_GetText(TEXT_Handle hObj);
 
 /*********************************************************************
 *

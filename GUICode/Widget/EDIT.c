@@ -814,21 +814,21 @@ void EDIT_GetText(EDIT_Handle hObj, char* sDest, I32 MaxLen)
 {
 	if (sDest) {
 		*sDest = 0;
-	if (hObj) {
-		EDIT_Obj* pObj;
-		pObj = EDIT_H2P(hObj);
-		if (pObj->hpText) {
-			char* pText;
-			I32 NumChars, NumBytes;
-			pText = (char*) GUI_ALLOC_h2p(pObj->hpText);
-			NumChars = GUI__GetNumChars(pText);
-			if (NumChars > MaxLen) {
-				NumChars = MaxLen;
+		if (hObj) {
+			EDIT_Obj* pObj;
+			pObj = EDIT_H2P(hObj);
+			if (pObj->hpText) {
+				char* pText;
+				I32 NumChars, NumBytes;
+				pText = (char*) GUI_ALLOC_h2p(pObj->hpText);
+				NumChars = GUI__GetNumChars(pText);
+				if (NumChars > MaxLen) {
+					NumChars = MaxLen;
+				}
+				NumBytes = GUI_UC__NumChars2NumBytes(pText, NumChars);
+				GUI_memcpy(sDest, pText, NumBytes);
+				*(sDest + NumBytes) = 0;
 			}
-			NumBytes = GUI_UC__NumChars2NumBytes(pText, NumChars);
-			GUI_memcpy(sDest, pText, NumBytes);
-			*(sDest + NumBytes) = 0;
-		}
 		}
 	}
 }

@@ -14,6 +14,11 @@
  */
 
 #include "DialogTimeSet.h"
+#if COMPILE_ON_C600
+#include <SystemTime.h>
+#else
+#include <time.h>
+#endif
 
 #define ID_WINDOW_TIME_SET_SET 				(ID_PAGE_TIME_SET_BASE + 0)
 #define ID_TIME_SET_TEXT						(ID_PAGE_TIME_SET_BASE + 1)
@@ -25,6 +30,7 @@
 #define ID_TIME_SET_PICKER2					(ID_PAGE_TIME_SET_BASE + 7)
 #define ID_TIME_SET_BTN_CANLE					(ID_PAGE_TIME_SET_BASE + 8)
 #define ID_TIME_SET_BTN_CONFIRM				(ID_PAGE_TIME_SET_BASE + 9)
+#define ID_TIME_SET_DPOINT					(ID_PAGE_TIME_SET_BASE + 10)
 
 static const GUI_WIDGET_CREATE_INFO _aDialogTimeSetCreate[] = {
 	{ WINDOW_CreateIndirect,	"Window",				ID_WINDOW_TIME_SET_SET, 0, 0, DEF_DIALOG_WIDTH, DEF_DIALOG_HEIGHT, 0, 0x0,0},
@@ -36,19 +42,34 @@ static const GUI_WIDGET_CREATE_INFO _aDialogTimeSetCreate[] = {
 	{ Picker_CreateIndirect, 	"timing picker",			ID_TIME_SET_PICKER1, 0, 0, 130, 240, 0, 0x0, 0},
 	{ Picker_CreateIndirect, 	"timing picker",			ID_TIME_SET_PICKER2, 0, 0, 130, 240, 0, 0x0, 0},
 	{ BUTTON_CreateIndirect, 	"timing cancle",			ID_TIME_SET_BTN_CANLE, 0, 0, 198, 50, 0, 0x0, 0},
-	{ BUTTON_CreateIndirect, 	"timing confirm",		ID_TIME_SET_BTN_CONFIRM, 0, 0, 198, 50, 0, 0x0, 0},
+	{ BUTTON_CreateIndirect, 	"timing confirm",			ID_TIME_SET_BTN_CONFIRM, 0, 0, 198, 50, 0, 0x0, 0},
+	{ TEXT_CreateIndirect, 		"timing d point",			ID_TIME_SET_DPOINT, 0, 0, 50, 80, 0, 0x0, 0},
 };
 
 static WM_HWIN _hTimeSet = WM_HMEM_NULL;
 static void _TimeSetDialogInit(WM_HWIN hParent)
 {
 	WM_HWIN hItem, hBase;
+	U8 CurHours, CurMinutes;
 	GUI_FullRectStyle BtnStyle = {
 			.MainColor = GUI_WHITE,
 			.GradColor = GUI_WHITE,
 			.Radius = 3,
 			.Opacity = 0xff,
 	};
+#if COMPILE_ON_C600
+	SystemTimeInfo TimeInfo;
+	GetSystemTime(&TimeInfo);
+	CurHours = TimeInfo.Hours;
+	CurMinutes = TimeInfo.Minutes;
+#else
+	time_t Rawtime;
+	struct tm *pInfo;
+	time(&Rawtime);
+	pInfo = localtime(&Rawtime);
+	CurHours = pInfo->tm_hour;
+	CurMinutes = pInfo->tm_min;
+#endif
 	WM_SetAlignParent(hParent, OBJ_ALIGN_PARENT_CENTRE, 0, -20);
 	BtnStyle.GradColor = GUI_GRAY;
 	WINDOW_SetBkColor(hParent, &BtnStyle);
@@ -82,6 +103,7 @@ static void _TimeSetDialogInit(WM_HWIN hParent)
 	Picker_SetMaxValue(hItem, 23);
 	Picker_SetMinValue(hItem, 0);
 	Picker_SetFontColor(hItem, GUI_BLACK, GUI_GRAY, GUI_GRAY);
+	Picker_SetValue(hItem, CurHours);
 	WM_SetAlignParent(hItem, OBJ_ALIGN_PARENT_CENTRE, -65, 0);
 	hBase = hItem;
 	//picker2
@@ -90,6 +112,7 @@ static void _TimeSetDialogInit(WM_HWIN hParent)
 	Picker_SetMaxValue(hItem, 59);
 	Picker_SetMinValue(hItem, 0);
 	Picker_SetFontColor(hItem, GUI_BLACK, GUI_GRAY, GUI_GRAY);
+	Picker_SetValue(hItem, CurMinutes);
 	WM_SetAlignParent(hItem, OBJ_ALIGN_PARENT_CENTRE, 0, 0);
 	WM_SetAlignWindow(hBase, hItem, OBJ_ALIGN_BROTHER_OUT_RIGHT, 0, 0);
 	//取消按钮
@@ -126,7 +149,16 @@ static void _TimeSetDialogInit(WM_HWIN hParent)
 	//WM_SetAlignWindow(hBase, hItem, OBJ_ALIGN_BROTHER_V_CENTER, 0, 0);
 	WM_SetAlignParent(hItem, OBJ_ALIGN_PARENT_BOTTOM_CENTRE, 0, -5);
 	//WM_SetAlignWindow(hBase, hItem, OBJ_ALIGN_BROTHER_OUT_RIGHT, 0, 0);
-
+	//两个点
+	hItem = WM_GetDialogItem(hParent, ID_TIME_SET_DPOINT);
+	TEXT_SetTextColor(hItem, GUI_BLACK);
+	TEXT_SetFont(hItem, &GUI_FontNumberYH72);
+	TEXT_SetText(hItem, ":");
+	TEXT_SetTextAlign(hItem, TEXT_CF_HCENTER);
+	WM_DisableWindow(hItem);
+	hBase = WM_GetDialogItem(hParent, ID_TIME_SET_PICKER1);
+	WM_SetAlignWindow(hBase, hItem, OBJ_ALIGN_BROTHER_V_CENTER, 0, 0);
+	WM_SetAlignWindow(hBase, hItem, OBJ_ALIGN_BROTHER_OUT_RIGHT, -20, 0);
 	WM_ShowWindowAndChild(hParent);
 }
 
@@ -151,9 +183,21 @@ static void _cbTimeSetDialog(WM_MESSAGE * pMsg) {
 					break;
 					case ID_TIME_SET_BTN_CANLE:
 						WM_DeleteWindow(pMsg->hWin);
+						HoodCom_SendTouchVoice();
 					break;
 					case ID_TIME_SET_BTN_CONFIRM:
+#if COMPILE_ON_C600
+					{
+						SystemTimeInfo Time;
+						GetSystemTime(&Time);
+						Time.Hours = Picker_GetCurValue(WM_GetDialogItem(pMsg->hWin, ID_TIME_SET_PICKER1));
+						Time.Minutes = Picker_GetCurValue(WM_GetDialogItem(pMsg->hWin, ID_TIME_SET_PICKER2));
+						Time.Seconds = 0;
+						SetSystemTime(&Time);
+					}
+#endif
 						WM_DeleteWindow(pMsg->hWin);
+						HoodCom_SendTouchVoice();
 					break;
 				}
 			}
@@ -169,6 +213,8 @@ WM_HWIN DialogTimeSetCreate(WM_HWIN hParent)
 	if(WM_HMEM_NULL == _hTimeSet){
 		_hTimeSet = GUI_CreateDialogBox(_aDialogTimeSetCreate, GUI_COUNTOF(_aDialogTimeSetCreate), _cbTimeSetDialog, hParent, 0, 0);
 		GUI_Debug("_hTimeSet:%d\n", _hTimeSet);
+	}else{
+		WM_BringToTop(_hTimeSet);
 	}
 	return _hTimeSet;
 }

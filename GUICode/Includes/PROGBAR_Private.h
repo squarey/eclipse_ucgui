@@ -40,24 +40,34 @@ Purpose     : Internal header file
 *
 **********************************************************************
 */
-typedef struct {
-  const GUI_FONT GUI_UNI_PTR * pFont;
-  GUI_COLOR aBarColor[2];
-  GUI_COLOR aTextColor[2];
+typedef struct
+{
+	const GUI_FONT GUI_UNI_PTR * pFont;
+	GUI_COLOR aBarColor[2];
+	GUI_COLOR aTextColor[2];
 } PROGBAR_PROPS;
 
-typedef struct {
-  WIDGET Widget;
-  I32 v;
-  WM_HMEM hpText;
-  I16 XOff, YOff;
-  I16 TextAlign;
-  I32 Min, Max;
-  #if GUI_DEBUG_LEVEL >= GUI_DEBUG_LEVEL_CHECK_ALL
-    I32 DebugId;
-  #endif
-  PROGBAR_PROPS Props;
-  U8 Flags;
+typedef struct
+{
+	I16 Angle1;
+	I16 Angle2;
+}PROGBAR_StyleCirle;
+
+typedef struct
+{
+	WIDGET Widget;
+	I32 v;
+	WM_HMEM hpText;
+	I16 XOff, YOff;
+	I16 TextAlign;
+	I32 Min, Max;
+#if GUI_DEBUG_LEVEL >= GUI_DEBUG_LEVEL_CHECK_ALL
+	I32 DebugId;
+#endif
+	PROGBAR_PROPS Props;
+	U8 Flags;
+	U8 Style;
+	PROGBAR_StyleCirle StyleCirle;
 } PROGBAR_Obj;
 
 /*********************************************************************

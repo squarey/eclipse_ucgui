@@ -34,11 +34,9 @@ Purpose     : Implementation of progbar widget
 void PROGBAR_SetFont(PROGBAR_Handle hObj, const GUI_FONT GUI_UNI_PTR * pfont) {
   PROGBAR_Obj* pObj;
   if (hObj) {
-    WM_LOCK();
     pObj = PROGBAR_H2P(hObj);
     pObj->Props.pFont = pfont;
     WM_InvalidateWindow(hObj);
-    WM_UNLOCK();
   }
 }
 

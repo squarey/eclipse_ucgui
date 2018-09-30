@@ -12,6 +12,8 @@
 #include "GUI_ARRAY.h"
 #include "WindowList.h"
 
+typedef void (*WinListShowChange)(WM_HWIN CurShowWin, const char *pWinName);
+
 typedef struct _WindowListProps
 {
 	WM_HWIN		hWin;
@@ -24,6 +26,10 @@ typedef struct {
 	WM_HMEM hCurShowWin;
 	WM_HMEM hNextShowWin;
 	WM_HMEM hLastShowWin;
+	I32 LastTouchXPos;
+	U8 FirstTouch;
+	U8 IsMove;
+	WinListShowChange fWinShowChange;
 //	WindowListProps Props;
 	GUI_ARRAY WinArray;
 } WindowList_Obj;

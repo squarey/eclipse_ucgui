@@ -50,12 +50,14 @@ static void FillCircle(I32 x0, I32 y0, I32 r)
 	yMax = y0 + r;
 
 	/* Use Clipping rect to reduce calculation (if possible) */
-	/* if (GUI_Context.pClipRect_HL) {
-	if (yMax > GUI_Context.pClipRect_HL->y1)
-	yMax = GUI_Context.pClipRect_HL->y1;
-	if (yMin < GUI_Context.pClipRect_HL->y0)
-	yMin = GUI_Context.pClipRect_HL->y0;
-	}*/
+	 if (GUI_Context.pClipRect_HL) {
+		 if (yMax > GUI_Context.pClipRect_HL->y1){
+			 yMax = GUI_Context.pClipRect_HL->y1;
+		 }
+		 if (yMin < GUI_Context.pClipRect_HL->y0){
+			 yMin = GUI_Context.pClipRect_HL->y0;
+		 }
+	}
 	/* Draw top half */
 	for (i = 0, x = r; i < r; i++) {
 		I32 y = y0 - i;

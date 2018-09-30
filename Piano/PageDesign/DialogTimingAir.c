@@ -25,6 +25,7 @@
 #define ID_TIMING_AIR_PICKER2					(ID_PAGE_TIMING_AIR_BASE + 7)
 #define ID_TIMING_AIR_BTN_CANLE					(ID_PAGE_TIMING_AIR_BASE + 8)
 #define ID_TIMING_AIR_BTN_CONFIRM				(ID_PAGE_TIMING_AIR_BASE + 9)
+#define ID_TIMING_AIR_DPOINT					(ID_PAGE_TIMING_AIR_BASE + 10)
 
 static const GUI_WIDGET_CREATE_INFO _aDialogTimingAirCreate[] = {
 	{ WINDOW_CreateIndirect,	"Window",				ID_WINDOW_TIMING_AIR_SET, 0, 0, DEF_DIALOG_WIDTH, DEF_DIALOG_HEIGHT, 0, 0x0,0},
@@ -37,6 +38,7 @@ static const GUI_WIDGET_CREATE_INFO _aDialogTimingAirCreate[] = {
 	{ Picker_CreateIndirect, 	"timing picker",			ID_TIMING_AIR_PICKER2, 0, 0, 130, 240, 0, 0x0, 0},
 	{ BUTTON_CreateIndirect, 	"timing cancle",			ID_TIMING_AIR_BTN_CANLE, 0, 0, 198, 50, 0, 0x0, 0},
 	{ BUTTON_CreateIndirect, 	"timing confirm",		ID_TIMING_AIR_BTN_CONFIRM, 0, 0, 198, 50, 0, 0x0, 0},
+	{ TEXT_CreateIndirect, 		"timing d point",			ID_TIMING_AIR_DPOINT, 0, 0, 50, 80, 0, 0x0, 0},
 };
 
 static WM_HWIN _hTimingAir = WM_HMEM_NULL;
@@ -141,7 +143,20 @@ static void _TimingAirDialogInit(WM_HWIN hParent)
 	//WM_SetAlignWindow(hBase, hItem, OBJ_ALIGN_BROTHER_V_CENTER, 0, 0);
 	WM_SetAlignParent(hItem, OBJ_ALIGN_PARENT_BOTTOM_CENTRE, 0, -5);
 	//WM_SetAlignWindow(hBase, hItem, OBJ_ALIGN_BROTHER_OUT_RIGHT, 0, 0);
-
+	//两个点
+	hItem = WM_GetDialogItem(hParent, ID_TIMING_AIR_DPOINT);
+	if(TIMING_AIR_CLOSE == Setting_GetTimingAirStatus()){
+		TEXT_SetTextColor(hItem, GUI_GRAY);
+	}else{
+		TEXT_SetTextColor(hItem, GUI_BLACK);
+	}
+	TEXT_SetFont(hItem, &GUI_FontNumberYH72);
+	TEXT_SetText(hItem, ":");
+	TEXT_SetTextAlign(hItem, TEXT_CF_HCENTER);
+	WM_DisableWindow(hItem);
+	hBase = WM_GetDialogItem(hParent, ID_TIMING_AIR_PICKER1);
+	WM_SetAlignWindow(hBase, hItem, OBJ_ALIGN_BROTHER_V_CENTER, 0, 0);
+	WM_SetAlignWindow(hBase, hItem, OBJ_ALIGN_BROTHER_OUT_RIGHT, -20, 0);
 	WM_ShowWindowAndChild(hParent);
 }
 
@@ -166,22 +181,27 @@ static void _cbTimingAirDialog(WM_MESSAGE * pMsg) {
 							WM_EnableWindow(WM_GetDialogItem(pMsg->hWin, ID_TIMING_AIR_PICKER1));
 							WM_EnableWindow(WM_GetDialogItem(pMsg->hWin, ID_TIMING_AIR_PICKER2));
 							WM_EnableWindow(WM_GetDialogItem(pMsg->hWin, ID_TIMING_AIR_BTN_CONFIRM));
+							TEXT_SetTextColor(WM_GetDialogItem(pMsg->hWin, ID_TIMING_AIR_DPOINT), GUI_BLACK);
 							Setting_SetTimingAirStatus(TIMING_AIR_OPEN);
 						}else{
 							WM_DisableWindow(WM_GetDialogItem(pMsg->hWin, ID_TIMING_AIR_PICKER1));
 							WM_DisableWindow(WM_GetDialogItem(pMsg->hWin, ID_TIMING_AIR_PICKER2));
 							WM_DisableWindow(WM_GetDialogItem(pMsg->hWin, ID_TIMING_AIR_BTN_CONFIRM));
+							TEXT_SetTextColor(WM_GetDialogItem(pMsg->hWin, ID_TIMING_AIR_DPOINT), GUI_GRAY);
 							Setting_SetTimingAirStatus(TIMING_AIR_CLOSE);
 						}
+						HoodCom_SendTouchVoice();
 					break;
 					case ID_TIMING_AIR_BTN_CANLE:
 						WM_DeleteWindow(pMsg->hWin);
+						HoodCom_SendTouchVoice();
 					break;
 					case ID_TIMING_AIR_BTN_CONFIRM:
 						Setting_SetTimingAirTime(Picker_GetCurValue(WM_GetDialogItem(pMsg->hWin, ID_TIMING_AIR_PICKER1)),
 								Picker_GetCurValue(WM_GetDialogItem(pMsg->hWin, ID_TIMING_AIR_PICKER2)));
 						Setting_SetTimingAirStatus(TIMING_AIR_START);
 						WM_DeleteWindow(pMsg->hWin);
+						HoodCom_SendTouchVoice();
 					break;
 				}
 			}
