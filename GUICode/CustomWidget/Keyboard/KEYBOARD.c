@@ -13,7 +13,7 @@
 #endif
 
 #ifndef   KEYBOARD_FOCUS_BKCOLOR_DEFAULT
-  #define KEYBOARD_FOCUS_BKCOLOR_DEFAULT   	GUI_DARKGREEN
+  #define KEYBOARD_FOCUS_BKCOLOR_DEFAULT   	0xECA307
 #endif
 
 #ifndef   KEYBOARD_UNFOCUS_BKCOLOR_DEFAULT
@@ -774,33 +774,34 @@ static void _OnGetTouchKey(KEYBOARD_Handle hObj, KEYBOARD_Obj* pObj)
 		}
 		switch(pObj->PressIndex){
 			case KEYBOARD_CHAR_CAP:
-				GUI_Debug("Click cap button\n");
+				//GUI_Debug("Click cap button\n");
 			break;
 			case KEYBOARD_CHAR_DELETE:
-				GUI_Debug("Click delete button\n");
+				//GUI_Debug("Click delete button\n");
 				WM_OnKey(GUI_KEY_BACKSPACE, 1);
 			break;
 			case KEYBOARD_CHAR_123:
-				GUI_Debug("Click 123 button\n");
+				//GUI_Debug("Click 123 button\n");
 			break;
 			case KEYBOARD_CHAR_SYMBOL:
-				GUI_Debug("Click symbol button\n");
+				//GUI_Debug("Click symbol button\n");
 			break;
 			case KEYBOARD_CHAR_SPACE:
-				GUI_Debug("Click space button\n");
+				//GUI_Debug("Click space button\n");
+				WM_OnKey(' ', 1);
 			break;
 			case KEYBOARD_CHAR_POINT:
-				GUI_Debug("Click point button\n");
+			//	GUI_Debug("Click point button\n");
 			break;
 			case KEYBOARD_CHAR_ENTER:
 				if(pObj->EnterCb){
 					pObj->EnterCb();
 				}
-				GUI_Debug("Click Enter button\n");
+				//GUI_Debug("Click Enter button\n");
 			break;
 			default:
 				WM_OnKey(pCharBuffer[pObj->PressIndex],1);
-				GUI_Debug("Click char %c\n", pCharBuffer[pObj->PressIndex]);
+				//GUI_Debug("Click char %c\n", pCharBuffer[pObj->PressIndex]);
 			break;
 		}
 	}else{
@@ -808,16 +809,16 @@ static void _OnGetTouchKey(KEYBOARD_Handle hObj, KEYBOARD_Obj* pObj)
 		pCharBuffer = NumberText;
 		switch(pObj->PressIndex){
 			case KEYBOARD_NUMBER_ABC:
-				GUI_Debug("Click number abc button\n");
+				//GUI_Debug("Click number abc button\n");
 			break;
 			case KEYBOARD_NUMBER_ENTER:
 				if(pObj->EnterCb){
 					pObj->EnterCb();
 				}
-				GUI_Debug("Click number Enter button\n");
+				//GUI_Debug("Click number Enter button\n");
 			break;
 			case KEYBOARD_NUMBER_DELETE:
-				GUI_Debug("Click number delete button\n");
+				//GUI_Debug("Click number delete button\n");
 				WM_OnKey(GUI_KEY_BACKSPACE, 1);
 			break;
 			default:
@@ -829,7 +830,7 @@ static void _OnGetTouchKey(KEYBOARD_Handle hObj, KEYBOARD_Obj* pObj)
 				}else{
 					WM_OnKey(Key, 1);
 				}
-				GUI_Debug("Click char %c\n", pCharBuffer[pObj->PressIndex]);
+				//GUI_Debug("Click char %c\n", pCharBuffer[pObj->PressIndex]);
 			break;
 		}
 	}

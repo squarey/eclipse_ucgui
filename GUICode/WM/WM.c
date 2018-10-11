@@ -1186,15 +1186,7 @@ static void _PanitChildren(WM_HWIN hWin, WM_Obj* pWin, const GUI_RECT* pRect)
 	}
 }
 #endif
-/*
 
-static void _ToPaintSelfAndAllChildren(WM_HWIN hWin, WM_Obj* pWin, GUI_RECT* pRect)
-{
-	WM_HWIN hChild;
-	WM_Obj* pChild;
-	__SendWinPanitMessage(hWin, pWin, *pRect);
-	for
-}*/
 static void _Paint1(WM_HWIN hWin, WM_Obj* pWin) {
 	I32 Status = pWin->Status;
 	/* Send WM_PAINT if window is visible and a callback is defined */
@@ -1225,7 +1217,13 @@ static void _Paint1(WM_HWIN hWin, WM_Obj* pWin) {
 					hAncestors = pAncestors->hParent;
 				}
 			}
-			if(ToPaintAncestors && (hAncestors != pFind->hParent)){
+			//GUI_Debug("hAncestors:%d, pFind->hParent:%d\n", hAncestors, pFind->hParent);
+
+/*			if((hAncestors != hWin) && ((hAncestors != pFind->hParent) || (WM_HWIN_NULL != pAncestors->hNext))){
+				_PanitBrother(hAncestors, pAncestors, &pWin->InvalidRect);
+			}
+*/
+			if(ToPaintAncestors && ((hAncestors != pFind->hParent) || (WM_HWIN_NULL != pAncestors->hNext))){
 				GUI_RECT InsertRect;
 				hAncestors = pAncestors->hNext;
 				if(hAncestors){
@@ -1236,6 +1234,7 @@ static void _Paint1(WM_HWIN hWin, WM_Obj* pWin) {
 					}
 					_PanitBrother(hAncestors, pAncestors, &pWin->InvalidRect);
 				}
+
 			}
 		}
 		//__SendWinPanitMessage(hWin, pWin, pWin->InvalidRect);

@@ -19,7 +19,7 @@
 
 static const GUI_WIDGET_CREATE_INFO _aDialogWifiPasswordCreate[] =
 {
-		{ WINDOW_CreateIndirect,	"Window",				ID_WINDOW_WIFI_PASSWORD_SET, 0, 0, 400, 230, 0, 0x0,0},
+		{ WINDOW_CreateIndirect,	"Window",				ID_WINDOW_WIFI_PASSWORD_SET, 0, 0, 400, 200, 0, 0x0,0},
 		{ TEXT_CreateIndirect,		"name", 				ID_WIFI_PASSWORD_TEXT_NAME, 0, 0, 80, 50, 0, 0, 0},
 		{ TEXT_CreateIndirect,		"ssid", 				ID_WIFI_PASSWORD_TEXT_SSID, 0, 0, 240, 50, 0, 0, 0},
 		{ TEXT_CreateIndirect,		"pass", 				ID_WIFI_PASSWORD_TEXT_PASS, 0, 0, 80, 50, 0, 0, 0},
@@ -42,7 +42,8 @@ static void _WifiPasswordDialogInit(WM_HWIN hParent)
 	WINDOW_SetBkColor(hParent, &BgStyle);
 	//名称
 	hItem = WM_GetDialogItem(hParent, ID_WIFI_PASSWORD_TEXT_NAME);
-	TEXT_SetText(hItem, "SSID:");
+	TEXT_SetText(hItem, "名称:");
+	TEXT_SetFont(hItem, &GUI_FontWifiPageNotice);
 	TEXT_SetTextAlign(hItem, TEXT_CF_VCENTER);
 	WM_SetAlignParent(hItem, OBJ_ALIGN_PARENT_LEFT_TOP, 10, 10);
 	hBase = hItem;
@@ -53,8 +54,9 @@ static void _WifiPasswordDialogInit(WM_HWIN hParent)
 	WM_SetAlignWindow(hBase, hItem, OBJ_ALIGN_BROTHER_OUT_RIGHT, 0, 10);
 	//密码
 	hItem = WM_GetDialogItem(hParent, ID_WIFI_PASSWORD_TEXT_PASS);
-	TEXT_SetText(hItem, "PASS:");
+	TEXT_SetText(hItem, "密码:");
 	TEXT_SetTextAlign(hItem, TEXT_CF_VCENTER);
+	TEXT_SetFont(hItem, &GUI_FontWifiPageNotice);
 	WM_SetAlignWindow(hBase, hItem, OBJ_ALIGN_BROTHER_UNDER_BOTTOM, 10, 0);
 	hBase = hItem;
 	//密码edit
@@ -65,11 +67,13 @@ static void _WifiPasswordDialogInit(WM_HWIN hParent)
 	WM_SetAlignWindow(hBase, hItem, OBJ_ALIGN_BROTHER_TOP, 0, 0);
 
 	hItem = WM_GetDialogItem(hParent, ID_WIFI_PASSWORD_CANCLE);
-	BUTTON_SetText(hItem, "Cancle");
+	BUTTON_SetText(hItem, "取消");
+	BUTTON_SetFont(hItem, &GUI_FontWifiPageNotice);
 	WM_SetAlignParent(hItem, OBJ_ALIGN_PARENT_BOTTOM_CENTRE, -80, 0);
 
 	hItem = WM_GetDialogItem(hParent, ID_WIFI_PASSWORD_CONFIRM);
-	BUTTON_SetText(hItem, "Confirm");
+	BUTTON_SetText(hItem, "连接");
+	BUTTON_SetFont(hItem, &GUI_FontWifiPageNotice);
 	WM_SetAlignParent(hItem, OBJ_ALIGN_PARENT_BOTTOM_CENTRE, 80, 0);
 
 	WM_ShowWindowAndChild(hParent);
@@ -105,7 +109,7 @@ static void _cbWifiPasswordDialog(WM_MESSAGE * pMsg) {
 						const char *pSSID;
 						EDIT_GetText(WM_GetDialogItem(pMsg->hWin, ID_WIFI_PASSWORD_EDIT), pPassword, 64);
 						if(GUI_strlen(pPassword) < 8){
-							TOTAST_StaticShow("Password length less than 8");
+							TOTAST_StaticShow("错误:密码长度小于8", &GUI_FontWifiPageNotice);
 							return;
 						}
 						pSSID = TEXT_GetText(WM_GetDialogItem(pMsg->hWin, ID_WIFI_PASSWORD_TEXT_SSID));

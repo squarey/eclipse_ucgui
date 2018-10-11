@@ -16,8 +16,8 @@ static char _WifiScanResult[] = "bssid / frequency / signal level / flags / ssid
 	b0:6e:bf:6d:49:98       2417    -66     [WPA2-PSK-CCMP][ESS]    ASUS\r\n \
 	b0:6e:bf:6d:49:99       2417    -66     [WPA2-PSK-CCMP][ESS]    ASUS_Guest1\r\n \
 	50:bd:5f:31:3d:fa       2437    -73     [WPA-PSK-CCMP][WPA2-PSK-CCMP][ESS]      TP-LINK_3DFA\r\n \
-	d8:ae:90:0c:b3:05       2462    -77     [WPA-PSK-TKIP+CCMP][WPA2-PSK-TKIP+CCMP][ESS]    ChinaNet-11f6\r\n \
-	d8:ae:90:0c:b3:05       2462    -77     [WPA-PSK-TKIP+CCMP][WPA2-PSK-TKIP+CCMP][ESS]    Test\r\n";
+	d8:ae:90:0c:b3:05       2462    -77     [WPA-PSK-TKIP+CCMP][WPA2-PSK-TKIP+CCMP][ESS]    ChinaNet-11f6\r\n" ;
+	//d8:ae:90:0c:b3:05       2462    -77     [WPA-PSK-TKIP+CCMP][WPA2-PSK-TKIP+CCMP][ESS]    Test\r\n";
 
 static char _WifiScanResult1[] = "bssid / frequency / signal level / flags / ssid\r\n \
 	0e:9b:4b:98:2b:59       2447    -50     [WPA-PSK-CCMP][WPA2-PSK-CCMP][ESS]     secomid\r\n \
@@ -47,6 +47,7 @@ int StartScanWifiList(void)
 {
 	WpaCliStatus |= STATUS_TO_SCAN_AP;
 	_ResultFlag++;
+	GUI_Debug("_ResultFlag:%d\n", _ResultFlag);
 	return 0;
 }
 int StartConnectToAp(const char *pSSID, const char *pPassword, int iEncryptionFlag)
@@ -222,7 +223,6 @@ static void _GetOneInfoFromResult(void)
 			continue;
 		}
 		TransChar(SSID, tSSID);
-		GUI_Debug("SSID:%s\n", SSID);
 		strcpy(&Info.MacAddress[0], Mac);
 		strcpy(&Info.SSID[0], tSSID);
 		Info.SignalLevel = atoi(Signal);

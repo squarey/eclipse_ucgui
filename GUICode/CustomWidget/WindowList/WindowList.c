@@ -8,7 +8,7 @@
 
 #include "WindowList_Private.h"
 
-
+static I32 _LastTouchYPos = 0;
 static void _MoveAnimCallback(WM_HWIN hWin, I32 Value)
 {
 	WindowList_Obj *pObj;
@@ -48,6 +48,7 @@ static void _OnTouch(WM_HWIN hObj, WindowList_Obj* pObj, WM_MESSAGE *pMsg)
 		if(0 == pObj->FirstTouch){
 			pObj->FirstTouch = 1;
 			pObj->LastTouchXPos = tState.x;
+			_LastTouchYPos = tState.y;
 		}else{
 			I16 WinWidth = WM_GetWindowSizeX(hObj);
 			I32 Dist = pObj->LastTouchXPos - tState.x;
@@ -55,6 +56,9 @@ static void _OnTouch(WM_HWIN hObj, WindowList_Obj* pObj, WM_MESSAGE *pMsg)
 				//WM_SetCapture(hObj, 1);
 				WM_SetCaptureHWin(hObj);
 				pObj->IsMove = 1;
+			}
+			if((_LastTouchYPos - tState.y > 20) || (tState.y - _LastTouchYPos > 20)){
+				return;
 			}
 			if((1 == pObj->IsMove) && (hObj == WM_GetCaptureHWin())){
 				if(Dist > (WinWidth/5)){
@@ -68,6 +72,7 @@ static void _OnTouch(WM_HWIN hObj, WindowList_Obj* pObj, WM_MESSAGE *pMsg)
 		pObj->IsMove = 0;
 		pObj->FirstTouch = 0;
 		pObj->LastTouchXPos = -1;
+		_LastTouchYPos = 0;
 		//WM_ReleaseCapture();
 	}
 }

@@ -41,6 +41,7 @@ static U8 _FlagNewScan = 0;
 static U8 _WifiConnectSave = 0;
 static GUI_TIMER_HANDLE _hCheckTimer = WM_HMEM_NULL;
 
+static void _PageWifiToRescanList(void);
 
 static U8 _WifiListItemDraw(const LISTVIEW_DrawItemInfo *pInfo)
 {
@@ -183,8 +184,8 @@ static void _WifiDialogInit(WM_HWIN hParent)
 	//WINDOW_SetBkColor(hParent, &BgStyle);
 	//text
 	hItem = WM_GetDialogItem(hParent, ID_WIFI_TEXT_NOTICE);
-	TEXT_SetText(hItem, "Network Set");
-	TEXT_SetFont(hItem, &GUI_FontASSIC_YH32);
+	TEXT_SetText(hItem, "选择网络:");
+	TEXT_SetFont(hItem, &GUI_FontWifiPageNotice);
 	TEXT_SetTextAlign(hItem, TEXT_CF_HCENTER | TEXT_CF_VCENTER);
 	//WM_SetAlignParent(hItem, OBJ_ALIGN_PARENT_CENTRE, 0, 0);
 	hBase = hItem;
@@ -194,6 +195,9 @@ static void _WifiDialogInit(WM_HWIN hParent)
 	CHECKBOX_SetImage(hItem, &bmbtn_close, CHECKBOX_BI_ACTIV_UNCHECKED);
 	CHECKBOX_SetImage(hItem, &bmbtn_open, CHECKBOX_BI_ACTIV_CHECKED);
 	CHECKBOX_SetNoDrawDownRect(hItem, 1);
+	if(WIFI_FUNC_OPEN == GetWifiFunctionStatus()){
+		CHECKBOX_SetState(hItem, 1);
+	}
 	WM_SetHasTrans(hItem);
 	WM_SetAlignParent(hItem, OBJ_ALIGN_PARENT_RIGHT, 0, 0);
 	hBase = hItem;
@@ -215,17 +219,21 @@ static void _WifiDialogInit(WM_HWIN hParent)
 
 	WM_ShowWindowAndChild(hParent);
 	LISTVIEW_HideScrollbar(hItem);
-	WM_HideWindow(WM_GetDialogItem(hParent, ID_WIFI_PROGBAR));
+	if(WIFI_FUNC_CLOSE == GetWifiFunctionStatus()){
+		WM_HideWindow(WM_GetDialogItem(hParent, ID_WIFI_PROGBAR));
+	}
 
 	if(0 == CHECKBOX_IsChecked(WM_GetDialogItem(hParent, ID_WIFI_SWITCH))){
-		WM_HideWindow(hItem);
+		WM_HideWindow(WM_GetDialogItem(hParent, ID_WIFI_LIST));
+	}else{
+		_PageWifiToRescanList();
 	}
 }
 
 static void _cbCheckStatusTimer(GUI_TIMER_MESSAGE *pContext)
 {
 	if(_WifiConnectSave != GetWifiConnectStatus()){
-		PageWifiToRescanList();
+		_PageWifiToRescanList();
 		_WifiConnectSave = GetWifiConnectStatus();
 		WM_ShowWindow(WM_GetDialogItem(WM_GetParent(pContext->Context), ID_WIFI_PROGBAR));
 	}
@@ -264,10 +272,11 @@ static void _cbWifiDialog(WM_MESSAGE * pMsg) {
 					case ID_WIFI_SWITCH:
 						if(0 == CHECKBOX_IsChecked(WM_GetDialogItem(pMsg->hWin, ID_WIFI_SWITCH))){
 							WM_HideWindow(WM_GetDialogItem(pMsg->hWin, ID_WIFI_LIST));
+							WM_HideWindow(WM_GetDialogItem(pMsg->hWin, ID_WIFI_PROGBAR));
 							SetWifiFunctionStatus(WIFI_FUNC_CLOSE);
 						}else{
-							PageWifiToRescanList();
 							SetWifiFunctionStatus(WIFI_FUNC_OPEN);
+							_PageWifiToRescanList();
 							WM_ShowWindow(WM_GetDialogItem(pMsg->hWin, ID_WIFI_PROGBAR));
 							//WM_ShowWindow(WM_GetDialogItem(pMsg->hWin, ID_WIFI_LIST));
 						}
@@ -284,7 +293,11 @@ static void _cbWifiDialog(WM_MESSAGE * pMsg) {
 							}
 						}
 						GUI_Debug("Sel ssid %s\n", pSelectSSID);
-						PageWifiPasswordCreate(pMsg->hWin, pSelectSSID, ItemInfo.FlagEncry);
+						if(ItemInfo.FlagEncry == ENCRYPTION_OPEN){
+							StartConnectToAp(pSelectSSID, "88888888", ItemInfo.FlagEncry);
+						}else{
+							PageWifiPasswordCreate(pMsg->hWin, pSelectSSID, ItemInfo.FlagEncry);
+						}
 					}
 					break;
 				}
@@ -299,8 +312,12 @@ static void _cbWifiDialog(WM_MESSAGE * pMsg) {
 			}
 		break;
 		case ID_MSG_TO_CONNECT_NEW_AP:
-			GUI_Debug("To connect new ap\n");
+			TOTAST_StaticShow("正在连接...", &GUI_FontWifiPageNotice);
 		break;
+		case ID_MSG_TO_SCAN_AP:
+			_PageWifiToRescanList();
+			WM_ShowWindow(WM_GetDialogItem(pMsg->hWin, ID_WIFI_PROGBAR));
+			break;
 		default:
 			WM_DefaultProc(pMsg);
 		break;
@@ -318,7 +335,7 @@ WM_HWIN PageWifiGetHander(void)
 {
 	return _hWifi;
 }
-void PageWifiToRescanList(void)
+static void _PageWifiToRescanList(void)
 {
 	if(WIFI_FUNC_OPEN == GetWifiFunctionStatus()){
 		_FlagNewScan = 1;

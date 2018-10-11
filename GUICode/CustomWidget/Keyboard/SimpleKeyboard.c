@@ -37,6 +37,7 @@ void SimpleKeyboardCreate(I32 x0, I32 y0)
 		}
 		WM_ShowWindow(hKeyboard);
 	}
+	GUI_Debug("hKeyboard:%d\n", hKeyboard);
 }
 void SimpleKeyboardDelete(void)
 {

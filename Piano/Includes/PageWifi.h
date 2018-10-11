@@ -13,6 +13,5 @@
 
 WM_HWIN PageWifiCreate(WM_HWIN hParent);
 WM_HWIN PageWifiGetHander(void);
-void PageWifiToRescanList(void);
 
 #endif /* _PAGEWIFI_H_ */

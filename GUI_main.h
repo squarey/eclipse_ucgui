@@ -69,6 +69,7 @@
 #define ID_MSG_QUEUE_ADD_ITEM		(WM_USER + 2)
 #define ID_MSG_NOTIFY_SET_SSID		(WM_USER + 3)
 #define ID_MSG_TO_CONNECT_NEW_AP	(WM_USER + 4)
+#define ID_MSG_TO_SCAN_AP			(WM_USER + 5)
 
 #endif
 

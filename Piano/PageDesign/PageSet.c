@@ -173,7 +173,7 @@ static void _cbWindowsPageSetDialog(WM_MESSAGE * pMsg) {
 						IMAGEVIEW_SetBitmap(WM_GetDialogItem(pMsg->hWin, ID_SET_BLUETOOTH_ICON), &bmbluetooth_icon_unfocus);
 						TEXT_SetTextColor(WM_GetDialogItem(pMsg->hWin, ID_SET_BLUETOOTH_TEXT), GUI_GRAY);
 						if(PageWifiGetHander() == _hPageShow){
-							PageWifiToRescanList();
+							WM_SendMessageNoPara(_hPageShow, ID_MSG_TO_SCAN_AP);
 						}else{
 							if(_hPageShow){
 								WM_DeleteWindow(_hPageShow);

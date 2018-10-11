@@ -40,6 +40,7 @@ static LISTVIEW_PROPS LISTVIEW_DefaultProps = {
 };
 
 static I32 LastTouchYPos = 0;
+static I32 LastTouchXPos = 0;
 static char IsFirstTouch = 0;
 
 
@@ -199,7 +200,6 @@ static I32 _GetPressItem(LISTVIEW_Handle hObj, LISTVIEW_Obj* pObj, I32 x, I32 y)
 	}else{
 		TouchItem = YPosArea/pObj->ItemYSize + TopItem + 1;
 	}
-
 	if(TouchItem > _LISTVIEW__GetNumItems(pObj)){
 		return -1;
 	}else{
@@ -250,7 +250,8 @@ static void _OnTouch(LISTVIEW_Handle hObj, LISTVIEW_Obj* pObj, WM_MESSAGE*pMsg)
 	const GUI_PID_STATE* pState = (const GUI_PID_STATE*)pMsg->Data.p;
 	if(pMsg->Data.p){
 		if(0 == pState->Pressed){
-			if((0 == pObj->isMove) && (pObj->CurSel == _GetPressItem(hObj, pObj, pState->x, pState->y))){
+			if((0 == pObj->isMove) && (-1 != pObj->CurSel) &&
+					(pObj->CurSel == _GetPressItem(hObj, pObj, pState->x, pState->y))){
 				_OnListViewReleased(hObj,pObj,WM_NOTIFICATION_RELEASED);
 			}
 			pObj->isMove = 0;
@@ -321,14 +322,15 @@ static void _OnTouchMoveV(LISTVIEW_Handle hObj, LISTVIEW_Obj* pObj, WM_MESSAGE*p
 {
 	const GUI_PID_STATE* pState = (const GUI_PID_STATE*)pMsg->Data.p;
 	/* ���pStateΪ����˵��������Ч */
-	if((!(pMsg->Data.p)) || (pObj->TotalLenghtV <= WM_GetWindowSizeY(hObj))){
+	if((!pMsg->Data.p)){
 		IsFirstTouch = 0;
 		LastTouchYPos = 0;
+		LastTouchXPos = 0;
 		return;
 	}
 	/* �ͷ� */
 	if(0 == pState->Pressed){
-		if(1 == IsFirstTouch){
+		if((1 == IsFirstTouch) && (pObj->TotalLenghtV > WM_GetWindowSizeY(hObj))){
 			_CreateListAnim(hObj, LastTouchYPos, pState->y);
 		}
 		IsFirstTouch = 0;
@@ -336,7 +338,7 @@ static void _OnTouchMoveV(LISTVIEW_Handle hObj, LISTVIEW_Obj* pObj, WM_MESSAGE*p
 		WM_ReleaseCapture();
 		return;
 	}else{/* ���� */
-		WM_SetCapture(hObj,1);
+		WM_SetCapture(hObj, 1);
 		WM_SetCaptureVWin(hObj);
 	}
 	if(0 == IsFirstTouch){
@@ -344,6 +346,16 @@ static void _OnTouchMoveV(LISTVIEW_Handle hObj, LISTVIEW_Obj* pObj, WM_MESSAGE*p
 		SCROLLBAR_DeleteAlphaAnim(pObj->hScrollbar);
 		GUI_AnimationDeleteByContext(hObj);
 		LastTouchYPos = pState->y;
+		LastTouchXPos = pState->x;
+		return;
+	}
+	if((LastTouchXPos - pState->x > 20) || (pState->x - LastTouchXPos > 20)){
+		LastTouchXPos = pState->x;
+		LISTVIEW_SetSel(hObj, -1);
+		return;
+	}
+	if(pObj->TotalLenghtV <= WM_GetWindowSizeY(hObj)){
+		pObj->MoveDistanceY = 0;
 		return;
 	}
 	_CalculateMoveDistanceY(hObj, pObj, pState->y);

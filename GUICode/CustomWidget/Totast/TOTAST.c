@@ -133,16 +133,24 @@ static void _TotastTimer_cb(GUI_TIMER_MESSAGE* pTM)
 	}
 	WM_DeleteWindow(pTM->Context);
 }
-TOTAST_Handle TOTAST_StaticShow(const char *pTest)
+TOTAST_Handle TOTAST_StaticShow(const char *pTest, const GUI_FONT *pFont)
 {
 	if(WM_HWIN_NULL == hStaticTotast){
 		TOTAST_Handle hObj;
 		I32 xLineSize;
 		I32 LineLen;
+		I16 FontYSize = 0;
+		if(NULL != pFont){
+			GUI_SetFont(pFont);
+		}
 		LineLen = GUI__GetLineNumChars(pTest, 0x7fff);
 		xLineSize = GUI__GetLineDistX(pTest, LineLen);
-		hObj = TOTAST_CreateEx(0,0, xLineSize + 20, 50, WM_GetDesktopWindow(), WM_CF_SHOW, 0, 0, pTest);
+		FontYSize = GUI_GetFontSizeY() + 20;
+		hObj = TOTAST_CreateEx(0,0, xLineSize + 20, FontYSize, WM_GetDesktopWindow(), WM_CF_SHOW, 0, 0, pTest);
 		WM_SetAlignParent(hObj, OBJ_ALIGN_PARENT_BOTTOM_CENTRE, 0, -10);
+		if(NULL != pFont){
+			TOTAST_SetFont(hObj, pFont);
+		}
 		hStaticTotast = hObj;
 		WM_BringToTop(hStaticTotast);
 		return hObj;
@@ -150,15 +158,29 @@ TOTAST_Handle TOTAST_StaticShow(const char *pTest)
 		TOTAST_Obj* pObj;
 		pObj = GUI_ALLOC_h2p(hStaticTotast);
 		GUI_TIMER_Restart(pObj->hTimer);
-		TOTAST_StaticSetText(pTest);
+		if(NULL != pFont){
+			TOTAST_SetFont(hStaticTotast, pFont);
+		}
+		TOTAST_StaticSetText(pTest, pFont);
 		return hStaticTotast;
 	}
 }
-void TOTAST_StaticSetText(const char *pTest)
+void TOTAST_StaticSetText(const char *pTest, const GUI_FONT *pFont)
 {
 	if (hStaticTotast) {
 		TOTAST_Obj* pObj;
+		I32 xLineSize;
+		I32 LineLen;
+		I16 FontYSize = 0;
+		if(NULL != pFont){
+			GUI_SetFont(pFont);
+		}
+		LineLen = GUI__GetLineNumChars(pTest, 0x7fff);
+		xLineSize = GUI__GetLineDistX(pTest, LineLen);
+		FontYSize = GUI_GetFontSizeY() + 20;
 		pObj = GUI_ALLOC_h2p(hStaticTotast);
+		WM_SetXSize(hStaticTotast, xLineSize);
+		WM_SetYSize(hStaticTotast, FontYSize);
 		if (GUI__SetText(&pObj->hpText, pTest)) {
 			GUI_TIMER_Restart(pObj->hTimer);
 			WM_Invalidate(hStaticTotast);
