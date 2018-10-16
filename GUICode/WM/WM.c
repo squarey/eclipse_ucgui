@@ -195,9 +195,14 @@ static U8 _CheckParentIsVisable(WM_HWIN hWin, WM_Obj  *pWin)
 {
 	WM_HWIN hParent;
 	WM_Obj  *pParent;
+	GUI_RECT r;
 	hParent = pWin->hParent;
 	if(0 == hParent){
 		return 1;
+	}
+	pParent = WM_H2P(hParent);
+	if(0 == WM_RectIntersect(&r, &pWin->Rect, &pParent->Rect)){
+		return 0;
 	}
 	for(; hParent; hParent = pParent->hParent){
 		pParent = WM_H2P(hParent);
@@ -356,6 +361,8 @@ static void _SetClipRectUserIntersect(const GUI_RECT* prSrc)
  * */
 static void _DeleteInvalidParentRect(WM_HWIN hWin, WM_Obj *pWin)
 {
+	GUI_Debug("x pos %d y pos %d, xszie %d yszie %d\n", pWin->Rect.x0, pWin->Rect.y0, WM_GetWindowSizeX(hWin), WM_GetWindowSizeY(hWin));
+	GUI_Debug("x0 %d, y0 %d x1 %d y0 %d\n", pWin->Rect.x0, pWin->Rect.y0, pWin->Rect.x1, pWin->Rect.y1);
 	WM__InvalidateRectEx(&pWin->Rect, WM_GetParent(hWin));
 }
 /*********************************************************************
@@ -1047,6 +1054,7 @@ static WM_HWIN _CheckNeedPaintInChildren(WM_HWIN hWin, WM_Obj* pWin, const GUI_R
 /* 查找所需绘制的窗口  如果没有找到所需绘制的窗口则返回hWin */
 static WM_HWIN _CheckNeedPaintWin(WM_HWIN hWin, WM_Obj* pWin, const GUI_RECT* pRect)
 {
+#if 1
 	WM_HWIN hFindWin = WM_HWIN_NULL;
 	WM_HWIN hSaveWin = WM_HWIN_NULL;
 	WM_Obj *pFindWin, *pSaveWin;
@@ -1097,6 +1105,21 @@ static WM_HWIN _CheckNeedPaintWin(WM_HWIN hWin, WM_Obj* pWin, const GUI_RECT* pR
 	}else{
 		return hSaveWin;
 	}
+#else
+	WM_HWIN hFindWin = WM_HWIN_NULL, hNext = WM_HWIN_NULL;
+	WM_Obj *pNext = NULL;
+	//GUI_RECT IntersectRect;
+	hFindWin = hWin;
+	for(hNext = pWin->hNextLin; hNext; hNext = pNext->hNextLin){
+		pNext = WM_H2P(hNext);
+		if((pNext->Status & WM_SF_ISVIS) && (WM_SF_HASTRANS != (pNext->Status & WM_SF_HASTRANS))){
+			if(1 == WM_RectIsIn(pRect, &pNext->Rect)){
+				hFindWin = hNext;
+			}
+		}
+	}
+	return hFindWin;
+#endif
 }
 #if 0
 static void _PanitChildren(WM_HWIN hWin, WM_Obj* pWin, const GUI_RECT* pRect)
@@ -1187,6 +1210,19 @@ static void _PanitChildren(WM_HWIN hWin, WM_Obj* pWin, const GUI_RECT* pRect)
 }
 #endif
 
+static void _PaintWinAndNextLin(WM_HWIN hWin, WM_Obj* pWin, const GUI_RECT *pRect)
+{
+	WM_HWIN hNext;
+	WM_Obj *pNext;
+	GUI_RECT IntersRect;
+	for(hNext = hWin; hNext; hNext = pNext->hNextLin){
+		pNext = WM_H2P(hNext);
+		if((pWin->Status & WM_SF_ISVIS) && WM_RectIntersect(&IntersRect, &pNext->Rect, pRect)){
+			__SendWinPanitMessage(hNext, pNext, IntersRect);
+			_PanitChildren(hNext, pNext, &IntersRect);
+		}
+	}
+}
 static void _Paint1(WM_HWIN hWin, WM_Obj* pWin) {
 	I32 Status = pWin->Status;
 	/* Send WM_PAINT if window is visible and a callback is defined */
@@ -1198,6 +1234,7 @@ static void _Paint1(WM_HWIN hWin, WM_Obj* pWin) {
 		/*GUI_Debug("To paint win %d\n", hFind);
 		GUI_Debug("InvalidRect :%d, %d, %d, %d\n", pWin->InvalidRect.x0, pWin->InvalidRect.y0,
 							pWin->InvalidRect.x1, pWin->InvalidRect.y1);*/
+#if 1
 		if(hFind == hWin){
 			__SendWinPanitMessage(hWin, pWin, pWin->InvalidRect);
 			_PanitChildren(hWin, pWin, &pWin->InvalidRect);
@@ -1237,6 +1274,10 @@ static void _Paint1(WM_HWIN hWin, WM_Obj* pWin) {
 
 			}
 		}
+#else
+		pFind = WM_H2P(hFind);
+		_PaintWinAndNextLin(hFind, pFind, &pWin->InvalidRect);
+#endif
 		//__SendWinPanitMessage(hWin, pWin, pWin->InvalidRect);
 		//GUI_Debug("hWin:%d, hWinNeedPaint:%d\n", hWin, hWinNeedPaint);
 

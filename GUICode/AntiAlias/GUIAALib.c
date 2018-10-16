@@ -35,6 +35,18 @@ Purpose     : Antialiasing library
   #define GUI_AA_LINEBUFFER_SIZE LCD_XSIZE
 #endif
 
+#define CONTINUE_IF_Y_OUT() \
+	if (_y < GUI_Context.ClipRect.y0) continue;             \
+	if (_y > GUI_Context.ClipRect.y1) continue;
+
+#define CONTINUE_IF_X_OUT() \
+	if (XStart < GUI_Context.ClipRect.x0) continue;             \
+	if (XStart > GUI_Context.ClipRect.x1) continue;
+
+#define CLIP_X() \
+	if (XStart < GUI_Context.ClipRect.x0) { XStart = GUI_Context.ClipRect.x0; } \
+	if (XEnd > GUI_Context.ClipRect.x1) { XEnd = GUI_Context.ClipRect.x1; }
+
 /*********************************************************************
 *
 *       Static data
@@ -77,6 +89,7 @@ static void _FlushLine(void)
 	I32 i;
 	I32 iEnd = _x1_InUse - _x0;
 	I32 IMax = GUI_Context.AA_Factor * GUI_Context.AA_Factor;
+	I32 XStart = 0, XEnd = 0;
 	for (i = _x0_InUse - _x0; i <= iEnd; i++) {
 		I32 Intens = *(pabAABuffer + i);
 		if (Intens) {
@@ -91,10 +104,17 @@ static void _FlushLine(void)
 				}
 				/* Draw the full pixel(s) */
 				if (j != i) {
-					pLCD_HLPrev->pfDrawHLine(_x0 + i, _y, _x0 + j);
+					XStart = _x0 + i;
+					XEnd = _x0 + j;
+					CLIP_X();
+					CONTINUE_IF_Y_OUT();
+					pLCD_HLPrev->pfDrawHLine(XStart, _y, XEnd);
 					i = j;  /*xxx*/
 				} else {
-					LCD_HL_DrawPixel (_x0 + i,_y);
+					XStart = _x0 + i;
+					CONTINUE_IF_X_OUT();
+					CONTINUE_IF_Y_OUT();
+					LCD_HL_DrawPixel (XStart, _y);
 				}
 			} else {
 				LCD_SetPixelAA(_x0 + i,_y, (15 * Intens + IMax/2)/IMax);
@@ -134,7 +154,6 @@ static void _DrawHLine  (I32 x0, I32 y,  I32 x1)
 	if (x1Real > _x1_InUse){
 		_x1_InUse = x1Real;
 	}
-
 	/* Clip (should not be necessary ... Just to be on the safe side ! */
 	if (x0Real < _x0) {
 		x0 = _x0 * GUI_Context.AA_Factor;
@@ -146,6 +165,7 @@ static void _DrawHLine  (I32 x0, I32 y,  I32 x1)
 	if (x1 < x0){
 		return;
 	}
+
 	/* Inc. hit counters in buffer */
 	{
 		I32 x0_Off = x0/GUI_Context.AA_Factor - _x0;

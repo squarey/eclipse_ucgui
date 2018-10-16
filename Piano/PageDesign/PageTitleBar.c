@@ -194,7 +194,7 @@ static void _cbWindowsTitleBarDialog(WM_MESSAGE * pMsg) {
 		case WM_INIT_DIALOG:
 			GUI_Debug("WM_INIT_DIALOG\n");
 			_DialogInit(pMsg->hWin);
-			_hTitleTimerInit(pMsg->hWin);
+			//_hTitleTimerInit(pMsg->hWin);
 		return;
 		case WM_DELETE:
 			_hTitleBar = WM_HMEM_NULL;

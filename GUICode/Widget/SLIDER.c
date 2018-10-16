@@ -85,8 +85,7 @@ static void _Paint(SLIDER_Obj* pObj, WM_HWIN hObj)
 	Style.GradColor = pObj->Props.Color;
 	Style.Radius = 2;
 	Style.Opacity = 0xff;
-	GUI_DrawRectMainMiddle(&Rect, &Style);
-	GUI_DrawRectMainCorner(&Rect, &Style);
+	GUI_FillRoundRect(&Rect, &Style);
 
 	DistPox = ((pObj->v << 12) * Width)/(pObj->Max - pObj->Min);
 	DistPox >>= 12;
@@ -101,8 +100,7 @@ static void _Paint(SLIDER_Obj* pObj, WM_HWIN hObj)
 		Style.MainColor = pObj->Props.Color;
 		Style.GradColor = pObj->Props.Color;
 	}
-	GUI_DrawRectMainMiddle(&Rect, &Style);
-	GUI_DrawRectMainCorner(&Rect, &Style);
+	GUI_FillRoundRect(&Rect, &Style);
 
 
 	YPos = Height/2 - 1;

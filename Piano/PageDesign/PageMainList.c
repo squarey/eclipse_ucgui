@@ -11,7 +11,7 @@
 #include "PageTitleBar.h"
 #include "HoodCom.h"
 static WM_HWIN _hWinList = WM_HWIN_NULL;
-
+/*
 static void _NotifyWinShowChageToChild(WM_HWIN hParent, WM_HWIN ShowWin)
 {
 	WM_HWIN hChild;
@@ -26,7 +26,7 @@ static void _NotifyWinShowChageToChild(WM_HWIN hParent, WM_HWIN ShowWin)
 		WM_SendMessage(hChild, &Msg);
 	}
 }
-
+*/
 static void _WinListShowChange(WM_HWIN CurShowWin, const char *pWinName)
 {
 	//_NotifyWinShowChageToChild(_hWinList, CurShowWin);
@@ -49,11 +49,12 @@ WM_HWIN PageListCreate(void)
 	HoodCom_SendOpenVoice();
 	WindowList_AddWin(_hWinList, PageMainCreate(), PAGE_MAIN);
 	WindowList_AddWin(_hWinList, PageSetCreate(), PAGE_SET);
+	WindowList_EnableAnim(_hWinList);
 	WindowList_SetShowWinChangeCallback(_hWinList, (void *)_WinListShowChange);
 	return _hWinList;
 }
 
 void PageListShowWinByName(const char *pWinName)
 {
-	WindowList_SetShowByNameWin(_hWinList, pWinName, 0);
+	WindowList_SetShowByNameWin(_hWinList, pWinName);
 }

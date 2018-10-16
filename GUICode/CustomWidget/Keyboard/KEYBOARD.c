@@ -83,13 +83,11 @@ ucKEYOBARD_PROPS ucKEYOBARD__DefaultProps =
 static void _DrawButton(KEYBOARD_Obj* pObj, GUI_RECT *pRect, const char *pText, U8 IsFocus)
 {
 	if(0 == IsFocus){
-		GUI_DrawRectMainMiddle(pRect, &pObj->Props.UnfocusStyle);
-		GUI_DrawRectMainCorner(pRect, &pObj->Props.UnfocusStyle);
+		GUI_FillRoundRect(pRect, &pObj->Props.UnfocusStyle);
 		LCD_SetColor(pObj->Props.aTextColor);
 		GUI_DispStringInRectWrap(pText, pRect, GUI_TA_VCENTER | GUI_TA_HCENTER, GUI_WRAPMODE_NONE);
 	}else{
-		GUI_DrawRectMainMiddle(pRect, &pObj->Props.FocusStyle);
-		GUI_DrawRectMainCorner(pRect, &pObj->Props.FocusStyle);
+		GUI_FillRoundRect(pRect, &pObj->Props.FocusStyle);
 		LCD_SetColor(pObj->Props.aTextColor);
 		pRect->x0 += 2;
 		pRect->y0 += 2;

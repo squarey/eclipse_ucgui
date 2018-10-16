@@ -170,16 +170,14 @@ static void _Paint(BUTTON_Obj* pObj, BUTTON_Handle hObj)
 		if(!WM_GetHasTrans(hObj)){
 			if (PressedState == 0) {
 				if(pObj->NewStyle){
-					GUI_DrawRectMainMiddle(&rButton, &pObj->Style[0]);
-					GUI_DrawRectMainCorner(&rButton, &pObj->Style[0]);
+					GUI_FillRoundRect(&rButton, &pObj->Style[0]);
 				}else{
 					pObj->Widget.pEffect->pfDrawUp();  /* _WIDGET_EFFECT_3D_DrawUp(); */
 				}
 				EffectSize = pObj->Widget.pEffect->EffectSize;
 			}else{
 				if(pObj->NewStyle){
-					GUI_DrawRectMainMiddle(&rButton, &pObj->Style[1]);
-					GUI_DrawRectMainCorner(&rButton, &pObj->Style[1]);
+					GUI_FillRoundRect(&rButton, &pObj->Style[1]);
 				}else{
 					pObj->Widget.pEffect->pfDrawDown();
 				}

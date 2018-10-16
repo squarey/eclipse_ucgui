@@ -117,12 +117,12 @@ void RectBorderTest(void)
 	}
 	ToRectBorderTest = 1;
 	Rect.x0 = 500;
-	Rect.x1 = 700;
+	Rect.x1 = 540;
 	Rect.y0 = 50;
-	Rect.y1 = 150;
+	Rect.y1 = 90;
 	Style.Color = 0xff959595;
 	Style.Part = GUI_BORDER_FULL;
-	Style.Radius = 4;
+	Style.Radius = 49;
 	Style.Width = 2;
 	GUI_Context.ClipRect.x0 = 0;
 	GUI_Context.ClipRect.y0 = 0;
@@ -131,15 +131,10 @@ void RectBorderTest(void)
 
 	GUI_SetColor(GUI_GREEN);
 
-
-	GUI_SetFont(&GUI_FontASSIC_YH32);
-	GUI_SetFontScale(3);
-	GUI_Debug("A ASSIC %X\n", 'A');
-	GUI_DispStringAt("0123456789", 100, 100);
 	//GUI_SetFont(&GUI_FontNumberYH48);
 	//GUI_SetFontScale(2);
 	//GUI_DispStringAt("0123456789", 100, 190);
-
+/*
 	GUI__ReduceRect(&r, &Rect, 1);
 	r1 = r;
 	r1.y1 = r1.y0 + GUI_RectGetHeight(&r)/2;
@@ -149,10 +144,15 @@ void RectBorderTest(void)
 	r1.y0 = r1.y0 + GUI_RectGetHeight(&r)/2;
 	GUI_SetBkColor(0xffdfdfdf);
 	GUI_ClearRectEx(&r1);
-	GUI_DrawRectBorderStraight(&Rect, &Style);
-	GUI_DrawRectBorderCorner(&Rect, &Style);
-
-
+	GUI_DrawRoundRect(&Rect, &Style);
+*/
+	GUI_ShadowStyle ShadowStyle;
+	ShadowStyle.Color = GUI_RED;
+	ShadowStyle.Opacity = 0xFF;
+	ShadowStyle.Radius = 21;
+	ShadowStyle.Type = GUI_SHADOW_FULL;
+	ShadowStyle.Width = 10;
+	GUI_DrawRectShadow(&Rect, &ShadowStyle);
 	/*ucGUI_AA_SetFactor(3);
 	ucGUI_AA_FillCircle(600, 300, 40);
 	ucGUI_AA_DrawArc(600, 300, 60, 60, 0, 360);*/

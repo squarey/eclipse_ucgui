@@ -21,10 +21,12 @@ WM_HWIN WindowList_CreateEx(I32 x0, I32 y0, I32 xsize, I32 ysize, WM_HWIN hParen
 void WindowList_AddWin(WM_HWIN hWinList, WM_HWIN hAddWin, const char *pWinName);
 void WindowList_RemoveWinByName(WM_HWIN hWinList, const char *pWinName);
 void WindowList_RemoveWin(WM_HWIN hWinList, WM_HWIN hRemoveWin);
-void WindowList_SetShowByNameWin(WM_HWIN hWinList, const char *pShowWinName, U8 UseAnim);
+void WindowList_SetShowByNameWin(WM_HWIN hWinList, const char *pShowWinName);
 void WindowList_SetShowWin(WM_HWIN hWinList, WM_HWIN hShowWin);
-void WindowList_ShowNextWin(WM_HWIN hWinList, U8 UseAnim);
-void WindowList_ShowPrevWin(WM_HWIN hWinList, U8 UseAnim);
+void WindowList_ShowNextWin(WM_HWIN hWinList);
+void WindowList_ShowPrevWin(WM_HWIN hWinList);
+void WindowList_EnableAnim(WM_HWIN hWinList);
+void WindowList_DisableAnim(WM_HWIN hWinList);
 void WindowList_SetShowWinChangeCallback(WM_HWIN hWinList, void *pFunc);
 
 

@@ -200,6 +200,7 @@ static void _cbWindowsPageSetDialog(WM_MESSAGE * pMsg) {
 					break;
 					case ID_SET_BTN_CLOSE:
 						Setting_SetCloseAllFunc();
+						HoodCom_SendTouchVoice();
 					break;
 				}
 			}

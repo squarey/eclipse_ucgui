@@ -39,6 +39,7 @@ static void _BrightnessSetDialogInit(WM_HWIN hParent)
 	hItem = WM_GetDialogItem(hParent, ID_BRIGHTNESS_SET_SILDER);
 	WM_SetAlignParent(hItem, OBJ_ALIGN_PARENT_CENTRE, 0, 0);
 	SLIDER_SetRange(hItem, 10, 99);
+	SLIDER_SetValue(hItem, 60);
 #if COMPILE_ON_C600
 	SLIDER_SetValue(hItem, LCD_GetBrightness());
 #endif

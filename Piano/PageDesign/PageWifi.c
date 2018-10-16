@@ -41,7 +41,7 @@ static U8 _FlagNewScan = 0;
 static U8 _WifiConnectSave = 0;
 static GUI_TIMER_HANDLE _hCheckTimer = WM_HMEM_NULL;
 
-static void _PageWifiToRescanList(void);
+static U8 _PageWifiToRescanList(void);
 
 static U8 _WifiListItemDraw(const LISTVIEW_DrawItemInfo *pInfo)
 {
@@ -233,9 +233,10 @@ static void _WifiDialogInit(WM_HWIN hParent)
 static void _cbCheckStatusTimer(GUI_TIMER_MESSAGE *pContext)
 {
 	if(_WifiConnectSave != GetWifiConnectStatus()){
-		_PageWifiToRescanList();
 		_WifiConnectSave = GetWifiConnectStatus();
-		WM_ShowWindow(WM_GetDialogItem(WM_GetParent(pContext->Context), ID_WIFI_PROGBAR));
+		if(_PageWifiToRescanList()){
+			WM_ShowWindow(WM_GetDialogItem(WM_GetParent(pContext->Context), ID_WIFI_PROGBAR));
+		}
 	}
 	GUI_TIMER_Restart(_hCheckTimer);
 }
@@ -276,8 +277,9 @@ static void _cbWifiDialog(WM_MESSAGE * pMsg) {
 							SetWifiFunctionStatus(WIFI_FUNC_CLOSE);
 						}else{
 							SetWifiFunctionStatus(WIFI_FUNC_OPEN);
-							_PageWifiToRescanList();
-							WM_ShowWindow(WM_GetDialogItem(pMsg->hWin, ID_WIFI_PROGBAR));
+							if(_PageWifiToRescanList()){
+								WM_ShowWindow(WM_GetDialogItem(pMsg->hWin, ID_WIFI_PROGBAR));
+							}
 							//WM_ShowWindow(WM_GetDialogItem(pMsg->hWin, ID_WIFI_LIST));
 						}
 					break;
@@ -315,8 +317,9 @@ static void _cbWifiDialog(WM_MESSAGE * pMsg) {
 			TOTAST_StaticShow("正在连接...", &GUI_FontWifiPageNotice);
 		break;
 		case ID_MSG_TO_SCAN_AP:
-			_PageWifiToRescanList();
-			WM_ShowWindow(WM_GetDialogItem(pMsg->hWin, ID_WIFI_PROGBAR));
+			if(_PageWifiToRescanList()){
+				WM_ShowWindow(WM_GetDialogItem(pMsg->hWin, ID_WIFI_PROGBAR));
+			}
 			break;
 		default:
 			WM_DefaultProc(pMsg);
@@ -327,7 +330,6 @@ WM_HWIN PageWifiCreate(WM_HWIN hParent)
 {
 	if(WM_HWIN_NULL == _hWifi){
 		_hWifi = GUI_CreateDialogBox(_aDialogWifiCreate, GUI_COUNTOF(_aDialogWifiCreate), _cbWifiDialog, hParent, 0, 0);
-		GUI_Debug("_hWifi:%d\n", _hWifi);
 	}
 	return _hWifi;
 }
@@ -335,7 +337,7 @@ WM_HWIN PageWifiGetHander(void)
 {
 	return _hWifi;
 }
-static void _PageWifiToRescanList(void)
+static U8 _PageWifiToRescanList(void)
 {
 	if(WIFI_FUNC_OPEN == GetWifiFunctionStatus()){
 		_FlagNewScan = 1;
@@ -343,5 +345,7 @@ static void _PageWifiToRescanList(void)
 			WM_DeleteWindow(PageWifiPasswordGetHander());
 		}
 		StartScanWifiList();
+		return 1;
 	}
+	return 0;
 }

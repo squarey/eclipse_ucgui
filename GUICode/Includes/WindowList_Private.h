@@ -23,12 +23,15 @@ typedef struct _WindowListProps
 
 typedef struct {
 	WIDGET Widget;
-	WM_HMEM hCurShowWin;
-	WM_HMEM hNextShowWin;
-	WM_HMEM hLastShowWin;
+	WM_HWIN hCurShowWin;
+	WM_HWIN hNextShowWin;
+	WM_HWIN hDestShowWin;
+	WM_HMEM	hAnim;
 	I32 LastTouchXPos;
 	U8 FirstTouch;
 	U8 IsMove;
+	U8 UseAnim;
+	U8 FlagSwitchPage;
 	WinListShowChange fWinShowChange;
 //	WindowListProps Props;
 	GUI_ARRAY WinArray;

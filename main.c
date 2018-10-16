@@ -13,6 +13,7 @@
 #include "GUI.h"
 #include "DIALOG.h"
 #include "PNGDecode.h"
+#include "WidgetControlTest.h"
 #include "PageTitleBar.h"
 #include "PageMainList.h"
 #include "PageMenuBar.h"
@@ -45,7 +46,6 @@ int main (int argc, char *argv[])
 	monitor_fill(0, 0, 854, 480, 0xff000000);
 #if USE_CONTROL_DEBUG
 	//WidgetControlTest();
-	//RectBorderTest();
 #else
 	//BootPageCreate();
 	PageTitleBarCreate();
@@ -55,7 +55,9 @@ int main (int argc, char *argv[])
 	//SDL_CreateThread(tick_thread, "tick", NULL);
 	while(1){
 		GUI_Exec();
-		//RectBorderTest();
+#if USE_CONTROL_DEBUG
+		RectBorderTest();
+#endif
 		GUI_TimeIncrease(5);
 		usleep(5000);
 	}

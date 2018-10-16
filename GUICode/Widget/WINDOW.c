@@ -150,8 +150,7 @@ void WINDOW_Callback(WM_MESSAGE* pMsg)
 		{
 			GUI_RECT WinRect;
 			WM_GetClientRectEx(pMsg->hWin, &WinRect);
-			GUI_DrawRectMainMiddle(&WinRect, &pObj->RectStyle);
-			GUI_DrawRectMainCorner(&WinRect, &pObj->RectStyle);
+			GUI_FillRoundRect(&WinRect, &pObj->RectStyle);
 		}
 
 			//LCD_SetBkColor(pObj->BkColor);

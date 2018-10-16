@@ -27,8 +27,7 @@ static void _Paint(TOTAST_Handle hObj, TOTAST_Obj* pObj)
 	Style.Opacity	= 0xff;
 	Style.MainColor = pObj->Props.BkColor;
 	Style.GradColor = pObj->Props.BkColor;
-	GUI_DrawRectMainMiddle(&Rect, &Style);
-	GUI_DrawRectMainCorner(&Rect, &Style);
+	GUI_FillRoundRect(&Rect, &Style);
 	if (pObj->hpText) {
 		s = (const char*) GUI_ALLOC_h2p(pObj->hpText);
 		GUI_SetFont(pObj->Props.pFont);
