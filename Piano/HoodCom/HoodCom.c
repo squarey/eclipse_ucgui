@@ -130,7 +130,7 @@ static U32 _SaveReceivedDataLen = 0;
 static U8 _DiplayReceivedData[DEFAULT_RECEIVED_DATA_BUFFER_LEN];
 #endif
 static U8 _DiplaySendData[DEFAULT_SEND_DATA_LEN];
-
+static U32 _CurReceivedDataLen = 0;
 //设置风机档位 范围0-28   0表示风机停止
 void HoodCom_SetTurnSpeed(U8 Speed)
 {
@@ -595,4 +595,23 @@ void HoodComInit(void)
 	SetSerialPortParameter(_fd, 9600, 8, 's', 1, DEFAULT_RECEIVED_DATA_LEN);
 #endif
 	_HoodComThreadInit();
+}
+
+//获取串口收到的数据
+U32 GetSerialPortReceivedData(char *pBuf, U32 MaxLen)
+{
+	char TempDataBuffer[13] = {0};
+	for(_CurReceivedDataLen = 0; _CurReceivedDataLen < 12; _CurReceivedDataLen++){
+		TempDataBuffer[_CurReceivedDataLen] = _CurReceivedDataLen;
+	}
+	if(_CurReceivedDataLen > 0){
+		if(_CurReceivedDataLen < MaxLen){
+			memcpy(pBuf, TempDataBuffer, _CurReceivedDataLen);
+			return _CurReceivedDataLen;
+		}else{
+			memcpy(pBuf, TempDataBuffer, MaxLen);
+			return MaxLen;
+		}
+	}
+	return 0;
 }

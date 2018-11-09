@@ -6,108 +6,109 @@
  */
 
 #include "WidgetControlTest.h"
+#include <math.h>
 
-static GUI_COLOR	_WindowBkColor = GUI_BLACK;
-static U8 ColorIndex = 0;
+static GUI_COLOR	_WindowBkColor = GUI_GRAY;
+
 static U8 ToRectBorderTest = 0;
-void sWin_Callback(WM_MESSAGE *pMsg) {
+static I32 CurrentValue = 0;
+static void sWin_Callback(WM_MESSAGE *pMsg)
+{
 	switch (pMsg->MsgId) {
 		case WM_PAINT:
 			GUI_SetBkColor(_WindowBkColor);
 			GUI_Clear();
+			GUI_Debug("Window paint\n");
 		break;
 		case WM_NOTIFY_PARENT:
 			if(WM_NOTIFICATION_CLICKED == pMsg->Data.v){
-				if(5 == WM_GetId(pMsg->hWinSrc)){
-					//ucWM_DeleteWindow(ucWM_GetDialogItem(pMsg->hWin, 10));
-					ColorIndex++;
-					switch(ColorIndex){
-						case 1:
-							_WindowBkColor = GUI_BLUE & 0x80ffffff;
-						break;
-						case 2:
-							_WindowBkColor = GUI_RED;
-						break;
-						case 3:
-							_WindowBkColor = GUI_CYAN;
-						break;
-						case 4:
-							_WindowBkColor = GUI_MAGENTA;
-						break;
-						case 5:
-							_WindowBkColor = GUI_YELLOW & 0x40ffffff;
-						break;
-						case 6:
-							_WindowBkColor = GUI_DARKRED;
-						break;
-						case 7:
-							ColorIndex = 0;
-							_WindowBkColor = GUI_GREEN;
-						break;
-						default:
-						break;
+				if(3 == WM_GetId(pMsg->hWinSrc)){
+					if(CurrentValue > 100){
+						CurrentValue = 0;
 					}
-					GUI_Debug("_WindowBkColor:%x\n", _WindowBkColor);
-					WM_InvalidateWindow(pMsg->hWin);
-
+					CurrentValue += 3;
+					SLIDER_SetValue(WM_GetDialogItem(pMsg->hWin, 2), CurrentValue);
 				}
 			}
 		break;
+		default:
+			WM_DefaultProc(pMsg);
+		break;
 	}
 }
+/*
+static GUI_POINT aPointer[] =
+{
+		{0, 0}, {10, 0}, {10, 55}, {0, 55}, {0, 0}
+};*/
+static GUI_POINT aPointer[] =
+{
+		{0, 0}, {55, 0}, {55, 10}, {0, 10}
+};
+#define AA_FACTOR		4
+static void _SilderSelfDraw(WM_HWIN hWin, I32 CurValue, I32 MaxValue, I32 MinValue)
+{
+	GUI_POINT rPointer[5];
+	U32 i = 0;
+	float fAngle = 0, fSin = 0, fCos = 0;
+	I32 ValuePercent = 0;
+	I32 AnglePercent = 0;
+	I32 Temp1 = 0, Temp2 = 0;
+	I32 CenterX = 0, CenterY = 0;
+	GUI_Debug("CurValue:%d, MaxValue:%d, MinValue:%d\n", CurValue, MaxValue, MinValue);
+	GUI_SetBkColor(GUI_CYAN);
+	GUI_Clear();
+	GUI_SetColor(GUI_RED);
+	GUI_AA_SetFactor(4);
+	GUI_AA_EnableHiRes();
+	//GUI_AA_FillPolygon(aPointer, 5, 50, 50);
+	Temp1 = (CurValue - MinValue) * 1000;
+	Temp2 = (MaxValue - MinValue) * 1000;
+	ValuePercent = (Temp1 * 100)/Temp2;
+	AnglePercent = (ValuePercent * 360)/100;
+	GUI_RotatePolygon(rPointer, aPointer, 4, 0);
+	GUI_Debug("AnglePercent:%d\n", AnglePercent);
+	for(i = 0; i < 360;){
+		fAngle = (3.1415926 * i)/180;//Angle * 0.0174;
+		GUI_RotatePolygon(rPointer, rPointer, 4, fAngle);
+		fSin = sin(fAngle);
+		fCos = cos(fAngle);
+		CenterY = fSin * 50 + 0.5;
+		CenterX = fCos * 50 + 0.5;
+
+		//CenterX = 100 * AA_FACTOR + (rPointer[3].x/* + rPointer[2].x/2*/) * AA_FACTOR;
+		//CenterY = 100 * AA_FACTOR + (rPointer[3].y/* + rPointer[2].y/2*/ + 1) * AA_FACTOR;
+		CenterX = (100 + CenterX);// * AA_FACTOR;
+		CenterY = (100 + CenterY);// * AA_FACTOR;
+		if(i >= 360 - AnglePercent){
+			GUI_SetColor(GUI_YELLOW);
+		}else{
+			GUI_SetColor(GUI_RED);
+		}
+		GUI_Debug("CenterX:%d, CenterY:%d\n", CenterX, CenterY);
+		//GUI_AA_FillPolygon(rPointer, 4, CenterX, CenterY);
+		GUI_DrawPoint(CenterX, CenterY);
+		i += 6;
+	}
+}
+
 void WidgetControlTest(void)
 {
-	U8 i = 0;
-	char Buffer[3];
-	WM_HMEM hwin;
-	WM_HMEM bWin, tWin;
+	WM_HMEM hWin, hMainWin;
 
+	hMainWin = WM_CreateWindowAsChild(0, 0, 854, 480, 0, WM_CF_SHOW, sWin_Callback, 0);
 
-	hwin = WM_CreateWindowAsChild(0, 0, 854, 480, 0, WM_CF_SHOW, sWin_Callback, 0);
-	GUI_Debug("hwin parent %d\n", (int)hwin);
+	hWin = SLIDER_Create(100, 50, 200, 200, hMainWin, 2, WM_CF_SHOW, 0);
 
-	bWin = BUTTON_CreateAsChild(50, 50, 130, 50, hwin, 5, WM_CF_SHOW) ;
-	BUTTON_SetText(bWin, "C");
-	GUI_Debug("button1 %d\n", (int)bWin);
-	bWin = BUTTON_CreateAsChild(50, 110, 100, 50, hwin, 6, WM_CF_SHOW);
-	BUTTON_SetText(bWin, "A");
-	GUI_Debug("button2 %d\n", (int)bWin);
-	bWin = BUTTON_CreateAsChild(50, 170, 100, 50, hwin, 7, WM_CF_SHOW);
-	BUTTON_SetText(bWin, "B");
-	BUTTON_DisableNewStyle(bWin);
-	GUI_Debug("button3 %d\n", (int)bWin);
-	bWin = EDIT_CreateAsChild(160, 100, 120, 40, hwin, 8, WM_CF_SHOW, 10);
-	EDIT_SetText(bWin, "123456");
-	EDIT_SetFont(bWin, &GUI_FontASSIC_YH32);
-	tWin = bWin;
-	bWin = LISTVIEW_Create(230, 50, 150, 250, hwin, 9, WM_CF_SHOW, 0);
-	GUI_Debug("listview win:%d\n", bWin);
-	WM_SetAlignWindow(bWin, tWin, OBJ_ALIGN_BROTHER_UNDER_BOTTOM,0,10);
-	for(i = 0; i < 20; i++){
-		GUI_sprintf(Buffer, "%d", i);
-		LISTVIEW_AddStringItem(bWin, Buffer);
-	}
+	SLIDER_SetUserDrawMethod(hWin, _SilderSelfDraw);
+	SLIDER_SetRange(hWin, 0, 100);
+	WM_DisableWindow(hWin);
 
-	bWin = TEXT_CreateAsChild(20, 240, 120, 40, hwin, 10, WM_CF_SHOW, "Text", 0);
-	TEXT_SetText(bWin,"二中科技");
-	TEXT_SetFont(bWin, &GUI_FontYH24);
-
-//	GUI_Animation_Obj Anim;
-//	GUI_AnimationObjInit(&Anim);
-//	Anim.Start = 100;
-//	Anim.End = 200;
-//	Anim.Time = 1000;
-//	Anim.Playback = 1;
-//	Anim.PlaybackDelay = -1000;
-//	Anim.pFunc = WM_SetWindowPosX;
-//	GUI_AnimationCreate(bWin, &Anim);
-/*	bWin = ucCHECKBOX_Create(300, 50, 100, 100, hwin, 11, ucWM_CF_SHOW);
-	ucCHECKBOX_SetText(bWin, "Check");
-	ucCHECKBOX_EnableStyleCircle(bWin);
-*/
-	SimpleKeyboardCreate(400, 200);
-	//ucKEYBOARD_CreateEx(300, 50, 350, 210, hwin, ucWM_CF_SHOW, 0, 11);
+	hWin = BUTTON_CreateAsChild(150, 300, 100, 50, hMainWin, 3, WM_CF_SHOW);
+	BUTTON_SetText(hWin, "Button");
+	GUI_Debug("Button visible %d\n", WM_IsVisible(hWin));
 }
+/*
 void RectBorderTest(void)
 {
 	GUI_RECT Rect, r, r1;
@@ -134,18 +135,7 @@ void RectBorderTest(void)
 	//GUI_SetFont(&GUI_FontNumberYH48);
 	//GUI_SetFontScale(2);
 	//GUI_DispStringAt("0123456789", 100, 190);
-/*
-	GUI__ReduceRect(&r, &Rect, 1);
-	r1 = r;
-	r1.y1 = r1.y0 + GUI_RectGetHeight(&r)/2;
-	GUI_SetBkColor(0xfff3f3f3);
-	GUI_ClearRectEx(&r1);
-	r1 = r;
-	r1.y0 = r1.y0 + GUI_RectGetHeight(&r)/2;
-	GUI_SetBkColor(0xffdfdfdf);
-	GUI_ClearRectEx(&r1);
-	GUI_DrawRoundRect(&Rect, &Style);
-*/
+
 	GUI_ShadowStyle ShadowStyle;
 	ShadowStyle.Color = GUI_RED;
 	ShadowStyle.Opacity = 0xFF;
@@ -153,8 +143,6 @@ void RectBorderTest(void)
 	ShadowStyle.Type = GUI_SHADOW_FULL;
 	ShadowStyle.Width = 10;
 	GUI_DrawRectShadow(&Rect, &ShadowStyle);
-	/*ucGUI_AA_SetFactor(3);
-	ucGUI_AA_FillCircle(600, 300, 40);
-	ucGUI_AA_DrawArc(600, 300, 60, 60, 0, 360);*/
 
 }
+*/

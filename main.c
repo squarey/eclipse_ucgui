@@ -17,8 +17,9 @@
 #include "PageTitleBar.h"
 #include "PageMainList.h"
 #include "PageMenuBar.h"
+#include <Wireless.h>
 
-#define USE_CONTROL_DEBUG	0
+#define USE_CONTROL_DEBUG	1
 
 #define DEFAULT_PICTURE_BUFFER_SIZE		(1027 * 600 * 4 * 2)
 //static int tick_thread(void *data);
@@ -44,10 +45,12 @@ int main (int argc, char *argv[])
 	GUI_EnableLogOut();
 	GUI_UC_SetEncodeUTF8();
 	monitor_fill(0, 0, 854, 480, 0xff000000);
+
 #if USE_CONTROL_DEBUG
-	//WidgetControlTest();
+	WidgetControlTest();
 #else
 	//BootPageCreate();
+	WirelessInit();
 	PageTitleBarCreate();
 	PageListCreate();
 	PageMenuBarCreate();
@@ -56,7 +59,7 @@ int main (int argc, char *argv[])
 	while(1){
 		GUI_Exec();
 #if USE_CONTROL_DEBUG
-		RectBorderTest();
+		//RectBorderTest();
 #endif
 		GUI_TimeIncrease(5);
 		usleep(5000);

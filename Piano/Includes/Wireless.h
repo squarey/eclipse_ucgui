@@ -32,12 +32,35 @@ typedef U8(* APScanResultCallback)(const APInfo *);
 
 int StartScanWifiList(void);
 void WirelessInit(void);
-void SetScanResultCallback(void *pFunc);
+void SetWifiScanResultCallback(void *pFunc);
 int StartConnectToAp(const char *pSSID, const char *pPassword, int iEncryptionFlag);
 const char* GetWifiConnectedSSID(void);
 unsigned char GetWifiConnectStatus(void);
 void ReverseWifiConnectStatus(void);
 void SetWifiFunctionStatus(unsigned char Status);
 unsigned char GetWifiFunctionStatus(void);
+
+/***********************************************************/
+
+#define BLUETOOTH_FUNC_OPEN		1
+#define BLUETOOTH_FUNC_CLOSE	0
+
+#define BLUETOOTH_CONNECTED		1
+#define BLUETOOTH_DISCONNECTED	2
+typedef struct
+{
+	char MacAddress[18];	//Ble的MAC地址
+	char Name[64];			//Ble的名称
+}BleInfo;
+
+typedef U8(* BleScanResultCallback)(const BleInfo *);
+
+unsigned char GetBluetoothFunctionStatus(void);
+void SetBluetoothFunctionStatus(unsigned char Status);
+void SetBleScanResultCallback(void *pFunc);
+void SetBleStartScan(void);
+void BluetoothStartToConnect(const char *pName, const char *pMac);
+I32 BluetoothGetConnectInfo(char *pName, char *pMac);
+U8 BluetoothGetConnectStauts(void);
 
 #endif /* _WIRELESS_H_ */

@@ -47,6 +47,7 @@ typedef struct
 	I32 Flags;
 	I32 NumTicks;
 	I16 Width;
+	SILDER_UserDraw UserDrawMethod;
 #if GUI_DEBUG_LEVEL >1
 	I32 DebugId;
 #endif

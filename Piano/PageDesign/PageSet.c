@@ -8,6 +8,7 @@
 #include "PageSet.h"
 #include "PageBrightnessSet.h"
 #include "PageWifi.h"
+#include "PageBluetooth.h"
 
 #define ID_WINDOW_SET				(ID_PAGE_SET_BASE + 0)
 #define ID_SET_H_LINE				(ID_PAGE_SET_BASE + 1)
@@ -197,6 +198,14 @@ static void _cbWindowsPageSetDialog(WM_MESSAGE * pMsg) {
 						IMAGEVIEW_SetBitmap(WM_GetDialogItem(pMsg->hWin, ID_SET_BLUETOOTH_ICON), &bmbluetooth_icon_focus);
 						TEXT_SetTextColor(WM_GetDialogItem(pMsg->hWin, ID_SET_BLUETOOTH_TEXT), GUI_WHITE);
 						HoodCom_SendTouchVoice();
+						if(PageBluetoothGetHander() == _hPageShow){
+
+						}else{
+							if(_hPageShow){
+								WM_DeleteWindow(_hPageShow);
+							}
+							_hPageShow = PageBluetoothCreate(pMsg->hWin);
+						}
 					break;
 					case ID_SET_BTN_CLOSE:
 						Setting_SetCloseAllFunc();

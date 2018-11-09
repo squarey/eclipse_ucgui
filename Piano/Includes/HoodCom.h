@@ -13,6 +13,7 @@
 
 //电控板通信初始化
 void HoodComInit(void);
+U32 GetSerialPortReceivedData(char *pBuf, U32 MaxLen);
 //设置风机档位 范围0-28   0表示风机停止
 void HoodCom_SetTurnSpeed(U8 Speed);
 //设置灯状态  IsOpen: 0 灯光关闭  1:灯光开启    Value: 灯的亮度值  范围0-100

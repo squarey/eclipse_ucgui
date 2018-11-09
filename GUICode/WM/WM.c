@@ -361,8 +361,6 @@ static void _SetClipRectUserIntersect(const GUI_RECT* prSrc)
  * */
 static void _DeleteInvalidParentRect(WM_HWIN hWin, WM_Obj *pWin)
 {
-	GUI_Debug("x pos %d y pos %d, xszie %d yszie %d\n", pWin->Rect.x0, pWin->Rect.y0, WM_GetWindowSizeX(hWin), WM_GetWindowSizeY(hWin));
-	GUI_Debug("x0 %d, y0 %d x1 %d y0 %d\n", pWin->Rect.x0, pWin->Rect.y0, pWin->Rect.x1, pWin->Rect.y1);
 	WM__InvalidateRectEx(&pWin->Rect, WM_GetParent(hWin));
 }
 /*********************************************************************

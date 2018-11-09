@@ -255,14 +255,14 @@ static void _cbWifiDialog(WM_MESSAGE * pMsg) {
 	switch (pMsg->MsgId){
 		case WM_INIT_DIALOG:
 			_WifiDialogInit(pMsg->hWin);
-			WirelessInit();
+			//WirelessInit();
 			_CheckWifiConnectStatusTimer(pMsg->hWin);
-			SetScanResultCallback(_WifiScanResult_cb);
+			SetWifiScanResultCallback(_WifiScanResult_cb);
 		return;
 		case WM_DELETE:
 			_hWifi = WM_HWIN_NULL;
 			_hCheckTimer = WM_HMEM_NULL;
-			SetScanResultCallback(NULL);
+			SetWifiScanResultCallback(NULL);
 			GUI_Debug("To delete page wifi\n");
 		return;
 		case WM_NOTIFY_PARENT:

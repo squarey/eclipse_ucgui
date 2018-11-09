@@ -28,6 +28,8 @@ static char _WifiScanResult1[] = "bssid / frequency / signal level / flags / ssi
 	d8:ae:90:0c:b3:05       2462    -77     [WPA-PSK-TKIP+CCMP][WPA2-PSK-TKIP+CCMP][ESS]    ChinaNet-11f6\r\n \
 	d8:ae:90:0c:b3:05       2462    -77     [WPA-PSK-TKIP+CCMP][WPA2-PSK-TKIP+CCMP][ESS]    TP-LINK_3DFA\r\n";
 
+static char _BleScanResult[] = "tMod\r\n12:34:56:78:90:aa\r\ntMod\r\naa:bb:cc:dd:ee:ff\r\n";
+
 static U8 WpaCliStatus = 0;
 static U8 Inited = 0;
 
@@ -41,7 +43,13 @@ static U8 _ResultFlag = 0;
 static U8 _WifiFunctionStatus = WIFI_FUNC_CLOSE;
 static U8 _CurConnectStatus = WIFI_DISCONNECTED;
 static char _ConnectSSID[64] = "secomid";
-
+/********************************************************/
+static U8 _BluetoothStatus = 0;
+static U8 _BluetoothScanCnt = 0;
+static U8 _BluetoothConnectStatus = 0;
+static unsigned char _BluetoothFunctionStatus = BLUETOOTH_FUNC_CLOSE;
+static BleScanResultCallback pBleScanResult_cb = NULL;
+/*******************************************************/
 static APScanResultCallback pScanResult_cb = NULL;
 int StartScanWifiList(void)
 {
@@ -57,7 +65,7 @@ int StartConnectToAp(const char *pSSID, const char *pPassword, int iEncryptionFl
 	GUI_Debug("iEncryptionFlag:%x\n", iEncryptionFlag);
 	return 0;
 }
-void SetScanResultCallback(void *pFunc)
+void SetWifiScanResultCallback(void *pFunc)
 {
 	pScanResult_cb = (APScanResultCallback)pFunc;
 }
@@ -238,6 +246,24 @@ static void _GetOneInfoFromResult(void)
 		}
 	}
 }
+static void _GetOneBleInfoFromResult(void)
+{
+	BleInfo Info = {0};
+	unsigned int i = 0, j = 0;
+	char Line[1024];
+	for (i = 0; !get_line_from_buf(i, Line, _BleScanResult); i++){
+		j++;
+		if(1 == j){
+			strcpy(&Info.Name[0], Line);
+		}else if(2 == j){
+			strcpy(&Info.MacAddress[0], Line);
+			j = 0;
+			if(pBleScanResult_cb){
+				pBleScanResult_cb(&Info);
+			}
+		}
+	}
+}
 static void *_WifiScanProcess(void *ptr)
 {
 	while(1){
@@ -250,10 +276,20 @@ static void *_WifiScanProcess(void *ptr)
 			WpaCliStatus &= ~STATUS_TO_SCAN_AP;
 			_GetOneInfoFromResult();
 		}
-		/*if(_ConnectConfrimStatus != _CurConnectStatus){
-			_ConnectConfrimStatus = _CurConnectStatus;
-			StartScanWifiList();
-		}*/
+		if(1 == _BluetoothStatus){
+			_BluetoothScanCnt++;
+		}else if(2 == _BluetoothStatus){
+			_BluetoothScanCnt++;
+		}
+		if(_BluetoothScanCnt >= 2){
+			if(1 == _BluetoothStatus){
+				_GetOneBleInfoFromResult();
+			}else if(2 == _BluetoothStatus){
+				_BluetoothConnectStatus = BLUETOOTH_CONNECTED;
+			}
+			_BluetoothStatus = 0;
+			_BluetoothScanCnt = 0;
+		}
 //		StdinDevInit();
 	}
 	return 0;
@@ -279,3 +315,54 @@ void WirelessInit(void)
 
 }
 
+/*********************************************/
+
+static char DestBleName[64] = {0};
+static char DestBleMac[18] = {0};
+
+unsigned char GetBluetoothFunctionStatus(void)
+{
+	return _BluetoothFunctionStatus;
+}
+void SetBluetoothFunctionStatus(unsigned char Status)
+{
+	_BluetoothFunctionStatus = Status;
+}
+
+void SetBleScanResultCallback(void *pFunc)
+{
+	pBleScanResult_cb = (BleScanResultCallback)pFunc;
+}
+
+void SetBleStartScan(void)
+{
+	_BluetoothStatus = 1;
+}
+
+void BluetoothStartToConnect(const char *pName, const char *pMac)
+{
+	GUI_Debug("pName:%s, pMac:%s\n", pName, pMac);
+	strcpy(DestBleName, pName);
+	strcpy(DestBleMac, pMac);
+	_BluetoothStatus = 2;
+}
+
+I32 BluetoothGetConnectInfo(char *pName, char *pMac)
+{
+	if(BLUETOOTH_CONNECTED == _BluetoothConnectStatus){
+		if((NULL != pName) && (NULL != pMac)){
+			strcpy(pName, DestBleName);
+			strcpy(pMac, DestBleMac);
+			return 0;
+		}else{
+			return -1;
+		}
+	}else{
+		return -1;
+	}
+}
+
+U8 BluetoothGetConnectStauts(void)
+{
+	return _BluetoothConnectStatus;
+}

@@ -71,48 +71,53 @@ SLIDER_PROPS SLIDER__DefaultProps = {
 */
 static void _Paint(SLIDER_Obj* pObj, WM_HWIN hObj)
 {
-	I32 Height, Width;
-	I32 DistPox, XPos, YPos;
-	GUI_RECT Rect;
-	GUI_FullRectStyle Style;
-	Width = WM_GetWindowSizeX(hObj);
-	Height = WM_GetWindowSizeY(hObj);
-	Rect.y0 = (Height - pObj->Width)/2;
-	Rect.y1 = (Height + pObj->Width)/2;
-	Rect.x0 = 0;
-	Rect.x1 = Width - 1;
-	Style.MainColor = pObj->Props.Color;
-	Style.GradColor = pObj->Props.Color;
-	Style.Radius = 2;
-	Style.Opacity = 0xff;
-	GUI_FillRoundRect(&Rect, &Style);
-
-	DistPox = ((pObj->v << 12) * Width)/(pObj->Max - pObj->Min);
-	DistPox >>= 12;
-
-	Rect.x1 = DistPox;
-	if(WM_IsEnabled(hObj)){
-		GUI_SetColor(pObj->Props.FocusColor);
-		Style.MainColor = pObj->Props.FocusColor;
-		Style.GradColor = pObj->Props.FocusColor;
-	}else{
-		GUI_SetColor(pObj->Props.Color);
+	if(NULL == pObj->UserDrawMethod){
+		I32 Height, Width;
+		I32 DistPox, XPos, YPos;
+		GUI_RECT Rect;
+		GUI_FullRectStyle Style;
+		Width = WM_GetWindowSizeX(hObj);
+		Height = WM_GetWindowSizeY(hObj);
+		Rect.y0 = (Height - pObj->Width)/2;
+		Rect.y1 = (Height + pObj->Width)/2;
+		Rect.x0 = 0;
+		Rect.x1 = Width - 1;
 		Style.MainColor = pObj->Props.Color;
 		Style.GradColor = pObj->Props.Color;
-	}
-	GUI_FillRoundRect(&Rect, &Style);
+		Style.Radius = 2;
+		Style.Opacity = 0xff;
+		GUI_FillRoundRect(&Rect, &Style);
 
+		DistPox = ((pObj->v << 12) * Width)/(pObj->Max - pObj->Min);
+		DistPox >>= 12;
 
-	YPos = Height/2 - 1;
-	XPos = DistPox - YPos;
-	if(XPos < YPos){
-		XPos = YPos;
-	}else{
-		if(XPos + YPos >= Width){
-			XPos = Width - YPos;
+		Rect.x1 = DistPox;
+		if(WM_IsEnabled(hObj)){
+			GUI_SetColor(pObj->Props.FocusColor);
+			Style.MainColor = pObj->Props.FocusColor;
+			Style.GradColor = pObj->Props.FocusColor;
+		}else{
+			GUI_SetColor(pObj->Props.Color);
+			Style.MainColor = pObj->Props.Color;
+			Style.GradColor = pObj->Props.Color;
 		}
+		GUI_FillRoundRect(&Rect, &Style);
+
+
+		YPos = Height/2 - 1;
+		XPos = DistPox - YPos;
+		if(XPos < YPos){
+			XPos = YPos;
+		}else{
+			if(XPos + YPos >= Width){
+				XPos = Width - YPos;
+			}
+		}
+		GUI_AA_FillCircle(XPos, YPos, Height/2 - 1);
+	}else{
+		pObj->UserDrawMethod(hObj, pObj->v, pObj->Max, pObj->Min);
 	}
-	GUI_AA_FillCircle(XPos, YPos, Height/2 - 1);
+
 }
 
 /*********************************************************************
@@ -305,6 +310,7 @@ SLIDER_Handle SLIDER_CreateEx(I32 x0, I32 y0, I32 xsize, I32 ysize, WM_HWIN hPar
 		pObj->Max         = 100;
 		pObj->Min         = 0;
 		pObj->NumTicks    = -1;
+		pObj->UserDrawMethod = NULL;
 	} else {
 		GUI_DEBUG_ERROROUT_IF(hObj==0, "SLIDER_Create failed")
 	}
@@ -473,6 +479,14 @@ I32 SLIDER_GetValue(SLIDER_Handle hObj)
 	return r;
 }
 
+void SLIDER_SetUserDrawMethod(SLIDER_Handle hObj, void *pFunc)
+{
+	if (hObj) {
+		SLIDER_Obj * pObj;
+		pObj = SLIDER_H2P(hObj);
+		pObj->UserDrawMethod = (SILDER_UserDraw)pFunc;
+	}
+}
 
 #else /* avoid empty object files */
 

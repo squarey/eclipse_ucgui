@@ -8,7 +8,7 @@
 
 #include "WindowList_Private.h"
 
-#define DEF_ANIM_CONTINUE_TIME	500		//ms
+#define DEF_ANIM_CONTINUE_TIME	300		//ms
 
 static I32 _LastTouchYPos = 0;
 static I32 _LastTouchXPos = 0;
@@ -186,8 +186,7 @@ static void _OnTouch(WM_HWIN hObj, WindowList_Obj* pObj, WM_MESSAGE *pMsg)
 			}
 		}
 	}else{
-		//if(pObj->IsMove && pObj->UseAnim){
-		if(0){
+		if(pObj->IsMove && pObj->UseAnim){
 			I32 Dist = _LastTouchXPos - tState.x;
 			if(Dist > 0){
 				if(Dist > WM_GetWindowSizeX(hObj)/5){

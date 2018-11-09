@@ -10,6 +10,7 @@
 #include "PageMainList.h"
 #include "DialogTimeSet.h"
 #include "Wireless.h"
+#include "PageDebug.h"
 #if COMPILE_ON_C600
 #include <SystemTime.h>
 #else
@@ -194,7 +195,7 @@ static void _cbWindowsTitleBarDialog(WM_MESSAGE * pMsg) {
 		case WM_INIT_DIALOG:
 			GUI_Debug("WM_INIT_DIALOG\n");
 			_DialogInit(pMsg->hWin);
-			//_hTitleTimerInit(pMsg->hWin);
+			_hTitleTimerInit(pMsg->hWin);
 		return;
 		case WM_DELETE:
 			_hTitleBar = WM_HMEM_NULL;
@@ -207,7 +208,7 @@ static void _cbWindowsTitleBarDialog(WM_MESSAGE * pMsg) {
 				switch(Id){
 					case ID_TITLE_LOGO:
 #if !COMPILE_ON_C600
-						ReverseWifiConnectStatus();
+						//ReverseWifiConnectStatus();
 #endif
 					break;
 					case ID_TITLE_HOME_TEXT:
@@ -242,7 +243,10 @@ static void _cbWindowsTitleBarDialog(WM_MESSAGE * pMsg) {
 		break;
 		case WM_TOUCH_PRESSING:
 			if(ID_TITLE_LOGO == WM_GetId(pMsg->hWinSrc)){
-				//GUI_Debug("Press logo icon\n");
+				//GUI_Debug("Press logo icon, press time:%d\n", pMsg->Data.v);
+				if(pMsg->Data.v > 1000){
+					DialogDebugSetCreate();
+				}
 			}
 		break;
 		default:

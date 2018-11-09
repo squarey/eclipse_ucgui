@@ -56,6 +56,8 @@ extern "C" {     /* Make sure we have C-declarations in C++ programs */
 **********************************************************************
 
 */
+typedef U8 (*SILDER_UserDraw)(WM_HWIN hWin, I32 CurValue, I32 MaxValue, I32 MinValue);
+
 typedef WM_HMEM SLIDER_Handle;
 /*********************************************************************
 *
@@ -98,7 +100,7 @@ void      SLIDER_SetRange     (SLIDER_Handle hObj, I32 Min, I32 Max);
 void      SLIDER_SetValue     (SLIDER_Handle hObj, I32 v);
 void      SLIDER_SetWidth     (SLIDER_Handle hObj, I32 Width);
 GUI_COLOR SLIDER_SetColor	  (SLIDER_Handle hObj, GUI_COLOR Color);
-
+void SLIDER_SetUserDrawMethod(SLIDER_Handle hObj, void *pFunc);
 /*********************************************************************
 *
 *       Global functions
