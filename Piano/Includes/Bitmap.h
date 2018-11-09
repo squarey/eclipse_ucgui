@@ -38,6 +38,19 @@ extern GUI_CONST_STORAGE GUI_BITMAP bmbtn_open;
 extern GUI_CONST_STORAGE GUI_BITMAP bmcooker_left;
 extern GUI_CONST_STORAGE GUI_BITMAP bmcooker_right;
 extern GUI_CONST_STORAGE GUI_BITMAP bmcooker_timer_unfocus;
+extern GUI_CONST_STORAGE GUI_BITMAP bmlight_left_icon;
+extern GUI_CONST_STORAGE GUI_BITMAP bmlight_right_icon;
+extern GUI_CONST_STORAGE GUI_BITMAP bmselect_icon;
+extern GUI_CONST_STORAGE GUI_BITMAP bmic_wifi_lock_signal_4_dark;
+extern GUI_CONST_STORAGE GUI_BITMAP bmwifi_enable;
+extern GUI_CONST_STORAGE GUI_BITMAP bmwifi_level1_lock_w;
+extern GUI_CONST_STORAGE GUI_BITMAP bmwifi_level2_lock_w;
+extern GUI_CONST_STORAGE GUI_BITMAP bmwifi_level3_lock_w;
+extern GUI_CONST_STORAGE GUI_BITMAP bmwifi_level4_lock_w;
+extern GUI_CONST_STORAGE GUI_BITMAP bmwifi_level1_open_w;
+extern GUI_CONST_STORAGE GUI_BITMAP bmwifi_level2_open_w;
+extern GUI_CONST_STORAGE GUI_BITMAP bmwifi_level3_open_w;
+extern GUI_CONST_STORAGE GUI_BITMAP bmwifi_level4_open_w;
 
 extern GUI_CONST_STORAGE GUI_BITMAP bmwind_large01;
 extern GUI_CONST_STORAGE GUI_BITMAP bmwind_large02;			//1
@@ -117,5 +130,7 @@ extern GUI_CONST_STORAGE GUI_BITMAP bmwind_small24;			//12
 extern GUI_CONST_STORAGE GUI_FONT GUI_FontTitleCHN_YH28;
 extern GUI_CONST_STORAGE GUI_FONT GUI_FontSetCHN_YH32;
 extern GUI_CONST_STORAGE GUI_FONT GUI_FontDialogCHN_YH36;
+extern GUI_CONST_STORAGE GUI_FONT GUI_FontDialogYH24;
+extern GUI_CONST_STORAGE GUI_FONT GUI_FontWifiPageNotice;
 
 #endif /* PIANO_INCLUDES_BITMAP_H_ */

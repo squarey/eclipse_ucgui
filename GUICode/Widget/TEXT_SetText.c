@@ -45,6 +45,20 @@ void TEXT_SetText(TEXT_Handle hObj, const char* s)
 	}
 }
 
+const char* TEXT_GetText(TEXT_Handle hObj)
+{
+	if(hObj){
+		const char *s;
+		TEXT_Obj* pObj;
+		pObj = TEXT_H2P(hObj);
+		if(pObj->hpText){
+			s = (const char *)GUI_ALLOC_h2p(pObj->hpText);
+			return s;
+		}
+		return NULL;
+	}
+	return NULL;
+}
 #else  /* avoid empty object files */
 
 void TEXT_SetText_c(void);

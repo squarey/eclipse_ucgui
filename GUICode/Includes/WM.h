@@ -279,6 +279,16 @@ struct WM_MESSAGE
 	} Data;
 };
 
+typedef struct
+{
+	I32 QueueId;
+	WM_HWIN hWin;
+	I32 Value;
+	U32 DataLen;
+	void *pData;
+}WM_QUEUE_PARA;
+
+
 struct WM_Obj
 {
 	GUI_RECT Rect;        /* Outer dimensions of window */
@@ -354,6 +364,10 @@ WM_tfPollPID* WM_SetpfPollPID(WM_tfPollPID* pf);
 void WM_SetCapture(WM_HWIN hObj, I32 AutoRelease);
 void WM_SetCaptureMove(WM_HWIN hWin, const GUI_PID_STATE* pState, I32 MinVisibility, I32 LimitTop); /* Not yet documented */
 void WM_ReleaseCapture(void);
+void WM_SetCaptureHWin(WM_HWIN hWin);
+void WM_SetCaptureVWin(WM_HWIN hWin);
+WM_HWIN WM_GetCaptureHWin(void);
+WM_HWIN WM_GetCaptureVWin(void);
 
 /*********************************************************************
 *
@@ -515,6 +529,8 @@ void      WM_DisableWindow        (WM_HWIN hWin);
 I32       WM_GetUserData          (WM_HWIN hWin,       void* pDest, I32 SizeOfBuffer);
 I32       WM_SetUserData          (WM_HWIN hWin, const void* pSrc,  I32 SizeOfBuffer);
 
+void WM_PostMessageToQueue		(WM_QUEUE_PARA *pPara);
+void WM_DistributionMessageFromQueue(void);
 /*
  * Screen timeout function
  * */

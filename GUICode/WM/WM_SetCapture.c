@@ -35,6 +35,9 @@ Purpose     : Implementation of WM_SetCapture
 *
 **********************************************************************
 */
+static WM_HWIN _hCaptureHWin = WM_HWIN_NULL;
+static WM_HWIN _hCaptureVWin = WM_HWIN_NULL;
+static WM_HWIN _LockCapture = 0;
 /*********************************************************************
 *
 *       WM__ReleaseCapture
@@ -60,11 +63,14 @@ static void WM__ReleaseCapture(void) {
 */
 void WM_SetCapture(WM_HWIN hObj, I32 AutoRelease)
 {
-	if (WM__hCapture != hObj) {
-		WM__ReleaseCapture();
+	if(2 != _LockCapture){
+		if (WM__hCapture != hObj) {
+			WM__ReleaseCapture();
+		}
+		WM__hCapture = hObj;
+		WM__CaptureReleaseAuto = AutoRelease;
+		_LockCapture = AutoRelease;
 	}
-	WM__hCapture = hObj;
-	WM__CaptureReleaseAuto = AutoRelease;
 }
 
 /*********************************************************************
@@ -74,8 +80,27 @@ void WM_SetCapture(WM_HWIN hObj, I32 AutoRelease)
 void WM_ReleaseCapture(void)
 {
 	WM__ReleaseCapture();
+	_hCaptureHWin = WM_HWIN_NULL;
+	_hCaptureVWin = WM_HWIN_NULL;
+	_LockCapture = 0;
 }
 
+void WM_SetCaptureHWin(WM_HWIN hWin)
+{
+	_hCaptureHWin = hWin;
+}
+void WM_SetCaptureVWin(WM_HWIN hWin)
+{
+	_hCaptureVWin = hWin;
+}
+WM_HWIN WM_GetCaptureHWin(void)
+{
+	return _hCaptureHWin;
+}
+WM_HWIN WM_GetCaptureVWin(void)
+{
+	return _hCaptureVWin;
+}
 #else
   void WM_SetCapture_c(void) {} /* avoid empty object files */
 #endif /* GUI_WINSUPPORT */

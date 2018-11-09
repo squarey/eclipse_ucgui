@@ -27,6 +27,7 @@
 
 #define DEF_PART_PIXEL_H				10
 #define DEF_PART_PIXEL_V				11
+#define DEF_MAIN_TIMER_PERIOD			1000		//ms
 
 
 static const GUI_WIDGET_CREATE_INFO _aWindowsPageMainCreate[] = {
@@ -106,32 +107,36 @@ static void _DialogInit(WM_HWIN hParent)
 	//延时关机倒计时
 	hItem = WM_GetDialogItem(hParent, ID_MAIN_DELAY_REMAIN_TEXT);
 	TEXT_SetText(hItem, "距关机还剩99分");
-	TEXT_SetFont(hItem, &GUI_FontYH24);
+	TEXT_SetFont(hItem, &GUI_FontDialogYH24);
 	TEXT_SetTextColor(hItem, GUI_YELLOW);
 	TEXT_SetTextAlign(hItem, TEXT_CF_HCENTER | TEXT_CF_VCENTER);
+	WM_DisableWindow(hItem);
 	WM_SetAlignWindow(WM_GetDialogItem(hParent, ID_MAIN_BTN_DELAY_SET), hItem, OBJ_ALIGN_BROTHER_CENTER, 0, 0);
 	WM_SetAlignWindow(WM_GetDialogItem(hParent, ID_MAIN_BTN_DELAY_SET), hItem, OBJ_ALIGN_BROTHER_BOTTOM, 0, -5);
 	//定时换气倒计时
 	hItem = WM_GetDialogItem(hParent, ID_MAIN_TIMING_REMAIN_TEXT);
 	TEXT_SetText(hItem, "距换气还剩12时13分");
-	TEXT_SetFont(hItem, &GUI_FontYH24);
+	TEXT_SetFont(hItem, &GUI_FontDialogYH24);
 	TEXT_SetTextColor(hItem, GUI_YELLOW);
 	TEXT_SetTextAlign(hItem, TEXT_CF_HCENTER | TEXT_CF_VCENTER);
+	WM_DisableWindow(hItem);
 	WM_SetAlignWindow(WM_GetDialogItem(hParent, ID_MAIN_BTN_TIMING_AIR), hItem, OBJ_ALIGN_BROTHER_CENTER, 0, 0);
 	WM_SetAlignWindow(WM_GetDialogItem(hParent, ID_MAIN_BTN_TIMING_AIR), hItem, OBJ_ALIGN_BROTHER_BOTTOM, 0, -5);
 	//左灶剩余时间
 	hItem = WM_GetDialogItem(hParent, ID_MAIN_COOKER_REMAIN_LEFT_TEXT);
 	TEXT_SetText(hItem, "左灶剩余30分");
-	TEXT_SetFont(hItem, &GUI_FontYH24);
+	TEXT_SetFont(hItem, &GUI_FontDialogYH24);
 	TEXT_SetTextColor(hItem, GUI_YELLOW);
 	TEXT_SetTextAlign(hItem, TEXT_CF_HCENTER | TEXT_CF_VCENTER);
+	WM_DisableWindow(hItem);
 	WM_SetAlignWindow(WM_GetDialogItem(hParent, ID_MAIN_BTN_COOKER_TIMER), hItem, OBJ_ALIGN_BROTHER_CENTER, 20, -10);
 	//右灶剩余时间
 	hItem = WM_GetDialogItem(hParent, ID_MAIN_COOKER_REMAIN_RIGHT_TEXT);
 	TEXT_SetText(hItem, "右灶剩余30分");
-	TEXT_SetFont(hItem, &GUI_FontYH24);
+	TEXT_SetFont(hItem, &GUI_FontDialogYH24);
 	TEXT_SetTextColor(hItem, GUI_YELLOW);
 	TEXT_SetTextAlign(hItem, TEXT_CF_HCENTER | TEXT_CF_VCENTER);
+	WM_DisableWindow(hItem);
 	WM_SetAlignWindow(WM_GetDialogItem(hParent, ID_MAIN_BTN_COOKER_TIMER), hItem, OBJ_ALIGN_BROTHER_CENTER, 20, 15);
 	WM_ShowWindowAndChild(hParent);
 
@@ -144,7 +149,19 @@ static void _DialogInit(WM_HWIN hParent)
 static void _RefreshDelayCloseCnt(WM_HWIN hParent)
 {
 	char Buffer[32];
-	GUI_sprintf(Buffer, "距关机还剩%d分", Setting_GetDelayCloseCnt()/60);
+	U16	 Value = Setting_GetDelayCloseCnt();
+	if(Value > 0){
+		Value--;
+	}
+	if(Value < 60){
+		GUI_sprintf(Buffer, "距关机还剩%d秒", Value);
+	}else{
+		GUI_sprintf(Buffer, "距关机还剩%d分", (Value + 59)/60);
+	}
+	if(0 == Value){
+		Setting_SetCloseAllFunc();
+	}
+	Setting_SetDelayCloseCnt(Value);
 	TEXT_SetText(WM_GetDialogItem(hParent, ID_MAIN_DELAY_REMAIN_TEXT), Buffer);
 }
 
@@ -160,13 +177,32 @@ static void _RefreshTimingAirCnt(WM_HWIN hParent)
 static void _RefreshCookerTimeLeftCnt(WM_HWIN hParent)
 {
 	char Buffer[32];
+	U16	 Value = Setting_GetCookerTimerLeftCnt();
+	if(Value > 0){
+		Value--;
+	}
+	if(Value < 60){
+		GUI_sprintf(Buffer, "左灶剩余%d秒", Value);
+	}else{
+		GUI_sprintf(Buffer, "左灶剩余%d分", (Value + 59)/60);
+	}
+	Setting_SetCookerTimerLeftCnt(Value);
 	GUI_sprintf(Buffer, "左灶剩余%d分", Setting_GetCookerTimerLeftCnt()/60);
 	TEXT_SetText(WM_GetDialogItem(hParent, ID_MAIN_COOKER_REMAIN_LEFT_TEXT), Buffer);
 }
 static void _RefreshCookerTimeRightCnt(WM_HWIN hParent)
 {
 	char Buffer[32];
-	GUI_sprintf(Buffer, "右灶剩余%dn分", Setting_GetCookerTimerRightCnt()/60);
+	U16	 Value = Setting_GetCookerTimerRightCnt();
+	if(Value > 0){
+		Value--;
+	}
+	if(Value < 60){
+		GUI_sprintf(Buffer, "右灶剩余%d秒", Value);
+	}else{
+		GUI_sprintf(Buffer, "右灶剩余%d分", (Value + 59)/60);
+	}
+	Setting_SetCookerTimerRightCnt(Value);
 	TEXT_SetText(WM_GetDialogItem(hParent, ID_MAIN_COOKER_REMAIN_RIGHT_TEXT), Buffer);
 }
 static void __PageMainTimer_cb(GUI_TIMER_MESSAGE *pContext)
@@ -208,7 +244,7 @@ static void _PageMainTimerInit(WM_HWIN hWin)
 {
 	if(WM_HMEM_NULL == _hPageMainTimer){
 		_hPageMainTimer = GUI_TIMER_Create(__PageMainTimer_cb, WM_TIMER + 1, hWin, 0);
-		GUI_TIMER_SetPeriod(_hPageMainTimer, 500);
+		GUI_TIMER_SetPeriod(_hPageMainTimer, DEF_MAIN_TIMER_PERIOD);
 		GUI_TIMER_Restart(_hPageMainTimer);
 	}
 }
@@ -231,14 +267,22 @@ static void _cbWindowsPageMainDialog(WM_MESSAGE * pMsg) {
 			if(NCode == WM_NOTIFICATION_RELEASED){
 				switch(Id){
 					case ID_MAIN_BTN_DELAY_SET:
-						GUI_Debug("DialogDelaySetCreate\n");
-						DialogDelaySetCreate(pMsg->hWin);
+						if((WIND_NONE != Setting_GetWindStatus()) ||
+								(DELAY_START == Setting_GetDelayCloseStatus()) ){
+							DialogDelaySetCreate(pMsg->hWin);
+							HoodCom_SendTouchVoice();
+						}
 					break;
 					case ID_MAIN_BTN_TIMING_AIR:
 						DialogTimingAirCreate(pMsg->hWin);
+						HoodCom_SendTouchVoice();
 					break;
 					case ID_MAIN_BTN_COOKER_TIMER:
 						DialogCookerTimeCreate(pMsg->hWin);
+						HoodCom_SendTouchVoice();
+					break;
+					case ID_MAIN_BTN_CLOSE:
+						Setting_SetCloseAllFunc();
 					break;
 				}
 			}

@@ -34,12 +34,10 @@ Purpose     : Implementation of progbar widget
 void PROGBAR_SetTextPos(PROGBAR_Handle hObj, I32 XOff, I32 YOff) {
   PROGBAR_Obj* pObj;
   if (hObj) {
-    WM_LOCK();
     pObj = PROGBAR_H2P(hObj);
     pObj->XOff = XOff;
     pObj->YOff = YOff;
     WM_InvalidateWindow(hObj);
-    WM_UNLOCK();
   }
 }
 

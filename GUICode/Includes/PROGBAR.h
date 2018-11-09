@@ -42,6 +42,9 @@ extern "C" {     /* Make sure we have C-declarations in C++ programs */
 #define PROGBAR_CF_HORIZONTAL (0 << 0)
 #define PROGBAR_CF_VERTICAL   (1 << 0)
 
+#define PROGBAR_STYLE_RECT		0x00
+#define PROGBAR_STYLE_CIRCLE	0x01
+
 /*********************************************************************
 *
 *       Types
@@ -99,6 +102,7 @@ void            PROGBAR_SetTextAlign(PROGBAR_Handle hObj, I32 Align);
 void            PROGBAR_SetTextColor(PROGBAR_Handle hObj, U32 index, GUI_COLOR color);
 void            PROGBAR_SetTextPos  (PROGBAR_Handle hObj, I32 XOff, I32 YOff);
 void            PROGBAR_SetValue    (PROGBAR_Handle hObj, I32 v);
+void 			PROGBAR_SetStyle	(PROGBAR_Handle hObj, U8 Style);
 
 #if defined(__cplusplus)
   }

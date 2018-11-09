@@ -33,6 +33,7 @@ None
 #include "MULTIEDIT.h"
 #include "RADIO.h"
 #include "SLIDER.h"
+#include "PROGBAR.h"
 #include "TEXT.h"
 #include "LISTVIEW.h"
 #include "IMAGEVIEW.h"

@@ -63,7 +63,7 @@ GUI_COLOR GUI_ColorMix(GUI_COLOR Color1, GUI_COLOR Color2, U8 Mix)
     return ResultColor;
 }
 
-void GUI_DrawRectMainMiddle(const GUI_RECT * pRect, const GUI_FullRectStyle *pStyle)
+static void _DrawRectMainMiddle(const GUI_RECT * pRect, const GUI_FullRectStyle *pStyle)
 {
 	U8 Mix;
 	GUI_RECT WorkRect;
@@ -106,12 +106,13 @@ void GUI_DrawRectMainMiddle(const GUI_RECT * pRect, const GUI_FullRectStyle *pSt
 			ActColor = GUI_ColorMix(mColor, gColor, Mix);
 			ActColor |= (Opa << 24);
 			GUI_SetColor(ActColor);
-			GUI_FillRectEx(&WorkRect);
+			//GUI_FillRectEx(&WorkRect);
+			GUI_DrawHLine(Row, WorkRect.x0, WorkRect.x1);
         }
     }
 }
 
-void GUI_DrawRectMainCorner(const GUI_RECT * pRect, const GUI_FullRectStyle * pStyle)
+static void _DrawRectMainCorner(const GUI_RECT * pRect, const GUI_FullRectStyle * pStyle)
 {
 	U8 Mix;
 	GUI_RECT EdgeTopArea;
@@ -317,7 +318,8 @@ void GUI_DrawRectMainCorner(const GUI_RECT * pRect, const GUI_FullRectStyle * pS
 		GUI_FillRectEx(&EdgeBottonArea);
 	}
 }
-void GUI_DrawRectBorderStraight(const GUI_RECT * pRect, const GUI_BorderStyle * pStyle)
+
+static void _DrawRectBorderStraight(const GUI_RECT * pRect, const GUI_BorderStyle * pStyle)
 {
 	I16 Radius = pStyle->Radius;
 
@@ -453,7 +455,7 @@ void GUI_DrawRectBorderStraight(const GUI_RECT * pRect, const GUI_BorderStyle * 
 	}
 }
 
-void GUI_DrawRectBorderCorner(const GUI_RECT* pRect, const GUI_BorderStyle * pStyle)
+static void _DrawRectBorderCorner(const GUI_RECT* pRect, const GUI_BorderStyle * pStyle)
 {
 	U16 Radius = pStyle->Radius;
     U16 bWidth = pStyle->Width;
@@ -585,4 +587,324 @@ void GUI_DrawRectBorderCorner(const GUI_RECT* pRect, const GUI_BorderStyle * pSt
         	GUI_CircleGetNext(&CircleIn, &TempIn);
         }
     }
+}
+static void _DrawContShadowFullStraight(const GUI_RECT *pRect, const GUI_ShadowStyle * pStyle, const U8 *map)
+{
+
+    I16 radius = pStyle->Radius;
+    I16 swidth = pStyle->Width;
+    I16 width = WM_RectGetWidth(pRect);
+    I16 height = WM_RectGetHeight(pRect);
+
+    radius = __DrawContRadiusCorrect(radius, width, height);
+
+    GUI_RECT sider_area;
+    sider_area.x0 = pRect->x1;
+    sider_area.y0 = pRect->y0 + radius + 1;
+    sider_area.x1 = sider_area.x0;
+    sider_area.y1 = pRect->y1 -  radius - 1;
+
+    GUI_RECT sidel_area;
+    sidel_area.x0 = pRect->x0;
+    sidel_area.y0 = pRect->y0 + radius + 1;
+    sidel_area.x1 = sidel_area.x0;
+    sidel_area.y1 = pRect->y1 - radius - 1;
+
+    GUI_RECT sidet_area;
+    sidet_area.x0 = pRect->x0 + radius + 1;
+    sidet_area.y0 = pRect->y0;
+    sidet_area.x1 = pRect->x1 - radius - 1;
+    sidet_area.y1 = sidet_area.y0;
+
+    GUI_RECT sideb_area;
+    sideb_area.x0 = pRect->x0 + radius + 1;
+    sideb_area.y0 = pRect->y1;
+    sideb_area.x1 = pRect->x1 - radius - 1;
+    sideb_area.y1 = sideb_area.y0;
+
+    I16 d;
+    for(d = 0; d < swidth; d++) {
+    	GUI_SetColor((map[d] << 24) | (pStyle->Color & 0x00ffffff));
+    	GUI_FillRectEx(&sider_area);
+        sider_area.x0++;
+        sider_area.x1++;
+
+        GUI_FillRectEx(&sidel_area);
+        sidel_area.x0--;
+        sidel_area.x1--;
+
+        GUI_FillRectEx(&sidet_area);
+        sidet_area.y0--;
+        sidet_area.y1--;
+
+        GUI_FillRectEx(&sideb_area);
+        sideb_area.y0++;
+        sideb_area.y1++;
+    }
+
+}
+static void _DrawContShadowFull(const GUI_RECT *pRect, const GUI_ShadowStyle *pStyle)
+{
+	I16 radius = pStyle->Radius;
+	I16 swidth = pStyle->Width;
+
+	I16 width = WM_RectGetWidth(pRect);
+	I16 height = WM_RectGetHeight(pRect);
+
+	radius = __DrawContRadiusCorrect(radius, width, height);
+
+	I16 cruve_x[radius + swidth];     /*Stores the 'x' coordinates of a quarter circle.*/
+	GUI_memset(cruve_x, 0, sizeof(cruve_x));
+	GUI_POINT circ;
+	I16 circ_tmp;
+	GUI_CircleInit(&circ, &circ_tmp, radius);
+	while(GUI_CircleCont(&circ)) {
+		cruve_x[GUI_CIRC_OCT1_Y(circ)] = GUI_CIRC_OCT1_X(circ);
+		cruve_x[GUI_CIRC_OCT2_Y(circ)] = GUI_CIRC_OCT2_X(circ);
+		GUI_CircleGetNext(&circ, &circ_tmp);
+	}
+	I16 row;
+
+	I16 filter_size = 2 * swidth + 1;
+	U16 opa_h_result[filter_size];
+
+	for(row = 0; row < filter_size; row++) {
+		opa_h_result[row] = (U32)((U32)(filter_size - row) * pStyle->Opacity * 2) / (filter_size);
+	}
+
+	U16 p;
+	U8 opa_v_result[radius + swidth];
+
+	GUI_POINT point_rt;
+	GUI_POINT point_rb;
+	GUI_POINT point_lt;
+	GUI_POINT point_lb;
+	GUI_POINT ofs_rb;
+	GUI_POINT ofs_rt;
+	GUI_POINT ofs_lb;
+	GUI_POINT ofs_lt;
+	ofs_rb.x = pRect->x1 - radius;
+	ofs_rb.y = pRect->y1 - radius;
+
+	ofs_rt.x = pRect->x1 - radius;
+	ofs_rt.y = pRect->y0 + radius;
+
+	ofs_lb.x = pRect->x0 + radius;
+	ofs_lb.y = pRect->y1 - radius;
+
+	ofs_lt.x = pRect->x0 + radius;
+	ofs_lt.y = pRect->y0 + radius;
+
+	for(row = 0; row < radius + swidth; row++) {
+		for(p = 0; p < radius + swidth; p++) {
+		   I16 v;
+		   U32 opa_tmp = 0;
+		   I16 row_v;
+		   bool swidth_out = false;
+		   for(v = -swidth; v < swidth; v++) {
+			   row_v = row + v;
+			   if(row_v < 0) row_v = 0; /*Rows above the corner*/
+
+			   /*Rows below the bottom are empty so they won't modify the filter*/
+			   if(row_v > radius) {
+				   break;
+			   }
+			   else
+			   {
+				   I16 p_tmp = p - (cruve_x[row_v] - cruve_x[row]);
+				   if(p_tmp < -swidth) { /*Cols before the filtered shadow (still not blurred)*/
+					   opa_tmp += pStyle->Opacity * 2;
+				   }
+				   /*Cols after the filtered shadow (already no effect) */
+				   else if (p_tmp > swidth) {
+					   /* If on the current point the  filter top point is already out of swidth then
+						* the remaining part will not do not anything on this point*/
+					   if(v == -swidth) { /*Is the first point?*/
+						   swidth_out = true;
+					   }
+					   break;
+				   } else {
+					   opa_tmp += opa_h_result[p_tmp + swidth];
+				   }
+			   }
+		   }
+		   if(swidth_out == false) {
+			   opa_tmp = opa_tmp / (filter_size);
+			   opa_v_result[p] = opa_tmp > 255 ? 255 : opa_tmp;
+		   }
+		   else {
+			   break;
+		   }
+		}
+
+		point_rt.x = cruve_x[row] + ofs_rt.x;
+		point_rt.y = ofs_rt.y - row;
+
+		point_rb.x = cruve_x[row] + ofs_rb.x;
+		point_rb.y = ofs_rb.y + row;
+
+		point_lt.x = ofs_lt.x -  cruve_x[row];
+		point_lt.y = ofs_lt.y - row;
+
+		point_lb.x = ofs_lb.x - cruve_x[row];
+		point_lb.y = ofs_lb.y + row;
+
+		U16 d;
+		for(d = 0; d < p; d++) {
+			GUI_SetColor((opa_v_result[d] << 24) | (pStyle->Color & 0x00ffffff));
+			if(point_rt.x != point_lt.x) {
+				GUI_DrawPoint(point_lt.x,point_lt.y);
+			}
+
+			if(point_rb.x != point_lb.x && point_lt.y != point_lb.y) {
+				GUI_DrawPoint(point_lb.x,point_lb.y);
+			}
+
+			if(point_lt.y != point_lb.y) {
+				GUI_DrawPoint(point_rb.x,point_rb.y);
+			}
+
+
+			GUI_DrawPoint(point_rt.x,point_rt.y);
+
+
+			point_rb.x++;
+			point_lb.x--;
+
+			point_rt.x++;
+			point_lt.x--;
+		}
+
+		/*When the first row is known draw the straight pars with same opa. map*/
+		if(row == 0) {
+			_DrawContShadowFullStraight(pRect, pStyle, opa_v_result);
+		}
+	}
+}
+static void _DrawContShadowBottom(const GUI_RECT *pRect, const GUI_ShadowStyle *pStyle)
+{
+    I16 radius = pStyle->Radius;
+    I16 swidth = pStyle->Width;
+    I16 width = WM_RectGetWidth(pRect);
+    I16 height = WM_RectGetHeight(pRect);
+
+    radius = __DrawContRadiusCorrect(radius, width, height);
+
+    I16 cruve_x[radius + swidth];     /*Stores the 'x' coordinates of a quarter circle.*/
+    GUI_memset(cruve_x, 0, sizeof(cruve_x));
+    GUI_POINT circ;
+    I16 circ_tmp;
+    GUI_CircleInit(&circ, &circ_tmp, radius);
+    while(GUI_CircleCont(&circ)) {
+        cruve_x[GUI_CIRC_OCT1_Y(circ)] = GUI_CIRC_OCT1_X(circ);
+        cruve_x[GUI_CIRC_OCT2_Y(circ)] = GUI_CIRC_OCT2_X(circ);
+        GUI_CircleGetNext(&circ, &circ_tmp);
+    }
+    I16 row;
+
+    I16 filter_size = 2 * swidth + 1;
+    U8 opa_h_result[filter_size];
+
+    for(row = 0; row < filter_size; row++) {
+        opa_h_result[row] = (U32)((U32)(filter_size - row) * pStyle->Opacity) / (filter_size);
+    }
+
+    GUI_POINT point_l;
+    GUI_POINT point_r;
+    GUI_RECT area_mid;
+    GUI_POINT ofs1;
+    GUI_POINT ofs2;
+
+    ofs1.x = pRect->x0 + radius;
+    ofs1.y = pRect->y1 - radius;
+
+    ofs2.x = pRect->x1 - radius;
+    ofs2.y = pRect->y1 - radius;
+
+    for(row = 0; row < radius; row++) {
+        point_l.x = ofs1.x + radius - row - radius;
+        point_l.y = ofs1.y + cruve_x[row];
+
+        point_r.x = ofs2.x + row;
+        point_r.y = ofs2.y + cruve_x[row];
+
+        U16 d;
+        for(d = swidth; d < filter_size; d++) {
+        	GUI_SetColor((opa_h_result[d] << 24) | (pStyle->Color & 0x00ffffff));
+        	GUI_DrawPoint(point_l.x, point_l.y);
+            point_l.y ++;
+
+            GUI_DrawPoint(point_r.x, point_r.y);
+            point_r.y ++;
+        }
+
+    }
+
+    area_mid.x0 = ofs1.x + 1;
+    area_mid.y0 = ofs1.y + radius;
+    area_mid.x1 = ofs2.x - 1;
+    area_mid.y1 = area_mid.y0;
+
+    U16 d;
+    for(d = swidth; d < filter_size; d++) {
+    	GUI_SetColor((opa_h_result[d] << 24) | (pStyle->Color & 0x00ffffff));
+        GUI_FillRectEx(&area_mid);
+        area_mid.y0 ++;
+        area_mid.y1 ++;
+    }
+}
+ void GUI_DrawRectShadow(const GUI_RECT *pRect, const GUI_ShadowStyle *pStyle)
+{
+    /* If mask is in the middle of cords do not draw shadow*/
+    I16 radius = pStyle->Radius;
+    I16 width = WM_RectGetWidth(pRect);
+    I16 height = WM_RectGetHeight(pRect);
+    radius = __DrawContRadiusCorrect(radius, width, height);
+ //   GUI_RECT area_tmp;
+
+    /*Check horizontally without radius*/
+//    lv_area_copy(&area_tmp, coords);
+//    area_tmp.x1 += radius;
+//    area_tmp.x2 -= radius;
+//    if(lv_area_is_in(mask, &area_tmp) != false) return;
+//
+//    /*Check vertically without radius*/
+//    lv_area_copy(&area_tmp, coords);
+//    area_tmp.y1 += radius;
+//    area_tmp.y2 -= radius;
+//    if(lv_area_is_in(mask, &area_tmp) != false) return;
+
+    if(pStyle->Type == GUI_SHADOW_FULL) {
+        _DrawContShadowFull(pRect, pStyle);
+    } else if(pStyle->Type == GUI_SHADOW_BOTTOM) {
+    	_DrawContShadowBottom(pRect, pStyle);
+    }
+}
+/*
+ * 填充圆角矩形
+ * pRect: 所需填充的区域
+ * pStyle: 填充的风格
+ * pStyle->Radius: 圆角的半径
+ * pStyle->Opacity: 填充颜色的透明度
+ * pStyle->MainColor: 主色调
+ * pStyle->GradColor: 渐变色调
+ * */
+void GUI_FillRoundRect(const GUI_RECT *pRect, const GUI_FullRectStyle *pStyle)
+{
+	_DrawRectMainMiddle(pRect, pStyle);
+	_DrawRectMainCorner(pRect, pStyle);
+}
+/*
+ * 绘制圆角矩形(不填充)
+ * pRect: 所需绘制的区域
+ * pStyle: 绘制的风格
+ * pStyle->Radius: 圆角的半径
+ * pStyle->Width: 圆角矩形的线宽
+ * pStyle->Part: 绘制的部分
+ * pStyle->Color: 绘制的颜色
+ * */
+void GUI_DrawRoundRect(const GUI_RECT* pRect, const GUI_BorderStyle * pStyle)
+{
+	_DrawRectBorderStraight(pRect, pStyle);
+	_DrawRectBorderCorner(pRect, pStyle);
 }

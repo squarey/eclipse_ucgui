@@ -19,8 +19,8 @@ TOTAST_Handle TOTAST_CreateEx(I32 x0, I32 y0, I32 xsize, I32 ysize, WM_HWIN hPar
 void TOTAST_SetText			(TOTAST_Handle hObj, const char *pTest);
 void TOTAST_SetFont			(TOTAST_Handle hObj, const GUI_FONT GUI_UNI_PTR * pFont);
 void TOTAST_SetColor			(TOTAST_Handle hObj, GUI_COLOR BkColor, GUI_COLOR TextColor);
-TOTAST_Handle 				TOTAST_StaticShow(const char *pTest);
-void 							TOTAST_StaticSetText(const char *pTest);
-void 							TOTAST_StaticSetFont(const GUI_FONT GUI_UNI_PTR * pFont);
-void 							TOTAST_StaticSetColor(GUI_COLOR BkColor, GUI_COLOR TextColor);
+TOTAST_Handle 	TOTAST_StaticShow(const char *pTest, const GUI_FONT *pFont);
+void TOTAST_StaticSetText(const char *pTest, const GUI_FONT *pFont);
+void TOTAST_StaticSetFont(const GUI_FONT GUI_UNI_PTR * pFont);
+void TOTAST_StaticSetColor(GUI_COLOR BkColor, GUI_COLOR TextColor);
 #endif /* TOTAST_H_ */

@@ -13,7 +13,7 @@
 #endif
 
 #ifndef   KEYBOARD_FOCUS_BKCOLOR_DEFAULT
-  #define KEYBOARD_FOCUS_BKCOLOR_DEFAULT   	GUI_DARKGREEN
+  #define KEYBOARD_FOCUS_BKCOLOR_DEFAULT   	0xECA307
 #endif
 
 #ifndef   KEYBOARD_UNFOCUS_BKCOLOR_DEFAULT
@@ -83,13 +83,11 @@ ucKEYOBARD_PROPS ucKEYOBARD__DefaultProps =
 static void _DrawButton(KEYBOARD_Obj* pObj, GUI_RECT *pRect, const char *pText, U8 IsFocus)
 {
 	if(0 == IsFocus){
-		GUI_DrawRectMainMiddle(pRect, &pObj->Props.UnfocusStyle);
-		GUI_DrawRectMainCorner(pRect, &pObj->Props.UnfocusStyle);
+		GUI_FillRoundRect(pRect, &pObj->Props.UnfocusStyle);
 		LCD_SetColor(pObj->Props.aTextColor);
 		GUI_DispStringInRectWrap(pText, pRect, GUI_TA_VCENTER | GUI_TA_HCENTER, GUI_WRAPMODE_NONE);
 	}else{
-		GUI_DrawRectMainMiddle(pRect, &pObj->Props.FocusStyle);
-		GUI_DrawRectMainCorner(pRect, &pObj->Props.FocusStyle);
+		GUI_FillRoundRect(pRect, &pObj->Props.FocusStyle);
 		LCD_SetColor(pObj->Props.aTextColor);
 		pRect->x0 += 2;
 		pRect->y0 += 2;
@@ -482,6 +480,25 @@ static U8 _DrawTriangle(KEYBOARD_Obj* pObj, KEYBOARD_Handle hObj)
 	}
 	return IsVaild;
 }
+/*
+static U8 _CheckIsInParentTop(KEYBOARD_Handle hObj)
+{
+	WM_HWIN hParent, hChild, hTop;
+	WM_Obj *pParent, *pChild;
+	hParent = WM_GetParent(hObj);
+	pParent = WM_H2P(hParent);
+	for(hChild = pParent->hFirstChild; hChild; hChild = pChild->hNext){
+		hTop = hChild;
+		GUI_Debug("hChild:%d\n", hChild);
+		pChild = WM_H2P(hChild);
+	}
+	//GUI_Debug("hTop:%d, hObj:%d\n", hTop, hObj);
+	if(hTop == hObj){
+		return 1;
+	}else{
+		return 0;
+	}
+}*/
 static void _Paint(KEYBOARD_Obj* pObj, KEYBOARD_Handle hObj)
 {
 	WM_Obj *pWin;
@@ -490,7 +507,9 @@ static void _Paint(KEYBOARD_Obj* pObj, KEYBOARD_Handle hObj)
 	if(WM_SF_ISVIS != (pWin->Status & WM_SF_ISVIS)){
 		return;
 	}
-//	GUI_Debug("keyboard paint hObj:%d, PressStatus:0x%02x\n", hObj, pObj->PressStatus);
+	/*if(0 == _CheckIsInParentTop(hObj)){
+		return;
+	}*/
 	if(KEYBOARD_PRESS_NULL == pObj->PressStatus){
 		//GUI_SetBkColor(pObj->Props.BkColor);
 		GUI_SetBkColor(pObj->Props.BkColor);
@@ -705,28 +724,32 @@ static U8 _OnKeyboardPress(KEYBOARD_Handle hObj, KEYBOARD_Obj* pObj, I32 x, I32 
 		}
 	}
 }
-static void _ToCheckChangeStyle(KEYBOARD_Obj* pObj)
+static U8 _ToCheckChangeStyle(KEYBOARD_Obj* pObj)
 {
 	if(pObj->StyleLock & KEYBOARD_LOCK_STYLE_NUMBER){
 		pObj->SwitchFlag = KEYBOARD_STYLE_NULL;
 		pObj->PressStatus = KEYBOARD_PRESS_NULL;
-		return;
+		return 1;
 	}
 	switch(pObj->SwitchFlag){
 		case KEYBOARD_STYLE_NUMBER:
 			pObj->PressStatus = KEYBOARD_PRESS_NULL;
 			pObj->Style = KEYBOARD_STYLE_NUMBER;
+			return 0;
 		break;
 		case KEYBOARD_STYLE_SYMBOL:
 			pObj->PressStatus = KEYBOARD_PRESS_NULL;
 			pObj->Style = KEYBOARD_STYLE_SYMBOL;
+			return 0;
 		break;
 		case KEYBOARD_STYLE_LOWERCASE:
 			pObj->PressStatus = KEYBOARD_PRESS_NULL;
 			pObj->Style = KEYBOARD_STYLE_LOWERCASE;
+			return 0;
 		break;
 		default:
 			pObj->PressStatus = KEYBOARD_PRESS_REALEASE;
+			return 1;
 		break;
 	}
 }
@@ -749,33 +772,34 @@ static void _OnGetTouchKey(KEYBOARD_Handle hObj, KEYBOARD_Obj* pObj)
 		}
 		switch(pObj->PressIndex){
 			case KEYBOARD_CHAR_CAP:
-				GUI_Debug("Click cap button\n");
+				//GUI_Debug("Click cap button\n");
 			break;
 			case KEYBOARD_CHAR_DELETE:
-				GUI_Debug("Click delete button\n");
+				//GUI_Debug("Click delete button\n");
 				WM_OnKey(GUI_KEY_BACKSPACE, 1);
 			break;
 			case KEYBOARD_CHAR_123:
-				GUI_Debug("Click 123 button\n");
+				//GUI_Debug("Click 123 button\n");
 			break;
 			case KEYBOARD_CHAR_SYMBOL:
-				GUI_Debug("Click symbol button\n");
+				//GUI_Debug("Click symbol button\n");
 			break;
 			case KEYBOARD_CHAR_SPACE:
-				GUI_Debug("Click space button\n");
+				//GUI_Debug("Click space button\n");
+				WM_OnKey(' ', 1);
 			break;
 			case KEYBOARD_CHAR_POINT:
-				GUI_Debug("Click point button\n");
+			//	GUI_Debug("Click point button\n");
 			break;
 			case KEYBOARD_CHAR_ENTER:
 				if(pObj->EnterCb){
 					pObj->EnterCb();
 				}
-				GUI_Debug("Click Enter button\n");
+				//GUI_Debug("Click Enter button\n");
 			break;
 			default:
 				WM_OnKey(pCharBuffer[pObj->PressIndex],1);
-				GUI_Debug("Click char %c\n", pCharBuffer[pObj->PressIndex]);
+				//GUI_Debug("Click char %c\n", pCharBuffer[pObj->PressIndex]);
 			break;
 		}
 	}else{
@@ -783,16 +807,16 @@ static void _OnGetTouchKey(KEYBOARD_Handle hObj, KEYBOARD_Obj* pObj)
 		pCharBuffer = NumberText;
 		switch(pObj->PressIndex){
 			case KEYBOARD_NUMBER_ABC:
-				GUI_Debug("Click number abc button\n");
+				//GUI_Debug("Click number abc button\n");
 			break;
 			case KEYBOARD_NUMBER_ENTER:
 				if(pObj->EnterCb){
 					pObj->EnterCb();
 				}
-				GUI_Debug("Click number Enter button\n");
+				//GUI_Debug("Click number Enter button\n");
 			break;
 			case KEYBOARD_NUMBER_DELETE:
-				GUI_Debug("Click number delete button\n");
+				//GUI_Debug("Click number delete button\n");
 				WM_OnKey(GUI_KEY_BACKSPACE, 1);
 			break;
 			default:
@@ -804,8 +828,7 @@ static void _OnGetTouchKey(KEYBOARD_Handle hObj, KEYBOARD_Obj* pObj)
 				}else{
 					WM_OnKey(Key, 1);
 				}
-
-				GUI_Debug("Click char %c\n", pCharBuffer[pObj->PressIndex]);
+				//GUI_Debug("Click char %c\n", pCharBuffer[pObj->PressIndex]);
 			break;
 		}
 	}
@@ -817,8 +840,9 @@ static void _OnTouch(KEYBOARD_Handle hObj, KEYBOARD_Obj* pObj, WM_MESSAGE*pMsg)
 		if(0 == pState->Pressed){
 			if(1 == pObj->IsPress){
 				pObj->IsPress = 0;
-				_ToCheckChangeStyle(pObj);
-				_OnGetTouchKey(hObj, pObj);
+				if(_ToCheckChangeStyle(pObj)){
+					_OnGetTouchKey(hObj, pObj);
+				}
 				WM_InvalidateWindow(hObj);
 			}
 		}else{

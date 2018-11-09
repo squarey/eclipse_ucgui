@@ -208,6 +208,7 @@ static void _OnTouchMoveV(TimerPicker_Handle hObj, TimerPicker_Obj* pObj, WM_MES
 	if(pState->Pressed)
 	{
 		WM_SetCapture(hObj,1);
+		WM_SetCaptureVWin(hObj);
 		if(0 == pObj->TouchFlag)
 		{
 			if(pState->x <= (Width >> 1))

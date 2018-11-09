@@ -7,6 +7,7 @@
 
 
 #include "SettingInfo.h"
+#include "HoodCom.h"
 
 
 typedef struct
@@ -33,11 +34,21 @@ static SettingStatus _mSettingStatus;
 void Setting_SetLightStatus(U8 Status)
 {
 	_mSettingStatus.StatusLight = Status;
+	HoodCom_SetLightStatus(Status, 100);
 }
 
 void Setting_SetWindStatus(U8 Status)
 {
 	_mSettingStatus.StatusWind = Status;
+	if(WIND_NONE == Status){
+		HoodCom_SetTurnSpeed(0);
+	}else if(WIND_SMALL == Status){
+		HoodCom_SetTurnSpeed(8);
+	}else if(WIND_MIDDLE == Status){
+		HoodCom_SetTurnSpeed(14);
+	}else{
+		HoodCom_SetTurnSpeed(20);
+	}
 }
 
 void Setting_SetDelayCloseStatus(U8 Status)
@@ -84,6 +95,17 @@ void Setting_SetCookerTimerLeftCnt(U16 Cnt)
 void Setting_SetCookerTimerRightCnt(U16 Cnt)
 {
 	_mSettingStatus.CookerTimerRightCnt = Cnt;
+}
+
+void Setting_SetCloseAllFunc(void)
+{
+	_mSettingStatus.StatusLight = LIGHT_CLOSE;
+	_mSettingStatus.StatusDelayClose = DELAY_CLOSE;
+	_mSettingStatus.StatusCookerTimerLeft = COOKER_TIMER_CLOSE;
+	_mSettingStatus.StatusCookerTimerRight = COOKER_TIMER_CLOSE;
+	_mSettingStatus.StatusWind = WIND_NONE;
+	HoodCom_SetLightStatus(0, 100);
+	HoodCom_SetTurnSpeed(0);
 }
 
 

@@ -170,16 +170,14 @@ static void _Paint(BUTTON_Obj* pObj, BUTTON_Handle hObj)
 		if(!WM_GetHasTrans(hObj)){
 			if (PressedState == 0) {
 				if(pObj->NewStyle){
-					GUI_DrawRectMainMiddle(&rButton, &pObj->Style[0]);
-					GUI_DrawRectMainCorner(&rButton, &pObj->Style[0]);
+					GUI_FillRoundRect(&rButton, &pObj->Style[0]);
 				}else{
 					pObj->Widget.pEffect->pfDrawUp();  /* _WIDGET_EFFECT_3D_DrawUp(); */
 				}
 				EffectSize = pObj->Widget.pEffect->EffectSize;
 			}else{
 				if(pObj->NewStyle){
-					GUI_DrawRectMainMiddle(&rButton, &pObj->Style[1]);
-					GUI_DrawRectMainCorner(&rButton, &pObj->Style[1]);
+					GUI_FillRoundRect(&rButton, &pObj->Style[1]);
 				}else{
 					pObj->Widget.pEffect->pfDrawDown();
 				}
@@ -427,7 +425,7 @@ BUTTON_Handle BUTTON_CreateEx(I32 x0, I32 y0, I32 xsize, I32 ysize, WM_HWIN hPar
 	if (hObj) {
 		BUTTON_Obj * pObj = (BUTTON_Obj *)GUI_ALLOC_h2p(hObj); /* Don't use use WIDGET_H2P because WIDGET_INIT_ID() has not be called at this point */
 		/* init widget specific variables */
-		WIDGET__Init(&pObj->Widget, Id, 0);
+		WIDGET__Init(&pObj->Widget, Id, WIDGET_STATE_FOCUSSABLE);
 		/* init member variables */
 		BUTTON_INIT_ID(pObj);
 		pObj->Props = BUTTON__DefaultProps;

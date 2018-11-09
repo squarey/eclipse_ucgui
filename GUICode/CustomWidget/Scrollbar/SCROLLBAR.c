@@ -36,8 +36,7 @@ static void _Paint(SCROLLBAR_Obj* pObj, SCROLLBAR_Handle hObj)
 	}
 	//GUI_SetColor((pObj->RectStyle.MainColor & 0x00ffffff) | (pObj->RectStyle.Opacity << 24));
 	//GUI_FillRectEx(&Rect);
-	GUI_DrawRectMainCorner(&Rect, &pObj->RectStyle);
-	GUI_DrawRectMainMiddle(&Rect, &pObj->RectStyle);
+	GUI_FillRoundRect(&Rect, &pObj->RectStyle);
 }
 
 static void SCROLLBAR_Callback(WM_MESSAGE *pMsg)

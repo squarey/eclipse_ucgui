@@ -152,6 +152,9 @@ static void _AnimTimer_cb(GUI_TIMER_MESSAGE *pContext)
 			default:
 				_AnimIsStart = 0;
 				_CurAnimIndex = 0;
+				IMAGEVIEW_SetBitmap(WM_GetDialogItem(pContext->Context, ID_MENU_WIND_SMALL), &bmwind_small);
+				IMAGEVIEW_SetBitmap(WM_GetDialogItem(pContext->Context, ID_MENU_WIND_MIDDLE), &bmwind_middle);
+				IMAGEVIEW_SetBitmap(WM_GetDialogItem(pContext->Context, ID_MENU_WIND_LARGE), &bmwind_large);
 			break;
 		}
 		if(_CurAnimIndex < DEF_WIND_ANIM_NUM - 1){
@@ -159,6 +162,11 @@ static void _AnimTimer_cb(GUI_TIMER_MESSAGE *pContext)
 		}else{
 			_CurAnimIndex = 0;
 		}
+	}
+	if(LIGHT_OPEN == Setting_GetLightStatus()){
+		IMAGEVIEW_SetBitmap(WM_GetDialogItem(pContext->Context, ID_MENU_LIGHT), &bmlight_focus);
+	}else{
+		IMAGEVIEW_SetBitmap(WM_GetDialogItem(pContext->Context, ID_MENU_LIGHT), &bmlight_unfocus);
 	}
 	GUI_TIMER_Restart(_hWindTimer);
 }
@@ -206,6 +214,7 @@ static void _cbWindowsMenuBarDialog(WM_MESSAGE * pMsg) {
 							Setting_SetLightStatus(LIGHT_OPEN);
 							IMAGEVIEW_SetBitmap(WM_GetDialogItem(pMsg->hWin, ID_MENU_LIGHT), &bmlight_focus);
 						}
+						HoodCom_SendTouchVoice();
 					break;
 					case ID_MENU_WIND_SMALL:
 						IMAGEVIEW_SetBitmap(WM_GetDialogItem(pMsg->hWin, ID_MENU_WIND_MIDDLE), &bmwind_middle);
@@ -218,6 +227,7 @@ static void _cbWindowsMenuBarDialog(WM_MESSAGE * pMsg) {
 							_AnimIsStart = 1;
 							Setting_SetWindStatus(WIND_SMALL);
 						}
+						HoodCom_SendTouchVoice();
 					break;
 					case ID_MENU_WIND_MIDDLE:
 						IMAGEVIEW_SetBitmap(WM_GetDialogItem(pMsg->hWin, ID_MENU_WIND_SMALL), &bmwind_small);
@@ -230,6 +240,7 @@ static void _cbWindowsMenuBarDialog(WM_MESSAGE * pMsg) {
 							_AnimIsStart = 1;
 							Setting_SetWindStatus(WIND_MIDDLE);
 						}
+						HoodCom_SendTouchVoice();
 					break;
 					case ID_MENU_WIND_LARGE:
 						IMAGEVIEW_SetBitmap(WM_GetDialogItem(pMsg->hWin, ID_MENU_WIND_SMALL), &bmwind_small);
@@ -242,6 +253,7 @@ static void _cbWindowsMenuBarDialog(WM_MESSAGE * pMsg) {
 							_AnimIsStart = 1;
 							Setting_SetWindStatus(WIND_LARGE);
 						}
+						HoodCom_SendTouchVoice();
 					break;
 				}
 			}

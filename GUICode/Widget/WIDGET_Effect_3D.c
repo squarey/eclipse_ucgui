@@ -88,8 +88,7 @@ static void _WIDGET_EFFECT_3D_DrawUpRect(const GUI_RECT* pRect) {
 	GUI_DrawVLine(r.x1-1, r.y0 + 1, r.y1 - 2);
 	/*  GUI_RestoreContext(&Context); */
 #else
-	GUI_DrawRectBorderStraight(&r, &_UpStyle);
-	GUI_DrawRectBorderCorner(&r, &_UpStyle);
+	GUI_DrawRoundRect(&r, &_UpStyle);
 #endif
 }
 
@@ -119,8 +118,7 @@ static void _WIDGET_EFFECT_3D_DrawDownRect(const GUI_RECT* pRect)
 	GUI_DrawHLine(r.y1 - 1, r. x0 + 2, r.x1-1);
 	GUI_DrawVLine(r.x1 - 1, r. y0 + 2, r.y1-1);
 #else
-	GUI_DrawRectBorderStraight(&r, &_DownStyle);
-	GUI_DrawRectBorderCorner(&r, &_DownStyle);
+	GUI_DrawRoundRect(&r, &_DownStyle);
 #endif
 }
 

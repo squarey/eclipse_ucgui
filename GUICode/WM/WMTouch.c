@@ -47,6 +47,7 @@ static U8 _WaitTouchRelease = 0;
 static U8 _ScreenTimeOutStatus = 0;
 static U32 _TouchReleaseTimeRecorde = 0;
 static U32 _ScreenTimeOutTime = 0;
+static U32 _PressingTimeRecorde = 0;
 static pScreenCallback _ScreenTimeout_cb = NULL;
 static pScreenCallback _ScreenTouchWake_cb = NULL;
 /*********************************************************************
@@ -132,7 +133,7 @@ void WM__SendPIDMessage(WM_HWIN hWin, WM_MESSAGE* pMsg)
 	}
 #endif
 }
-static void _SendTouchPressingMessage(WM_HWIN hWin)
+static void _SendTouchPressingMessage(WM_HWIN hWin, U32 PressTime)
 {
 	U8 Flag = 0;
 	WM_HWIN iWin;
@@ -143,14 +144,15 @@ static void _SendTouchPressingMessage(WM_HWIN hWin)
 	while (WM_IsWindow(iWin)) {
 		if(0 == Flag){
 			Flag = 1;
+			Msg.Data.v = PressTime;
 			WM__SendMessageIfEnabled(hWin, &Msg);
 		}
 		iWin = WM_GetParent(iWin);
 		if (iWin) {
+			Msg.Data.v = PressTime;
 			WM__SendMessageIfEnabled(iWin, &Msg);    /* Send message to the ancestors */
 		}
 	}
-
 }
 /*********************************************************************
 *
@@ -242,6 +244,7 @@ I32 WM_HandlePID(void)
 			/*
 			 * Send WM_PID_STATE_CHANGED message if state has changed (just pressed or just released)
 			 */
+			WM_PID__SetCurState(&StateNew);
 			if ((WM_PID__StateLast.Pressed != StateNew.Pressed) && CHWin.hWin) {
 				GUI_PID_STATE PID_StateOld;
 				WM_HWIN hWinOld;
@@ -298,6 +301,7 @@ I32 WM_HandlePID(void)
 				 * b) PID is moved out
 				 */
 				if (WM__CHWinLast.hWin != CHWin.hWin) {
+					_PressingTimeRecorde = 0;
 					if (WM__CHWinLast.hWin != 0) {
 						if (StateNew.Pressed) {
 							/* Moved out -> no longer in this window
@@ -345,10 +349,20 @@ I32 WM_HandlePID(void)
 		/* Store the new state */
 		WM_PID__StateLast = StateNew;
 		WM_PID__SetPrevState(&StateNew);
+	}else{
+		if(StateNew.Pressed && WM__CHWinLast.hWin){
+			U32 PressTimeElapsed = 0;
+			if(0 == _PressingTimeRecorde){
+				_PressingTimeRecorde = GUI_GetTime();
+			}else{
+				PressTimeElapsed = GUI_GetTimeElapsed(_PressingTimeRecorde);
+			}
+			_SendTouchPressingMessage(WM__CHWinLast.hWin, PressTimeElapsed);
+		}else{
+			_PressingTimeRecorde = 0;
+		}
 	}
-	if(StateNew.Pressed && CHWin.hWin){
-		_SendTouchPressingMessage(CHWin.hWin);
-	}
+
 	WM__RemoveCriticalHandle(&CHWin);
 	_ScreenTimeOutCalculation(StateNew.Pressed);
 	return r;

@@ -42,6 +42,7 @@ void Setting_SetCookerTimerLeftStatus(U8 Status);
 void Setting_SetCookerTimerRightStatus(U8 Status);
 void Setting_SetCookerTimerLeftCnt(U16 Cnt);
 void Setting_SetCookerTimerRightCnt(U16 Cnt);
+void Setting_SetCloseAllFunc(void);
 
 U8 Setting_GetLightStatus(void);
 U8 Setting_GetWindStatus(void);

@@ -31,30 +31,11 @@ Purpose     : Implementation of progbar widget
 *
 *       PROGBAR_SetText
 */
-void PROGBAR_SetText(PROGBAR_Handle hObj, const char* s) {
-  if (hObj) {
-    PROGBAR_Obj* pObj;
-    const GUI_FONT GUI_UNI_PTR * pOldFont;
-    GUI_RECT r1;
-    char acBuffer[5];
-    WM_LOCK();
-    pObj = PROGBAR_H2P(hObj);
-    pOldFont = GUI_SetFont(pObj->Props.pFont);
-    PROGBAR_GetTextRect(pObj, &r1, PROGBAR_GetText(pObj, acBuffer));
-    if (!s) {
-      PROGBAR_FreeText(hObj);
-      WM_InvalidateRect(hObj, &r1);
-    } else {
-      if (GUI__SetText(&pObj->hpText, s)) {
-        GUI_RECT r2;
-        PROGBAR_GetTextRect(pObj, &r2, PROGBAR_GetText(pObj, acBuffer));
-        GUI_MergeRect(&r1, &r1, &r2);
-        WM_InvalidateRect(hObj, &r1);
-      }
-    }
-    GUI_SetFont(pOldFont);
-    WM_UNLOCK();
-  }
+void PROGBAR_SetText(PROGBAR_Handle hObj, const char* s)
+{
+	if (hObj) {
+		//PROGBAR_Obj* pObj;
+	}
 }
 
 #else  /* avoid empty object files */

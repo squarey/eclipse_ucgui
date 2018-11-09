@@ -34,13 +34,11 @@ Purpose     : Implementation of progbar widget
 void PROGBAR_SetBarColor(PROGBAR_Handle hObj, U32 Index, GUI_COLOR color) {
   PROGBAR_Obj* pObj;
   if (hObj) {
-    WM_LOCK();
     pObj = PROGBAR_H2P(hObj);
     if (Index < GUI_COUNTOF(pObj->Props.aBarColor)) {
       pObj->Props.aBarColor[Index] = color;
       WM_InvalidateWindow(hObj);
     }
-    WM_UNLOCK();
   }
 }
 

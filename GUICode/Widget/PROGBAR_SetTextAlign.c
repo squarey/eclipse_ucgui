@@ -31,15 +31,13 @@ Purpose     : Implementation of progbar widget
 *
 *       PROGBAR_SetTextAlign
 */
-void PROGBAR_SetTextAlign(PROGBAR_Handle hObj, I32 Align) {
-  PROGBAR_Obj* pObj;
-  if (hObj) {
-    WM_LOCK();
-    pObj = PROGBAR_H2P(hObj);
-    pObj->TextAlign = Align;
-    WM_InvalidateWindow(hObj);
-    WM_UNLOCK();
-  }
+void PROGBAR_SetTextAlign(PROGBAR_Handle hObj, I32 Align)
+{
+	PROGBAR_Obj* pObj;
+	if (hObj) {
+		pObj = PROGBAR_H2P(hObj);
+		pObj->TextAlign = Align;
+	}
 }
 
 #else  /* avoid empty object files */

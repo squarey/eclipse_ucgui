@@ -68,11 +68,11 @@ Purpose     : Configures abilities, fonts etc.
 #define MESSAGEBOX_SUPPORT			0
 #define MULTIEDIT_SUPPORT			0
 #define MULTIPAGE_SUPPORT			0
-#define PROGBAR_SUPPORT				0
+#define PROGBAR_SUPPORT				1
 #define RADIO_SUPPORT				0
 #define SCROLLBAR_SUPPORT			0
 #define GRAPH_SUPPORT				0
-#define SLIDER_SUPPORT				0
+#define SLIDER_SUPPORT				1
 #define TEXT_SUPPORT				1
 
 #endif  /* Avoid multiple inclusion */

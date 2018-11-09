@@ -17,6 +17,7 @@
 #define ID_DELAY_PICKER					(ID_PAGE_DELAY_SET_BASE + 6)
 #define ID_DELAY_BTN_CANLE				(ID_PAGE_DELAY_SET_BASE + 7)
 #define ID_DELAY_BTN_CONFIRM			(ID_PAGE_DELAY_SET_BASE + 8)
+#define ID_DELAY_UNIT					(ID_PAGE_DELAY_SET_BASE + 9)
 
 static const GUI_WIDGET_CREATE_INFO _aDialogDelaySetCreate[] = {
 	{ WINDOW_CreateIndirect,	"Window",				ID_WINDOW_DELAY_SET, 0, 0, DEF_DIALOG_WIDTH, DEF_DIALOG_HEIGHT, 0, 0x0,0},
@@ -28,6 +29,7 @@ static const GUI_WIDGET_CREATE_INFO _aDialogDelaySetCreate[] = {
 	{ Picker_CreateIndirect, 	"delay picker",			ID_DELAY_PICKER, 0, 0, 150, 240, 0, 0x0, 0},
 	{ BUTTON_CreateIndirect, 	"delay cancle",			ID_DELAY_BTN_CANLE, 0, 0, 198, 50, 0, 0x0, 0},
 	{ BUTTON_CreateIndirect, 	"delay confirm",		ID_DELAY_BTN_CONFIRM, 0, 0, 198, 50, 0, 0x0, 0},
+	{ TEXT_CreateIndirect, 		"timer unit",			ID_DELAY_UNIT, 0, 0, 50, 30, 0, 0x0, 0},
 };
 
 static WM_HWIN _hDelaySet = WM_HMEM_NULL;
@@ -60,7 +62,7 @@ static void _DelayDialogInit(WM_HWIN hParent)
 	CHECKBOX_SetImage(hItem, &bmbtn_close, CHECKBOX_BI_ACTIV_UNCHECKED);
 	CHECKBOX_SetImage(hItem, &bmbtn_open, CHECKBOX_BI_ACTIV_CHECKED);
 	CHECKBOX_SetNoDrawDownRect(hItem, 1);
-	if(DELAY_OPEN == Setting_GetDelayCloseStatus()){
+	if(DELAY_CLOSE != Setting_GetDelayCloseStatus()){
 		CHECKBOX_SetState(hItem, 1);
 	}
 	WM_SetAlignParent(hItem, OBJ_ALIGN_PARENT_RIGHT, 0, 0);
@@ -117,7 +119,17 @@ static void _DelayDialogInit(WM_HWIN hParent)
 	//WM_SetAlignWindow(hBase, hItem, OBJ_ALIGN_BROTHER_V_CENTER, 0, 0);
 	WM_SetAlignParent(hItem, OBJ_ALIGN_PARENT_BOTTOM_CENTRE, 0, -5);
 	//WM_SetAlignWindow(hBase, hItem, OBJ_ALIGN_BROTHER_OUT_RIGHT, 0, 0);
-
+	//picker单位
+	hItem = WM_GetDialogItem(hParent, ID_DELAY_UNIT);
+	if(DELAY_CLOSE == Setting_GetDelayCloseStatus()){
+		TEXT_SetTextColor(hItem, GUI_GRAY);
+	}else{
+		TEXT_SetTextColor(hItem, GUI_BLACK);
+	}
+	TEXT_SetFont(hItem, &GUI_FontDialogYH24);
+	TEXT_SetText(hItem, "分钟");
+	WM_DisableWindow(hItem);
+	WM_SetAlignWindow(WM_GetDialogItem(hParent, ID_DELAY_PICKER), hItem, OBJ_ALIGN_BROTHER_CENTER, 70, 20);
 	WM_ShowWindowAndChild(hParent);
 }
 
@@ -141,15 +153,19 @@ static void _cbDelaySetDialog(WM_MESSAGE * pMsg) {
 						if(CHECKBOX_IsChecked(WM_GetDialogItem(pMsg->hWin, ID_DELAY_SWITCH))){
 							WM_EnableWindow(WM_GetDialogItem(pMsg->hWin, ID_DELAY_PICKER));
 							WM_EnableWindow(WM_GetDialogItem(pMsg->hWin, ID_DELAY_BTN_CONFIRM));
+							TEXT_SetTextColor(WM_GetDialogItem(pMsg->hWin, ID_DELAY_UNIT), GUI_BLACK);
 							Setting_SetDelayCloseStatus(DELAY_OPEN);
 						}else{
 							WM_DisableWindow(WM_GetDialogItem(pMsg->hWin, ID_DELAY_PICKER));
 							WM_DisableWindow(WM_GetDialogItem(pMsg->hWin, ID_DELAY_BTN_CONFIRM));
+							TEXT_SetTextColor(WM_GetDialogItem(pMsg->hWin, ID_DELAY_UNIT), GUI_GRAY);
 							Setting_SetDelayCloseStatus(DELAY_CLOSE);
 						}
+						HoodCom_SendTouchVoice();
 					break;
 					case ID_DELAY_BTN_CANLE:
 						WM_DeleteWindow(pMsg->hWin);
+						HoodCom_SendTouchVoice();
 					break;
 					case ID_DELAY_BTN_CONFIRM:
 					{
@@ -162,6 +178,7 @@ static void _cbDelaySetDialog(WM_MESSAGE * pMsg) {
 						}
 					}
 						WM_DeleteWindow(pMsg->hWin);
+						HoodCom_SendTouchVoice();
 					break;
 				}
 			}

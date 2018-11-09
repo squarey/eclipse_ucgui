@@ -6,6 +6,9 @@
  */
 
 #include "PageSet.h"
+#include "PageBrightnessSet.h"
+#include "PageWifi.h"
+#include "PageBluetooth.h"
 
 #define ID_WINDOW_SET				(ID_PAGE_SET_BASE + 0)
 #define ID_SET_H_LINE				(ID_PAGE_SET_BASE + 1)
@@ -42,6 +45,7 @@ static const GUI_WIDGET_CREATE_INFO _aWindowsPageSetCreate[] = {
 };
 
 static WM_HWIN _hPageSet = WM_HMEM_NULL;
+static WM_HWIN _hPageShow = WM_HWIN_NULL;
 static void _DialogInit(WM_HWIN hParent)
 {
 	WM_HWIN hItem, hBase;
@@ -112,7 +116,10 @@ static void _DialogInit(WM_HWIN hParent)
 	IMAGEVIEW_SetBitmap(hItem, &bmbtn_power_unfocus);
 	//WM_SetAlignParent(hItem, OBJ_ALIGN_PARENT_RIGHT_BOTTOM, -30, -20);
 
+	_hPageShow = PageBrightnessSetCreate(hParent);
+
 	WM_ShowWindowAndChild(hParent);
+
 }
 
 static void _cbWindowsPageSetDialog(WM_MESSAGE * pMsg) {
@@ -146,6 +153,11 @@ static void _cbWindowsPageSetDialog(WM_MESSAGE * pMsg) {
 						IMAGEVIEW_SetBkColor(WM_GetDialogItem(pMsg->hWin, ID_SET_BLUETOOTH_VIEW), DEF_UNSELECT_COLOR);
 						IMAGEVIEW_SetBitmap(WM_GetDialogItem(pMsg->hWin, ID_SET_BLUETOOTH_ICON), &bmbluetooth_icon_unfocus);
 						TEXT_SetTextColor(WM_GetDialogItem(pMsg->hWin, ID_SET_BLUETOOTH_TEXT), GUI_GRAY);
+						if(PageBrightnessGetHander() != _hPageShow){
+							WM_DeleteWindow(_hPageShow);
+							_hPageShow = PageBrightnessSetCreate(pMsg->hWin);
+						}
+						HoodCom_SendTouchVoice();
 					break;
 					case ID_SET_WIFI_VIEW:
 					case ID_SET_WIFI_ICON:
@@ -161,6 +173,15 @@ static void _cbWindowsPageSetDialog(WM_MESSAGE * pMsg) {
 						IMAGEVIEW_SetBkColor(WM_GetDialogItem(pMsg->hWin, ID_SET_BLUETOOTH_VIEW), DEF_UNSELECT_COLOR);
 						IMAGEVIEW_SetBitmap(WM_GetDialogItem(pMsg->hWin, ID_SET_BLUETOOTH_ICON), &bmbluetooth_icon_unfocus);
 						TEXT_SetTextColor(WM_GetDialogItem(pMsg->hWin, ID_SET_BLUETOOTH_TEXT), GUI_GRAY);
+						if(PageWifiGetHander() == _hPageShow){
+							WM_SendMessageNoPara(_hPageShow, ID_MSG_TO_SCAN_AP);
+						}else{
+							if(_hPageShow){
+								WM_DeleteWindow(_hPageShow);
+							}
+							_hPageShow = PageWifiCreate(pMsg->hWin);
+						}
+						HoodCom_SendTouchVoice();
 					break;
 					case ID_SET_BLUETOOTH_VIEW:
 					case ID_SET_BLUETOOTH_ICON:
@@ -176,6 +197,19 @@ static void _cbWindowsPageSetDialog(WM_MESSAGE * pMsg) {
 						IMAGEVIEW_SetBkColor(WM_GetDialogItem(pMsg->hWin, ID_SET_BLUETOOTH_VIEW), DEF_SELECT_COLOR);
 						IMAGEVIEW_SetBitmap(WM_GetDialogItem(pMsg->hWin, ID_SET_BLUETOOTH_ICON), &bmbluetooth_icon_focus);
 						TEXT_SetTextColor(WM_GetDialogItem(pMsg->hWin, ID_SET_BLUETOOTH_TEXT), GUI_WHITE);
+						HoodCom_SendTouchVoice();
+						if(PageBluetoothGetHander() == _hPageShow){
+
+						}else{
+							if(_hPageShow){
+								WM_DeleteWindow(_hPageShow);
+							}
+							_hPageShow = PageBluetoothCreate(pMsg->hWin);
+						}
+					break;
+					case ID_SET_BTN_CLOSE:
+						Setting_SetCloseAllFunc();
+						HoodCom_SendTouchVoice();
 					break;
 				}
 			}

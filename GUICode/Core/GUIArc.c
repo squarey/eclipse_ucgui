@@ -83,10 +83,10 @@ static void _DrawArc(I32 x0, I32 y0, I32 rx, I32 ry, I32 Angle0, I32 Angle1, I32
 {
 	float afx[4];
 	float afy[4];
-	float ri = rx-(GUI_Context.PenSize+1.5)/2;
-	float ro = rx+(GUI_Context.PenSize+1.5)/2;
-	float fAngle0 = Angle0*3.1415926/180;
-	float fAngle1 = Angle1*3.1415926/180;
+	float ri = rx - (GUI_Context.PenSize + 1.5)/2;
+	float ro = rx + (GUI_Context.PenSize + 1.5)/2;
+	float fAngle0 = Angle0 * 3.1415926/180;
+	float fAngle1 = Angle1 * 3.1415926/180;
 	float sin0 = sin(fAngle0);
 	float sin1 = sin(fAngle1);
 	float cos0 = cos(fAngle0);
@@ -122,10 +122,10 @@ static void _DrawArc(I32 x0, I32 y0, I32 rx, I32 ry, I32 Angle0, I32 Angle1, I32
 	/* Start drawing lines ... */
 	{
 		I32 xMinDisp, xMaxDisp, xMin=0,xMax=0;
-		for (y=yMax; y>=yMin; y--) {
+		for (y = yMax; y >= yMin; y--) {
 			_CalcX(&xMin, y, ri2);
 			_CalcX(&xMax, y, ro2);
-			if ((float)y< afy[1]) {
+			if ((float)y < afy[1]) {
 				xMaxDisp = _CalcInterSectLin(y,afy[0], afy[1], afx[0], afx[1]);
 			} else {
 				xMaxDisp = xMax;
@@ -135,10 +135,10 @@ static void _DrawArc(I32 x0, I32 y0, I32 rx, I32 ry, I32 Angle0, I32 Angle1, I32
 			} else {
 				xMinDisp = xMin;
 			}
-			if (xMul>0)
-				LCD_HL_DrawHLine(xMinDisp+x0, yMul*y+y0, xMaxDisp+x0);
+			if (xMul > 0)
+				LCD_HL_DrawHLine(xMinDisp + x0, yMul * y + y0, xMaxDisp + x0);
 			else
-				LCD_HL_DrawHLine(-xMaxDisp+x0, yMul*y+y0, -xMinDisp+x0);
+				LCD_HL_DrawHLine(-xMaxDisp + x0, yMul * y + y0, -xMinDisp + x0);
 		}
 	}
 #if 0  /* Test code */
@@ -165,57 +165,70 @@ static void _DrawArc(I32 x0, I32 y0, I32 rx, I32 ry, I32 Angle0, I32 Angle1, I32
 void GL_DrawArc(I32 x0, I32 y0, I32 rx, I32 ry, I32 a0, I32 a1)
 {
 	I32 aEnd;
-	a0+=360;
-	a1+=360;
-	while (a0>=360) {
+	a0 += 360;
+	a1 += 360;
+	if(a0 > a1){
+		a1 = a0;
+	}
+	while (a0 >= 360) {
 		a0 -= 360;
 		a1 -= 360;
 	}
 	/* Do first quadrant 0-90 degree */
-	DoFirst:
-	if (a1<=0)
+DoFirst:
+	if (a1 <= 0){
 		return;
-	if (a0<90) {
-		if (a0<0)
-			a0=0;
-		aEnd = (a1<90) ? a1 : 90;
-		_DrawArc(x0,y0,rx,ry,a0,aEnd, 1, -1);
 	}
-	a1-=90;
-	a0-=90;
+	if (a0 < 90) {
+		if (a0 < 0){
+			a0 = 0;
+		}
+		aEnd = (a1 < 90) ? a1 : 90;
+		_DrawArc(x0, y0, rx, ry, a0, aEnd, 1, -1);
+	}
+	a1 -= 90;
+	a0 -= 90;
 	/* Do second quadrant 90-180 degree */
-	if (a1<=0)
+	if (a1 <= 0){
 		return;
-	if (a0<90) {
-		if (a0<0)
-			a0=0;
-		aEnd = (a1<90) ? a1 : 90;
-		_DrawArc(x0,y0,rx,ry,90-aEnd, 90-a0,-1,-1);
 	}
-	a1-=90;
-	a0-=90;
+
+	if (a0 < 90) {
+		if (a0 < 0){
+			a0 = 0;
+		}
+
+		aEnd = (a1 < 90) ? a1 : 90;
+		_DrawArc(x0, y0, rx, ry, 90 - aEnd, 90 - a0, -1, -1);
+	}
+	a1 -= 90;
+	a0 -= 90;
 	/* Do third quadrant 180-270 degree */
-	if (a1<=0)
+	if (a1 <= 0){
 		return;
-	if (a0<90) {
-		if (a0<0)
-			a0=0;
-		aEnd = (a1<90) ? a1 : 90;
-		_DrawArc(x0,y0,rx,ry,a0,aEnd, -1, 1);
 	}
-	a1-=90;
-	a0-=90;
+	if (a0 < 90) {
+		if (a0 < 0){
+			a0 = 0;
+		}
+		aEnd = (a1<90) ? a1 : 90;
+		_DrawArc(x0, y0, rx, ry, a0, aEnd, -1, 1);
+	}
+	a1 -= 90;
+	a0 -=90;
 	/* Do last quadrant 270-360 degree */
-	if (a1<=0)
+	if (a1 <= 0){
 		return;
-	if (a0<90) {
-		if (a0<0)
-			a0=0;
-		aEnd = (a1<90) ? a1 : 90;
-		_DrawArc(x0,y0,rx,ry,90-aEnd, 90-a0,1,1);
 	}
-	a1-=90;
-	a0-=90;
+	if (a0 < 90) {
+		if (a0 < 0){
+			a0 = 0;
+		}
+		aEnd = (a1 < 90) ? a1 : 90;
+		_DrawArc(x0, y0, rx, ry, 90-aEnd, 90-a0, 1, 1);
+	}
+	a1 -= 90;
+	a0 -= 90;
 	goto DoFirst;
 }
 
